@@ -31,14 +31,17 @@ export async function migrate(
   const from = await currentSchemaVersion(db);
   const applied: string[] = [];
   for (const m of sorted.filter((m) => m.version > from)) {
-    await db.transaction(async (tx) => {
-      await tx.exec(m.sql);
-      await tx.run('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)', [
-        m.version,
-        m.name,
-        nowIso(),
-      ]);
-    });
+    await db.transaction(
+      async (tx) => {
+        await tx.exec(m.sql);
+        await tx.run('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)', [
+          m.version,
+          m.name,
+          nowIso(),
+        ]);
+      },
+      { foreignKeysOff: m.disableForeignKeys },
+    );
     applied.push(m.name);
   }
   return { from, to: sorted.at(-1)?.version ?? 0, applied };

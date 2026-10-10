@@ -1,6 +1,6 @@
 # Biblioteca de exercícios
 
-A biblioteca é um catálogo **só de consulta** que vem com a app (376 exercícios, por grupo muscular e
+A biblioteca é um catálogo **só de consulta** que vem com a app (400 exercícios, por grupo muscular e
 equipamento). Nada entra nos teus exercícios até tocares em **Adicionar** (Exercícios → Biblioteca).
 Depois de adicionado, o exercício é teu e editas como quiseres.
 
@@ -32,7 +32,8 @@ Um exercício adicionado tem id `UUID v5("library:<chave>")`, onde a chave é no
 o mesmo item no telemóvel e no PC dá o mesmo exercício (não duplica no sync). Adicionar de novo
 depois de arquivar reativa a mesma linha.
 
-## Fora, por agora
+## Cardio
 
-Os 24 exercícios de cardio (passadeira, bicicleta, elíptica, remo, escada, ski erg) não entram até
-existir um tipo CARDIO (duração, distância, calorias). Ver decisões em aberto no documento do projeto.
+Os 24 exercícios de cardio (passadeira, bicicleta, elíptica, remo, escada, ski erg) entram como tipo
+CARDIO, medidos por duração, com o aparelho no nome («Passadeira: corrida contínua») e grupo «Cardio».
+Distância e calorias registam-se em cada série (colunas `distance_m` e `calories_kcal`).

@@ -77,6 +77,9 @@ export class CapacitorSqliteAdapter extends BaseAdapter {
   }
 
   async flush(): Promise<void> {
-    if (this.isWeb) await this.sqlite.saveToStore(DB_NAME);
+    if (!this.isWeb) return;
+    await this.sqlite.saveToStore(DB_NAME);
+    // Gravar no browser reabre a base (sql.js export) e pode repor os PRAGMAs: volta a ligar as chaves estrangeiras.
+    await this.db.execute('PRAGMA foreign_keys = ON;', false);
   }
 }

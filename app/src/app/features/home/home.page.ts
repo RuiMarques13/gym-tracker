@@ -32,16 +32,21 @@ import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
     <ion-content class="ion-padding">
       <div class="page">
         <h1 class="greeting">Bom treino.</h1>
-        <p class="lede">A base local está pronta. Os ecrãs de treino chegam na Fase 1.</p>
+        <p class="lede">Os teus exercícios já se gerem aqui. Treinos e sessões são os próximos passos.</p>
 
+        <p class="stats-title">Os teus exercícios</p>
         <div class="stats">
           <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'STRENGTH' }">
             <span class="value">{{ counts.value()?.strength ?? '–' }}</span>
-            <span class="label">exercícios de força</span>
+            <span class="label">de força</span>
           </a>
           <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'MOBILITY' }">
             <span class="value">{{ counts.value()?.mobility ?? '–' }}</span>
-            <span class="label">exercícios de mobilidade</span>
+            <span class="label">de mobilidade</span>
+          </a>
+          <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'CARDIO' }">
+            <span class="value">{{ counts.value()?.cardio ?? '–' }}</span>
+            <span class="label">de cardio</span>
           </a>
         </div>
 
@@ -85,7 +90,8 @@ import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
     .page { max-width: 760px; margin: 0 auto; }
     .greeting { font-size: 1.9rem; font-weight: 700; margin: 8px 0 4px; letter-spacing: -0.01em; }
     .lede { color: var(--ion-color-medium); margin: 0 0 20px; }
-    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
+    .stats-title { font-size: 0.8rem; color: var(--ion-color-medium); margin: 0 0 6px; }
     .stat {
       display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 14px;
       background: var(--ion-background-color-step-50, rgba(127,127,127,0.08)); text-decoration: none; color: inherit;
@@ -116,6 +122,7 @@ export class HomePage {
       return {
         strength: all.filter((e) => e.kind === 'STRENGTH').length,
         mobility: all.filter((e) => e.kind === 'MOBILITY').length,
+        cardio: all.filter((e) => e.kind === 'CARDIO').length,
       };
     },
   });

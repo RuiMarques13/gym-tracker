@@ -37,7 +37,13 @@ ion-menu ion-content {
 }
 
 /* Botões sem maiúsculas forçadas (Material) — lê-se melhor em português. */
-ion-button {
+ion-button,
+ion-segment-button {
   text-transform: none;
   letter-spacing: normal;
+}
+
+ion-segment-button {
+  min-width: auto;
+  font-size: 0.95rem;
 }

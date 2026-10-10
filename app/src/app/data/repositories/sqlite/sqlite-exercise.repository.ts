@@ -1,7 +1,7 @@
 import type { DbAdapter, SqlValue } from '../../../core/db/db-adapter';
 import type { Clock } from '../../../core/util/clock';
 import { ids, newId } from '../../../core/util/uuid';
-import type { Kind, MetricType, MovementType, Region } from '../../models/enums';
+import { Kind, MetricType, METRICS_BY_KIND, MovementType, Region } from '../../models/enums';
 import { Exercise, ExerciseFilter, ExerciseInput, ExerciseValidationError } from '../../models/exercise';
 import type { ExerciseRepository } from '../exercise.repository';
 
@@ -43,13 +43,19 @@ export class SqliteExerciseRepository implements ExerciseRepository {
   async save(input: ExerciseInput): Promise<Exercise> {
     const name = input.name?.trim() ?? '';
     if (!name) throw new ExerciseValidationError('name', 'O nome é obrigatório.');
-    if (input.kind === 'MOBILITY' && input.metricType === 'WEIGHT_REPS') {
-      throw new ExerciseValidationError('metricType', 'Mobilidade mede-se por repetições ou duração, não por carga.');
+    if (!METRICS_BY_KIND[input.kind]?.includes(input.metricType)) {
+      throw new ExerciseValidationError(
+        'metricType',
+        input.kind === 'CARDIO'
+          ? 'Cardio mede-se por duração (com distância e calorias opcionais).'
+          : 'Mobilidade mede-se por repetições ou duração, não por carga.',
+      );
     }
     const id = input.id ?? newId();
     await this.assertNameFree(name, id);
 
     const isMobility = input.kind === 'MOBILITY';
+    const isStrength = input.kind === 'STRENGTH';
     const primary = isMobility ? [] : unique(input.primaryMuscleIds ?? []);
     const secondary = isMobility ? [] : unique(input.secondaryMuscleIds ?? []).filter((m) => !primary.includes(m));
     const areas = isMobility ? unique(input.mobilityAreaIds ?? []) : [];
@@ -68,8 +74,8 @@ export class SqliteExerciseRepository implements ExerciseRepository {
            notes = excluded.notes, video_url = excluded.video_url, archived_at = NULL,
            updated_at = excluded.updated_at, deleted_at = NULL, device_id = excluded.device_id`,
         [
-          id, name, input.kind, input.metricType, input.isUnilateral ? 1 : 0, input.region ?? null,
-          isMobility ? null : (input.movementType ?? null), input.isIsometric ? 1 : 0, input.equipmentId ?? null,
+          id, name, input.kind, input.metricType, input.kind !== 'CARDIO' && input.isUnilateral ? 1 : 0, input.region ?? null,
+          isStrength ? (input.movementType ?? null) : null, isStrength && input.isIsometric ? 1 : 0, input.equipmentId ?? null,
           input.defaultRestSeconds ?? null, emptyToNull(input.notes), emptyToNull(input.videoUrl), now, this.deviceId,
         ],
       );
@@ -237,7 +243,11 @@ export class SqliteExerciseRepository implements ExerciseRepository {
     // Pesquisa por nome em JS: o SQLite não ignora acentos e o catálogo é pequeno.
     const q = filter.q?.trim() ? fold(filter.q.trim()) : null;
     const matched = q ? rows.filter((r) => fold(r.name).includes(q)) : rows;
-    matched.sort((a, b) => a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }));
+    if (filter.sort === 'recent') {
+      matched.sort((a, b) => b.updated_at.localeCompare(a.updated_at) || a.name.localeCompare(b.name, 'pt'));
+    } else {
+      matched.sort((a, b) => a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }));
+    }
     return this.withRelations(matched);
   }
 

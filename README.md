@@ -4,7 +4,7 @@ App pessoal para planear e registar treinos de força e mobilidade. Local primei
 dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: documento
 «Gym Tracker — requisitos, arquitetura e fases» (v2) no projeto.
 
-## Estado: Fase 0 (fundações)
+## Estado: Fase 0 concluída, Fase 1.1 concluída
 
 - [x] Projeto Ionic 9 + Angular 21 (standalone, sem zone.js) + Capacitor 8, alvos web e Android
 - [x] `DbAdapter` com três implementações: SQLite nativo (Android), jeep-sqlite (browser), sql.js (testes)
@@ -14,8 +14,10 @@ dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: docum
 - [x] Catálogo editável + importador do Excel + seed (25 força, 14 mobilidade) com IDs determinísticos
 - [x] Navegação: separadores no telemóvel, menu lateral no PC; tema claro/escuro/sistema
 - [x] `ExerciseRepository` completo (pesquisa, filtros, guardar, arquivar, restaurar, remover), adiantado da Fase 1.1
-- [x] Biblioteca de 376 exercícios (Exercícios → Biblioteca), adiciona com um toque (ver `docs/biblioteca.md`)
-- [x] 45 testes em Node (migrações, restrições, seed, definições, transações, repositório, biblioteca)
+- [x] Biblioteca de 400 exercícios, incluindo 24 de cardio (Exercícios → Biblioteca), adiciona com um toque (ver `docs/biblioteca.md`)
+- [x] Fase 1.1: criar, editar, arquivar, restaurar e apagar exercícios; filtros completos e ordenação
+- [x] Tipo Cardio (migração 002): duração, com distância e calorias opcionais por série
+- [x] 50 testes em Node (migrações, restrições, seed, definições, transações, repositório, biblioteca)
 - [ ] APK testado num Android real (falta correr no teu PC, ver abaixo)
 
 ## Requisitos
@@ -86,5 +88,8 @@ docs/                 notas técnicas
 - **`.npmrc` com `legacy-peer-deps`.** Contorna um erro do npm 10 na resolução de dependências do Vitest.
 - **Sem índices UNIQUE em nomes**: a unicidade valida-se nos repositórios, para o sync nunca falhar
   por duas linhas com o mesmo nome criadas em dispositivos diferentes.
+- **Migrações que reconstroem tabelas** (ex.: 002) usam `disableForeignKeys`: o adaptador desliga as
+  chaves estrangeiras, corre a transação, verifica `PRAGMA foreign_key_check` e volta a ligá-las, sem
+  gravar a meio (no browser, gravar reabre a base e repõe os PRAGMAs).
 - **Migrações em TypeScript** (`001-init.ts`) em vez de `.sql`, para o mesmo ficheiro servir o build e os testes sem configuração extra.
 - IDs determinísticos: ver `docs/ids.md`.

@@ -1,4 +1,4 @@
-import { DbAdapter, SqlValue } from '../db-adapter';
+import { DbAdapter, SqlValue, TransactionOptions } from '../db-adapter';
 
 /**
  * Serializa o acesso à base: cada operação de topo espera pela anterior,
@@ -40,17 +40,30 @@ export abstract class BaseAdapter implements DbAdapter {
     });
   }
 
-  transaction<T>(fn: (tx: DbAdapter) => Promise<T>): Promise<T> {
+  transaction<T>(fn: (tx: DbAdapter) => Promise<T>, options: TransactionOptions = {}): Promise<T> {
     return this.enqueue(async () => {
-      await this.begin();
+      // Sem flush entre o PRAGMA e a transação: no browser, gravar reabre a base e repõe o PRAGMA.
+      if (options.foreignKeysOff) await this.rawExec('PRAGMA foreign_keys = OFF;');
       try {
-        const result = await fn(this.txView());
-        await this.commit();
-        await this.flush();
+        await this.begin();
+        let result: T;
+        try {
+          result = await fn(this.txView());
+          if (options.foreignKeysOff) {
+            const broken = await this.rawQuery<{ table: string }>('PRAGMA foreign_key_check', []);
+            if (broken.length) {
+              throw new Error(`${broken.length} referências inválidas depois da alteração (ex.: ${broken[0].table})`);
+            }
+          }
+          await this.commit();
+        } catch (err) {
+          await this.rollback();
+          throw err;
+        }
         return result;
-      } catch (err) {
-        await this.rollback();
-        throw err;
+      } finally {
+        if (options.foreignKeysOff) await this.rawExec('PRAGMA foreign_keys = ON;');
+        await this.flush();
       }
     });
   }

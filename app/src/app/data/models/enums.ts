@@ -1,4 +1,4 @@
-export type Kind = 'STRENGTH' | 'MOBILITY';
+export type Kind = 'STRENGTH' | 'MOBILITY' | 'CARDIO';
 export type MetricType = 'WEIGHT_REPS' | 'REPS' | 'DURATION';
 export type Region = 'UPPER' | 'LOWER' | 'CORE' | 'FULL_BODY';
 export type MovementType = 'PUSH' | 'PULL';
@@ -18,7 +18,17 @@ export const REGION_LABEL: Record<Region, string> = {
 export const KIND_LABEL: Record<Kind, string> = {
   STRENGTH: 'Força',
   MOBILITY: 'Mobilidade',
+  CARDIO: 'Cardio',
 };
+
+/** Medidas permitidas por tipo de exercício. */
+export const METRICS_BY_KIND: Record<Kind, MetricType[]> = {
+  STRENGTH: ['WEIGHT_REPS', 'REPS', 'DURATION'],
+  MOBILITY: ['REPS', 'DURATION'],
+  CARDIO: ['DURATION'],
+};
+
+export const MOVEMENT_LABEL: Record<MovementType, string> = { PUSH: 'Push', PULL: 'Pull' };
 
 export const METRIC_LABEL: Record<MetricType, string> = {
   WEIGHT_REPS: 'Carga × reps',

@@ -2,6 +2,7 @@ import { inject, InjectionToken } from '@angular/core';
 import { DatabaseService } from '../../core/db/database.service';
 import { CLOCK } from '../../core/util/clock';
 import { ExerciseRepository } from './exercise.repository';
+import { LookupRepository, SqliteLookupRepository } from './lookup.repository';
 import { SqliteExerciseRepository } from './sqlite/sqlite-exercise.repository';
 
 /**
@@ -14,4 +15,9 @@ export const EXERCISE_REPOSITORY = new InjectionToken<ExerciseRepository>('Exerc
     const database = inject(DatabaseService);
     return new SqliteExerciseRepository(database.db, inject(CLOCK), database.deviceId);
   },
+});
+
+export const LOOKUP_REPOSITORY = new InjectionToken<LookupRepository>('LookupRepository', {
+  providedIn: 'root',
+  factory: () => new SqliteLookupRepository(inject(DatabaseService).db),
 });

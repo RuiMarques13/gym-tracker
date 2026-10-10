@@ -32,6 +32,8 @@ export interface ExerciseFilter {
   unilateral?: boolean;
   equipmentIds?: string[];
   includeArchived?: boolean;
+  /** name (A→Z, por defeito) ou recent (alterados mais recentemente primeiro). */
+  sort?: 'name' | 'recent';
 }
 
 /** Dados para criar ou editar. Sem id = novo (UUID v4); com id = atualiza ou cria com esse id. */

@@ -14,7 +14,8 @@
  * - Nomes repetidos com equipamentos diferentes levam o equipamento entre parênteses.
  * - Músculo, medida e unilateral são inferidos por palavras-chave: são um ponto de partida,
  *   editável na app depois de adicionar.
- * - Cardio (passadeira, bicicleta, ...) fica de fora até existir kind CARDIO.
+ * - Cardio (passadeira, bicicleta, ...) entra como kind CARDIO, medido por duração, com o
+ *   aparelho no nome («Passadeira: corrida contínua») e grupo próprio «Cardio».
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -45,7 +46,11 @@ const EQUIPMENT_SUFFIX = {
   dumbbell: 'halteres', barbell: 'barra', machine: 'máquina', cable: 'cabo', band: 'elástico',
   kettlebell: 'kettlebell', bodyweight: 'peso corporal', other: 'funcional',
 };
-const CARDIO_ROWS = new Set(['passadeira', 'bicicleta', 'eliptica', 'remo ergometro', 'escada / stepper', 'ski erg']);
+/** Linhas de cardio: equipamento e nome usado no prefixo («Passadeira: caminhada»). */
+const CARDIO_ROWS = {
+  'passadeira': 'treadmill', 'bicicleta': 'bike', 'eliptica': 'elliptical',
+  'remo ergometro': 'rower', 'escada / stepper': 'stair', 'ski erg': 'skierg',
+};
 
 /** Por secção: músculo/movimento por defeito e regras [regex, principal, secundários, movimento]. */
 const SECTIONS = {
@@ -197,8 +202,15 @@ for (const line of source.split('\n')) {
   const row = line.match(/^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$/);
   if (!row || /^-+$/.test(row[1]) || fold(row[1]) === 'equipamento') continue;
   const equipLabel = fold(row[1]);
-  if (CARDIO_ROWS.has(equipLabel)) {
-    cardio.push(...splitCell(row[2]).map((x) => `${row[1]}: ${x}`));
+  if (CARDIO_ROWS[equipLabel]) {
+    for (const raw of splitCell(row[2])) {
+      const { name, variants } = parseItem(raw);
+      cardio.push({
+        section: 'cardio', name: `${row[1].trim()}: ${name.charAt(0).toLowerCase()}${name.slice(1)}`, variants,
+        equipment: CARDIO_ROWS[equipLabel], region: 'FULL_BODY', kind: 'CARDIO', primary: null, secondary: [],
+        move: null, metricType: 'DURATION', isIsometric: false, isUnilateral: false,
+      });
+    }
     continue;
   }
   const equipment = EQUIPMENT[equipLabel];
@@ -212,7 +224,7 @@ for (const line of source.split('\n')) {
 
 // ---- Juntar repetidos (mesmo nome + equipamento) ----
 const merged = new Map();
-for (const it of items) {
+for (const it of [...items, ...cardio]) {
   const k = `${fold(it.name)}|${it.equipment}`;
   const prev = merged.get(k);
   if (!prev) {
@@ -243,7 +255,7 @@ const library = [...merged.values()].map((it) => {
     key: `${slug(it.name)}--${it.equipment}`,
     name: display,
     group: it.section,
-    kind: 'STRENGTH',
+    kind: it.kind ?? 'STRENGTH',
     metricType: it.metricType,
     isUnilateral: it.isUnilateral,
     isIsometric: it.isIsometric,
@@ -276,19 +288,19 @@ const GROUP_LABELS = {
   'triceps': 'Tríceps', 'quadriceps': 'Quadríceps', 'isquiotibiais e gluteos': 'Isquiotibiais e glúteos',
   'gemeos, adutores e abdutores': 'Gémeos, adutores e abdutores', 'core e abdominais': 'Core e abdominais',
   'corpo inteiro, funcional e cardio': 'Corpo inteiro e funcional',
+  'cardio': 'Cardio',
 };
-const groups = Object.keys(SECTIONS).map((k) => ({ key: k, label: GROUP_LABELS[k] }));
+const groups = [...Object.keys(SECTIONS), 'cardio'].map((k) => ({ key: k, label: GROUP_LABELS[k] }));
 
 const out = `// GERADO por tools/exercise-library/build-library.mjs a partir de catalogo-exercicios.md. Não editar à mão.
 import type { LibraryData } from './library-types';
 
-export const LIBRARY: LibraryData = ${JSON.stringify({ version: 1, groups, items: library }, null, 2)};
+export const LIBRARY: LibraryData = ${JSON.stringify({ version: 2, groups, items: library }, null, 2)};
 `;
 writeFileSync(outPath, out);
 
 const count = (f) => library.filter(f).length;
-console.log(`Biblioteca: ${library.length} exercícios (${items.length - library.length} repetidos juntados)`);
+console.log(`Biblioteca: ${library.length} exercícios (${items.length + cardio.length - library.length} repetidos juntados)`);
 for (const g of groups) console.log(`  ${g.label}: ${count((l) => l.group === g.key)}`);
 console.log(`  unilaterais: ${count((l) => l.isUnilateral)}, duração: ${count((l) => l.metricType === 'DURATION')}, reps: ${count((l) => l.metricType === 'REPS')}`);
-console.log(`Cardio fora da biblioteca (à espera de kind CARDIO): ${cardio.length}`);
 console.log(`→ ${outPath}`);

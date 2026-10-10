@@ -17,6 +17,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/library/library.page').then((m) => m.LibraryPage),
   },
   {
+    path: 'exercicios/novo',
+    loadComponent: () => import('./features/exercises/exercise-form.page').then((m) => m.ExerciseFormPage),
+  },
+  {
+    path: 'exercicios/:id',
+    loadComponent: () => import('./features/exercises/exercise-form.page').then((m) => m.ExerciseFormPage),
+  },
+  {
     path: 'definicoes',
     loadComponent: () => import('./features/settings/settings.page').then((m) => m.SettingsPage),
   },

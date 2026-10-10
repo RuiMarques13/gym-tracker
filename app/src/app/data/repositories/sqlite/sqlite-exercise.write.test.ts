@@ -79,6 +79,30 @@ describe('save', () => {
   });
 });
 
+describe('cardio', () => {
+  it('aceita só duração e ignora unilateral, isométrico e push/pull', async () => {
+    await expect(repo.save({ name: 'Corrida', kind: 'CARDIO', metricType: 'REPS' })).rejects.toThrow(/Cardio/);
+    const ex = await repo.save({
+      name: 'Corrida', kind: 'CARDIO', metricType: 'DURATION', isUnilateral: true, isIsometric: true,
+      movementType: 'PUSH', equipmentId: ids.equipment('treadmill'),
+    });
+    expect(ex).toMatchObject({ kind: 'CARDIO', isUnilateral: false, isIsometric: false, movementType: null, equipmentName: 'Passadeira' });
+  });
+
+  it('a biblioteca tem os 24 de cardio e adicionam-se sem erros', async () => {
+    const cardio = LIBRARY.items.filter((i) => i.kind === 'CARDIO');
+    expect(cardio).toHaveLength(24);
+    for (const item of cardio) await repo.save(libraryItemToInput(item));
+    expect(await repo.list({ kind: 'CARDIO' })).toHaveLength(24);
+  });
+
+  it('ordenação por mais recentes', async () => {
+    clock.advance(60_000);
+    await repo.save({ name: 'Recente', kind: 'CARDIO', metricType: 'DURATION' });
+    expect((await repo.list({ sort: 'recent' }))[0].name).toBe('Recente');
+  });
+});
+
 describe('arquivar, restaurar e remover', () => {
   it('arquivar esconde da lista e restaurar devolve', async () => {
     const id = ids.exercise('Lunges');

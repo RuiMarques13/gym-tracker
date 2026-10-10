@@ -2,7 +2,7 @@
 import { SeedData } from './seed-types';
 
 export const SEED: SeedData = {
-  "version": 2,
+  "version": 3,
   "equipment": [
     {
       "key": "machine",
@@ -35,6 +35,30 @@ export const SEED: SeedData = {
     {
       "key": "other",
       "name": "Outro"
+    },
+    {
+      "key": "treadmill",
+      "name": "Passadeira"
+    },
+    {
+      "key": "bike",
+      "name": "Bicicleta"
+    },
+    {
+      "key": "elliptical",
+      "name": "Elíptica"
+    },
+    {
+      "key": "rower",
+      "name": "Remo ergómetro"
+    },
+    {
+      "key": "stair",
+      "name": "Escada / stepper"
+    },
+    {
+      "key": "skierg",
+      "name": "Ski erg"
     }
   ],
   "muscles": [

@@ -17,8 +17,8 @@ describe('migrações', () => {
   it('cria o esquema numa base vazia', async () => {
     const db = await createEmptyDb();
     const result = await migrate(db);
-    expect(result).toEqual({ from: 0, to: 1, applied: ['001-init'] });
-    expect(await currentSchemaVersion(db)).toBe(1);
+    expect(result).toEqual({ from: 0, to: 2, applied: ['001-init', '002-cardio'] });
+    expect(await currentSchemaVersion(db)).toBe(2);
 
     const tables = (
       await db.query<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table'")
@@ -40,7 +40,7 @@ describe('migrações', () => {
     await migrate(db);
     const again = await migrate(db);
     expect(again.applied).toEqual([]);
-    expect(again.from).toBe(1);
+    expect(again.from).toBe(2);
   });
 
   it('uma migração que falha não deixa nada a meio', async () => {
@@ -48,12 +48,41 @@ describe('migrações', () => {
     await migrate(db);
     const broken = [
       ...MIGRATIONS,
-      { version: 2, name: '002-broken', sql: 'CREATE TABLE half_done (id TEXT); SELECT * FROM nao_existe;' },
+      { version: 3, name: '003-broken', sql: 'CREATE TABLE half_done (id TEXT); SELECT * FROM nao_existe;' },
     ];
     await expect(migrate(db, broken)).rejects.toThrow();
-    expect(await currentSchemaVersion(db)).toBe(1);
+    expect(await currentSchemaVersion(db)).toBe(2);
     const half = await db.query("SELECT name FROM sqlite_master WHERE name = 'half_done'");
     expect(half).toEqual([]);
+  });
+
+  it('002 reconstrói exercise numa base com dados, sem perder linhas nem ligações', async () => {
+    const db = await createEmptyDb();
+    await migrate(db, MIGRATIONS.slice(0, 1));
+    const t = "'2026-10-10T00:00:00.000Z', 'dev'";
+    await db.run(`INSERT INTO muscle_group (id, name, updated_at, device_id) VALUES ('m', 'Peito', ${t})`);
+    await db.run(`INSERT INTO exercise (id, name, kind, metric_type, archived_at, updated_at, device_id)
+                  VALUES ('e', 'Supino', 'STRENGTH', 'WEIGHT_REPS', '2026-01-01', ${t})`);
+    await db.run(`INSERT INTO exercise_muscle (id, exercise_id, muscle_group_id, is_primary, updated_at, device_id)
+                  VALUES ('em', 'e', 'm', 1, ${t})`);
+
+    expect((await migrate(db)).applied).toEqual(['002-cardio']);
+    expect(await db.query('SELECT id, name, archived_at FROM exercise')).toEqual([
+      { id: 'e', name: 'Supino', archived_at: '2026-01-01' },
+    ]);
+    expect(await db.query('PRAGMA foreign_key_check')).toEqual([]);
+    // chaves estrangeiras voltaram a estar ligadas
+    expect(await db.query<{ foreign_keys: number }>('PRAGMA foreign_keys')).toEqual([{ foreign_keys: 1 }]);
+    await expect(
+      db.run(`INSERT INTO exercise_muscle (id, exercise_id, muscle_group_id, updated_at, device_id) VALUES ('x', 'nao', 'm', ${t})`),
+    ).rejects.toThrow();
+    // cardio aceite só com duração
+    await db.run(`INSERT INTO exercise (id, name, kind, metric_type, updated_at, device_id) VALUES ('c', 'Remo', 'CARDIO', 'DURATION', ${t})`);
+    await expect(
+      db.run(`INSERT INTO exercise (id, name, kind, metric_type, updated_at, device_id) VALUES ('c2', 'X', 'CARDIO', 'REPS', ${t})`),
+    ).rejects.toThrow();
+    const cols = (await db.query<{ name: string }>('PRAGMA table_info(set_log)')).map((c) => c.name);
+    expect(cols).toEqual(expect.arrayContaining(['distance_m', 'calories_kcal']));
   });
 
   it('rejeita migrações fora de sequência', async () => {
