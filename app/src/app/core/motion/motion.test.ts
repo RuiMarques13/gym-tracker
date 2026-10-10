@@ -38,7 +38,7 @@ describe('animações', () => {
     expect(id('Leg curl deitado')).toBe('legcurl-lying');
     expect(id('Hip thrust (barra)')).toBe('hipthrust');
     expect(id('Farmer’s walk')).toBe('carry');
-    expect(id('Curl inclinado')).toBe('curl');
+    expect(id('Curl inclinado')).toBe('curl-incline');
     expect(id('Gato-camelo')).toBe('mob-catcamel');
     expect(id('Bicicleta: spinning')).toBe('bike');
   });

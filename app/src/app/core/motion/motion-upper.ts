@@ -75,24 +75,36 @@ export const UPPER_MOTIONS: Motion[] = [
   f({ id: 'lateral', label: 'Elevação lateral' }, { ua: [10, 10], fa: [10, 10] }, { ua: [88, 88], fa: [88, 88] }, true),
   m({ id: 'front-raise', label: 'Elevação frontal' }, standing({ uarm: 178, farm: 178 }), standing({ uarm: 92, farm: 92 }), true),
   f({ id: 'rear-raise', label: 'Elevação posterior' }, { lean: 72, ua: [12, 12], fa: [12, 12] }, { lean: 72, ua: [88, 88], fa: [88, 88] }, true),
-  m({ id: 'upright', label: 'Remada alta' }, standing({ uarm: 178, farm: 178 }), standing({ uarm: 78, farm: 205 }), true),
-  m({ id: 'facepull', label: 'Face pull', props: [{ kind: 'cable', d: 'M60 38 H94' }] },
-    standing({ uarm: 90, farm: 90 }), standing({ uarm: 252, farm: 52 })),
+  m({ id: 'upright', label: 'Remada alta' }, standing({ uarm: 178, farm: 178 }), standing({ uarm: 82, farm: 208 }), true),
+  // Face pull: polia à altura da cara, cabo horizontal; puxa-se até as mãos ficarem junto às orelhas, cotovelos atrás e altos.
+  m({ id: 'facepull', label: 'Face pull', pulley: [96, 17] },
+    standing({ uarm: 92, farm: 92 }), standing({ uarm: 250, farm: 25 })),
   f({ id: 'rotation-ext', label: 'Rotação externa' }, { ua: [8, 8], fa: [-80, -80] }, { ua: [8, 8], fa: [80, 80] }, true),
   // ---- Braços ----
-  m({ id: 'curl', label: 'Curl' }, standing({ uarm: 182, farm: 182 }), standing({ uarm: 186, farm: 30 }), true),
-  m({ id: 'curl-preacher', label: 'Curl no banco Scott', props: [{ kind: 'incline', d: 'M52 80 L66 62 H50' }] },
-    standing({ at: [36, 90], uarm: 150, farm: 150 }), standing({ at: [36, 90], uarm: 150, farm: -30 }), true),
-  m({ id: 'curl-hammer', label: 'Curl martelo' }, standing({ uarm: 182, farm: 182 }), standing({ uarm: 186, farm: 30 }), true),
+  // Curls: o braço fica parado junto ao tronco (cotovelo ligeiramente à frente) e só o antebraço roda no cotovelo (~145°).
+  // Cabo: polia baixa, à frente.
+  m({ id: 'curl', label: 'Curl', pulley: [94, 88] }, standing({ uarm: 174, farm: 174 }), standing({ uarm: 170, farm: 28 }), true),
+  // Banco Scott: a almofada inclina-se para a frente e baixo; o braço assenta nela (~45°) e só o antebraço roda.
+  m({ id: 'curl-preacher', label: 'Curl no banco Scott', pulley: [94, 88], props: [{ kind: 'incline', d: 'M39 30 L60 51 M54 45 V90' }] },
+    standing({ torso: 6, uarm: 135, farm: 135 }), standing({ torso: 6, uarm: 135, farm: -18 }), true),
+  m({ id: 'curl-hammer', label: 'Curl martelo', pulley: [94, 88] }, standing({ uarm: 174, farm: 174 }), standing({ uarm: 170, farm: 28 }), true),
+  // Curl inclinado/bayesiano: o braço fica atrás do tronco (ombro em extensão) e o bíceps fica alongado em baixo.
+  (() => {
+    const pose: Pose = { anchor: 'hip', at: [42, 66], shin: 8, thigh: -90, torso: -32 };
+    return m({ id: 'curl-incline', label: 'Curl inclinado', pulley: [10, 88], props: benchAlong(pose) },
+      { ...pose, uarm: 188, farm: 188 }, { ...pose, uarm: 188, farm: 30 }, true);
+  })(),
   m({ id: 'wrist-curl', label: 'Curl de pulso', props: [{ kind: 'bench', d: 'M30 70 H70' }] },
     { anchor: 'hip', at: [30, 62], shin: 4, thigh: -90, torso: 12, uarm: 150, farm: 105 },
     { anchor: 'hip', at: [30, 62], shin: 4, thigh: -90, torso: 12, uarm: 150, farm: 70 }, true),
-  m({ id: 'pushdown', label: 'Extensão de tríceps no cabo', props: [{ kind: 'cable', d: 'M57 4 V42' }] },
-    standing({ uarm: 178, farm: 82 }), standing({ uarm: 178, farm: 176 }), true),
-  m({ id: 'tri-overhead', label: 'Extensão acima da cabeça' }, standing({ uarm: 2, farm: 232 }), standing({ uarm: 2, farm: 315 }), true),
+  // Pushdown: polia alta; cotovelos colados ao tronco a apontar para o chão; só o antebraço roda (de 90° até estender).
+  m({ id: 'pushdown', label: 'Extensão de tríceps no cabo', pulley: [60, 4] },
+    standing({ torso: 8, uarm: 176, farm: 96 }), standing({ torso: 8, uarm: 176, farm: 176 }), true),
+  // Acima da cabeça: braço vertical junto à orelha, cotovelos fixos; o cabo vem de trás e de baixo.
+  m({ id: 'tri-overhead', label: 'Extensão acima da cabeça', pulley: [6, 88] }, standing({ at: [46, 92], uarm: 10, farm: 214 }), standing({ at: [46, 92], uarm: 10, farm: 14 }), true),
   m({ id: 'skull', label: 'Skull crusher', props: [BENCH] }, lying({ uarm: 4, farm: 128 }), lying({ uarm: 4, farm: 4 }), true),
-  m({ id: 'kickback-tri', label: 'Kickback de tríceps' },
-    standing({ shin: 6, thigh: -14, torso: 78, uarm: 266, farm: 185 }), standing({ shin: 6, thigh: -14, torso: 78, uarm: 266, farm: 268 }), true),
+  m({ id: 'kickback-tri', label: 'Kickback de tríceps', pulley: [94, 84] },
+    standing({ shin: 6, thigh: -14, torso: 78, uarm: 258, farm: 172 }), standing({ shin: 6, thigh: -14, torso: 78, uarm: 258, farm: 258 }), true),
   m({ id: 'hang', label: 'Suspensão na barra', props: [{ kind: 'bar', d: 'M30 6 H68' }] },
     { anchor: 'hip', at: [46, 57], shin: 100, thigh: 0, torso: 0, hand: [50, 6], elbow: 'down' },
     { anchor: 'hip', at: [46, 58], shin: 104, thigh: 2, torso: 0, hand: [50, 6], elbow: 'down' }, false),

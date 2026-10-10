@@ -74,8 +74,8 @@ const BY_NAME: Array<[RegExp, string]> = [
   [/turkish/, 'situp'], [/windmill|side bend|inclinacao lateral/, 'sidebend'],
   // braços
   [/curl de pulso|rolo de pulso|antebraco/, 'wrist-curl'], [/martelo|zottman/, 'curl-hammer'],
-  [/scott|preacher|spider|concentrado/, 'curl-preacher'], [/curl|rosca/, 'curl'],
-  [/pushdown|kickback no cabo|extensao cruzada|maquina de triceps|extensoes de triceps/, 'pushdown'],
+  [/bayesian|curl inclinado/, 'curl-incline'], [/scott|preacher|spider|concentrado/, 'curl-preacher'], [/curl|rosca/, 'curl'],
+  [/pushdown|extensao cruzada|maquina de triceps|extensoes de triceps/, 'pushdown'],
   [/extensao acima da cabeca|francesa/, 'tri-overhead'], [/skull|jm press|tate|extensao deitado/, 'skull'], [/kickback/, 'kickback-tri'],
   // core
   [/prancha|plank|stir the pot/, 'plank'], [/rollout|ab wheel/, 'rollout'],
