@@ -187,10 +187,14 @@ async function pullAll(db: DbAdapter, transport: SyncTransport, opts: SyncOption
   return { pulled, changed };
 }
 
-/** Mesmo conteúdo, ignorando o device_id (e colunas que a base local não tem, como server_version). */
+/**
+ * Mesmo conteúdo, ignorando o device_id, o updated_at e colunas que a base local não tem (server_version).
+ * O updated_at conta porque o servidor limita-o ao seu relógio: uma linha com data no futuro (relógio adiantado,
+ * ficheiro importado) volta com data mais antiga e, sem isto, ficava «por enviar» para sempre (loop de sync).
+ */
 function sameContent(server: SyncRow, local: SyncRow): boolean {
   for (const [k, v] of Object.entries(server)) {
-    if (k === 'device_id' || !(k in local)) continue;
+    if (k === 'device_id' || k === 'updated_at' || !(k in local)) continue;
     if ((local[k] ?? null) !== (v ?? null)) return false;
   }
   return true;

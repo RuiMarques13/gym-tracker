@@ -106,7 +106,7 @@ function weekPlan(week: number): { day: number; tpl: string }[] {
     : [{ day: 0, tpl: 'Pernas' }, { day: 2, tpl: 'Push' }, { day: 4, tpl: 'Pull' }];
 }
 
-export const DEMO_START = '2026-07-20'; // segunda-feira
+export const DEMO_START = '2026-07-13'; // segunda-feira
 export const DEMO_WEEKS = 12;
 export const DELOAD_WEEK = 6;
 export const SICK_WEEK = 9;

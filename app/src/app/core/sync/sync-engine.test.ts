@@ -222,4 +222,13 @@ describe('motor de sync contra Postgres real', () => {
     await a.sync(server);
     expect(await hasDirty(a.db)).toBe(false);
   });
+  it('linhas com data no futuro (o servidor corta-a) não ficam eternamente por enviar', async () => {
+    const a = await device('2099-01-01T08:00:00.000Z');
+    await train(a);
+    await a.sync(server);
+    await a.sync(server);
+    expect(await hasDirty(a.db)).toBe(false);
+    const r = await a.sync(server);
+    expect(r.pushed).toBe(0);
+  });
 });
