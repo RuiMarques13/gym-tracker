@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { SEED } from '../../../core/seed/seed.generated';
 import { loadSeed } from '../../../core/seed/seed-loader';
 import { createTestDb } from '../../../core/testing/test-db';
+import { FixedClock } from '../../../core/util/clock';
 import { ids } from '../../../core/util/uuid';
 import { SqliteExerciseRepository } from './sqlite-exercise.repository';
 
@@ -11,7 +12,7 @@ beforeAll(async () => {
   const { db, deviceId } = await createTestDb();
   await loadSeed(db, SEED, deviceId);
   await db.run("UPDATE exercise SET archived_at = '2026-10-10T00:00:00.000Z' WHERE name = 'C Pullover'");
-  repo = new SqliteExerciseRepository(db);
+  repo = new SqliteExerciseRepository(db, new FixedClock(new Date('2026-10-10T08:00:00.000Z')), deviceId);
 });
 
 const names = async (filter: Parameters<SqliteExerciseRepository['list']>[0]) =>

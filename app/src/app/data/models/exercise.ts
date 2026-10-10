@@ -34,6 +34,35 @@ export interface ExerciseFilter {
   includeArchived?: boolean;
 }
 
+/** Dados para criar ou editar. Sem id = novo (UUID v4); com id = atualiza ou cria com esse id. */
+export interface ExerciseInput {
+  id?: string;
+  name: string;
+  kind: Kind;
+  metricType: MetricType;
+  isUnilateral?: boolean;
+  isIsometric?: boolean;
+  region?: Region | null;
+  movementType?: MovementType | null;
+  equipmentId?: string | null;
+  defaultRestSeconds?: number | null;
+  notes?: string | null;
+  videoUrl?: string | null;
+  primaryMuscleIds?: string[];
+  secondaryMuscleIds?: string[];
+  mobilityAreaIds?: string[];
+}
+
+export class ExerciseValidationError extends Error {
+  constructor(
+    readonly field: 'name' | 'metricType' | 'usage',
+    message: string,
+  ) {
+    super(message);
+    this.name = 'ExerciseValidationError';
+  }
+}
+
 export interface LookupItem {
   id: string;
   name: string;

@@ -2,7 +2,7 @@
 import { SeedData } from './seed-types';
 
 export const SEED: SeedData = {
-  "version": 1,
+  "version": 2,
   "equipment": [
     {
       "key": "machine",
@@ -101,6 +101,26 @@ export const SEED: SeedData = {
     {
       "key": "lower_back",
       "name": "Lombar",
+      "region": "CORE"
+    },
+    {
+      "key": "abductors",
+      "name": "Abdutores",
+      "region": "LOWER"
+    },
+    {
+      "key": "tibialis",
+      "name": "Tibial anterior",
+      "region": "LOWER"
+    },
+    {
+      "key": "traps",
+      "name": "Trapézio",
+      "region": "UPPER"
+    },
+    {
+      "key": "obliques",
+      "name": "Oblíquos",
       "region": "CORE"
     }
   ],

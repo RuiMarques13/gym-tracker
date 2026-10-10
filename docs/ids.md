@@ -7,6 +7,7 @@ mudar qualquer um gera IDs novos e duplica dados no sync.
 | Entidade | Chave |
 | --- | --- |
 | exercise (seed) | `exercise:<nome>` |
+| exercise (da biblioteca) | `library:<nome-slug>--<equipamento>` |
 | equipment | `equipment:<key>` |
 | muscle_group | `muscle:<key>` |
 | mobility_area | `mobility_area:<key>` |

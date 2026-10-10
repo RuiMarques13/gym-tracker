@@ -35,3 +35,9 @@
 ion-menu ion-content {
   --background: var(--ion-background-color-step-25, var(--ion-background-color));
 }
+
+/* Botões sem maiúsculas forçadas (Material) — lê-se melhor em português. */
+ion-button {
+  text-transform: none;
+  letter-spacing: normal;
+}

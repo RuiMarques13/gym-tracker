@@ -13,8 +13,9 @@ dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: docum
 - [x] Registo central de definições + `SettingsService` (signals), três âmbitos
 - [x] Catálogo editável + importador do Excel + seed (25 força, 14 mobilidade) com IDs determinísticos
 - [x] Navegação: separadores no telemóvel, menu lateral no PC; tema claro/escuro/sistema
-- [x] `ExerciseRepository` (leitura: pesquisa e todos os filtros), adiantado da Fase 1.1
-- [x] 33 testes em Node (migrações, restrições, seed, definições, transações, filtros)
+- [x] `ExerciseRepository` completo (pesquisa, filtros, guardar, arquivar, restaurar, remover), adiantado da Fase 1.1
+- [x] Biblioteca de 376 exercícios (Exercícios → Biblioteca), adiciona com um toque (ver `docs/biblioteca.md`)
+- [x] 45 testes em Node (migrações, restrições, seed, definições, transações, repositório, biblioteca)
 - [ ] APK testado num Android real (falta correr no teu PC, ver abaixo)
 
 ## Requisitos
@@ -65,12 +66,14 @@ app/src/app/
   core/db/            DbAdapter, adaptadores, migrações, migrator, local_meta
   core/settings/      registo de definições, SettingsStore (sem Angular), SettingsService
   core/seed/          seed gerado + loader
+  core/library/       biblioteca gerada + conversão para exercício
   core/theme/         tema claro/escuro
   core/navigation/    lista única de ecrãs (menu, separadores, «Mais»)
   data/models/        tipos de domínio
   data/repositories/  interfaces + implementações SQLite + tokens de injeção
   features/           ecrãs
 tools/import-excel/   catalog.json, importador do Excel, gerador do seed
+tools/exercise-library/ catálogo da biblioteca (.md) e conversor
 docs/                 notas técnicas
 ```
 

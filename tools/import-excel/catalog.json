@@ -1,81 +1,542 @@
 {
-  "version": 1,
+  "version": 2,
   "equipment": [
-    { "key": "machine", "name": "Máquina" },
-    { "key": "cable", "name": "Cabo" },
-    { "key": "dumbbell", "name": "Haltere" },
-    { "key": "barbell", "name": "Barra" },
-    { "key": "bodyweight", "name": "Peso corporal" },
-    { "key": "band", "name": "Banda elástica" },
-    { "key": "kettlebell", "name": "Kettlebell" },
-    { "key": "other", "name": "Outro" }
+    {
+      "key": "machine",
+      "name": "Máquina"
+    },
+    {
+      "key": "cable",
+      "name": "Cabo"
+    },
+    {
+      "key": "dumbbell",
+      "name": "Haltere"
+    },
+    {
+      "key": "barbell",
+      "name": "Barra"
+    },
+    {
+      "key": "bodyweight",
+      "name": "Peso corporal"
+    },
+    {
+      "key": "band",
+      "name": "Banda elástica"
+    },
+    {
+      "key": "kettlebell",
+      "name": "Kettlebell"
+    },
+    {
+      "key": "other",
+      "name": "Outro"
+    }
   ],
   "muscles": [
-    { "key": "quadriceps", "name": "Quadríceps", "region": "LOWER" },
-    { "key": "glutes", "name": "Glúteos", "region": "LOWER" },
-    { "key": "hamstrings", "name": "Isquiotibiais", "region": "LOWER" },
-    { "key": "adductors", "name": "Adutores", "region": "LOWER" },
-    { "key": "calves", "name": "Gémeos", "region": "LOWER" },
-    { "key": "chest", "name": "Peito", "region": "UPPER" },
-    { "key": "back", "name": "Costas", "region": "UPPER" },
-    { "key": "shoulders", "name": "Ombros", "region": "UPPER" },
-    { "key": "biceps", "name": "Bíceps", "region": "UPPER" },
-    { "key": "triceps", "name": "Tríceps", "region": "UPPER" },
-    { "key": "forearms", "name": "Antebraços", "region": "UPPER" },
-    { "key": "abs", "name": "Abdominais", "region": "CORE" },
-    { "key": "lower_back", "name": "Lombar", "region": "CORE" }
+    {
+      "key": "quadriceps",
+      "name": "Quadríceps",
+      "region": "LOWER"
+    },
+    {
+      "key": "glutes",
+      "name": "Glúteos",
+      "region": "LOWER"
+    },
+    {
+      "key": "hamstrings",
+      "name": "Isquiotibiais",
+      "region": "LOWER"
+    },
+    {
+      "key": "adductors",
+      "name": "Adutores",
+      "region": "LOWER"
+    },
+    {
+      "key": "calves",
+      "name": "Gémeos",
+      "region": "LOWER"
+    },
+    {
+      "key": "chest",
+      "name": "Peito",
+      "region": "UPPER"
+    },
+    {
+      "key": "back",
+      "name": "Costas",
+      "region": "UPPER"
+    },
+    {
+      "key": "shoulders",
+      "name": "Ombros",
+      "region": "UPPER"
+    },
+    {
+      "key": "biceps",
+      "name": "Bíceps",
+      "region": "UPPER"
+    },
+    {
+      "key": "triceps",
+      "name": "Tríceps",
+      "region": "UPPER"
+    },
+    {
+      "key": "forearms",
+      "name": "Antebraços",
+      "region": "UPPER"
+    },
+    {
+      "key": "abs",
+      "name": "Abdominais",
+      "region": "CORE"
+    },
+    {
+      "key": "lower_back",
+      "name": "Lombar",
+      "region": "CORE"
+    },
+    {
+      "key": "abductors",
+      "name": "Abdutores",
+      "region": "LOWER"
+    },
+    {
+      "key": "tibialis",
+      "name": "Tibial anterior",
+      "region": "LOWER"
+    },
+    {
+      "key": "traps",
+      "name": "Trapézio",
+      "region": "UPPER"
+    },
+    {
+      "key": "obliques",
+      "name": "Oblíquos",
+      "region": "CORE"
+    }
   ],
   "mobilityAreas": [
-    { "key": "hip", "name": "Anca" },
-    { "key": "shoulder", "name": "Ombro" },
-    { "key": "ankle", "name": "Tornozelo" },
-    { "key": "thoracic", "name": "Coluna torácica" },
-    { "key": "lumbar", "name": "Coluna lombar" },
-    { "key": "neck", "name": "Pescoço" },
-    { "key": "wrist", "name": "Punho" },
-    { "key": "knee", "name": "Joelho" }
+    {
+      "key": "hip",
+      "name": "Anca"
+    },
+    {
+      "key": "shoulder",
+      "name": "Ombro"
+    },
+    {
+      "key": "ankle",
+      "name": "Tornozelo"
+    },
+    {
+      "key": "thoracic",
+      "name": "Coluna torácica"
+    },
+    {
+      "key": "lumbar",
+      "name": "Coluna lombar"
+    },
+    {
+      "key": "neck",
+      "name": "Pescoço"
+    },
+    {
+      "key": "wrist",
+      "name": "Punho"
+    },
+    {
+      "key": "knee",
+      "name": "Joelho"
+    }
   ],
   "strength": [
-    { "name": "Squat", "region": "LOWER", "primary": ["quadriceps"], "secondary": ["glutes"], "movementType": "PUSH", "equipment": null },
-    { "name": "Sumo Squat", "region": "LOWER", "primary": ["adductors"], "secondary": ["glutes"], "movementType": "PUSH", "equipment": null },
-    { "name": "RDL", "region": "LOWER", "primary": ["hamstrings"], "secondary": ["glutes"], "movementType": "PULL", "equipment": null },
-    { "name": "Bulgarian Split Squat", "region": "LOWER", "primary": ["quadriceps"], "secondary": ["glutes"], "movementType": "PUSH", "equipment": null, "isUnilateral": true },
-    { "name": "Lunges", "region": "LOWER", "primary": ["quadriceps"], "secondary": ["glutes"], "movementType": "PUSH", "equipment": null, "isUnilateral": true },
-    { "name": "DB Stiff", "region": "LOWER", "primary": ["hamstrings"], "secondary": [], "movementType": "PULL", "equipment": "dumbbell" },
-    { "name": "Hip Thrust", "region": "LOWER", "primary": ["glutes"], "secondary": [], "movementType": "PULL", "equipment": null },
-    { "name": "1 Leg Hip Thrust", "region": "LOWER", "primary": ["glutes"], "secondary": [], "movementType": "PULL", "equipment": null, "isUnilateral": true },
-    { "name": "M Chest Press", "region": "UPPER", "primary": ["chest"], "secondary": [], "movementType": "PUSH", "equipment": "machine" },
-    { "name": "DB Incline Chest Press", "region": "UPPER", "primary": ["chest"], "secondary": [], "movementType": "PUSH", "equipment": "dumbbell" },
-    { "name": "DB Chest Press", "region": "UPPER", "primary": ["chest"], "secondary": [], "movementType": "PUSH", "equipment": "dumbbell" },
-    { "name": "DB Chest Fly", "region": "UPPER", "primary": ["chest"], "secondary": [], "movementType": "PUSH", "equipment": "dumbbell" },
-    { "name": "C Chest Fly", "region": "UPPER", "primary": ["chest"], "secondary": [], "movementType": "PUSH", "equipment": "cable" },
-    { "name": "DB Biceps curl", "region": "UPPER", "primary": ["biceps"], "secondary": [], "movementType": "PULL", "equipment": "dumbbell" },
-    { "name": "DB Biceps Hammer curl", "region": "UPPER", "primary": ["biceps"], "secondary": [], "movementType": "PULL", "equipment": "dumbbell" },
-    { "name": "C Biceps curl", "region": "UPPER", "primary": ["biceps"], "secondary": [], "movementType": "PULL", "equipment": "cable" },
-    { "name": "DB Triceps Extension", "region": "UPPER", "primary": ["triceps"], "secondary": [], "movementType": "PUSH", "equipment": "dumbbell" },
-    { "name": "C Triceps Extension", "region": "UPPER", "primary": ["triceps"], "secondary": [], "movementType": "PUSH", "equipment": "cable" },
-    { "name": "C Overhead Triceps Extension", "region": "UPPER", "primary": ["triceps"], "secondary": [], "movementType": "PUSH", "equipment": "cable" },
-    { "name": "M Pulldown Neutra", "region": "UPPER", "primary": ["back"], "secondary": [], "movementType": "PULL", "equipment": "machine" },
-    { "name": "M Pulldown Aberta", "region": "UPPER", "primary": ["back"], "secondary": [], "movementType": "PULL", "equipment": "machine" },
-    { "name": "M Low Row", "region": "UPPER", "primary": ["back"], "secondary": [], "movementType": "PULL", "equipment": "machine" },
-    { "name": "M High Row", "region": "UPPER", "primary": ["back"], "secondary": [], "movementType": "PULL", "equipment": "machine" },
-    { "name": "C Pullover", "region": "UPPER", "primary": ["back"], "secondary": [], "movementType": "PULL", "equipment": "cable" },
-    { "name": "DB Bent Row", "region": "UPPER", "primary": ["back"], "secondary": [], "movementType": "PULL", "equipment": "dumbbell" }
+    {
+      "name": "Squat",
+      "region": "LOWER",
+      "primary": [
+        "quadriceps"
+      ],
+      "secondary": [
+        "glutes"
+      ],
+      "movementType": "PUSH",
+      "equipment": null
+    },
+    {
+      "name": "Sumo Squat",
+      "region": "LOWER",
+      "primary": [
+        "adductors"
+      ],
+      "secondary": [
+        "glutes"
+      ],
+      "movementType": "PUSH",
+      "equipment": null
+    },
+    {
+      "name": "RDL",
+      "region": "LOWER",
+      "primary": [
+        "hamstrings"
+      ],
+      "secondary": [
+        "glutes"
+      ],
+      "movementType": "PULL",
+      "equipment": null
+    },
+    {
+      "name": "Bulgarian Split Squat",
+      "region": "LOWER",
+      "primary": [
+        "quadriceps"
+      ],
+      "secondary": [
+        "glutes"
+      ],
+      "movementType": "PUSH",
+      "equipment": null,
+      "isUnilateral": true
+    },
+    {
+      "name": "Lunges",
+      "region": "LOWER",
+      "primary": [
+        "quadriceps"
+      ],
+      "secondary": [
+        "glutes"
+      ],
+      "movementType": "PUSH",
+      "equipment": null,
+      "isUnilateral": true
+    },
+    {
+      "name": "DB Stiff",
+      "region": "LOWER",
+      "primary": [
+        "hamstrings"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": "dumbbell"
+    },
+    {
+      "name": "Hip Thrust",
+      "region": "LOWER",
+      "primary": [
+        "glutes"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": null
+    },
+    {
+      "name": "1 Leg Hip Thrust",
+      "region": "LOWER",
+      "primary": [
+        "glutes"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": null,
+      "isUnilateral": true
+    },
+    {
+      "name": "M Chest Press",
+      "region": "UPPER",
+      "primary": [
+        "chest"
+      ],
+      "secondary": [],
+      "movementType": "PUSH",
+      "equipment": "machine"
+    },
+    {
+      "name": "DB Incline Chest Press",
+      "region": "UPPER",
+      "primary": [
+        "chest"
+      ],
+      "secondary": [],
+      "movementType": "PUSH",
+      "equipment": "dumbbell"
+    },
+    {
+      "name": "DB Chest Press",
+      "region": "UPPER",
+      "primary": [
+        "chest"
+      ],
+      "secondary": [],
+      "movementType": "PUSH",
+      "equipment": "dumbbell"
+    },
+    {
+      "name": "DB Chest Fly",
+      "region": "UPPER",
+      "primary": [
+        "chest"
+      ],
+      "secondary": [],
+      "movementType": "PUSH",
+      "equipment": "dumbbell"
+    },
+    {
+      "name": "C Chest Fly",
+      "region": "UPPER",
+      "primary": [
+        "chest"
+      ],
+      "secondary": [],
+      "movementType": "PUSH",
+      "equipment": "cable"
+    },
+    {
+      "name": "DB Biceps curl",
+      "region": "UPPER",
+      "primary": [
+        "biceps"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": "dumbbell"
+    },
+    {
+      "name": "DB Biceps Hammer curl",
+      "region": "UPPER",
+      "primary": [
+        "biceps"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": "dumbbell"
+    },
+    {
+      "name": "C Biceps curl",
+      "region": "UPPER",
+      "primary": [
+        "biceps"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": "cable"
+    },
+    {
+      "name": "DB Triceps Extension",
+      "region": "UPPER",
+      "primary": [
+        "triceps"
+      ],
+      "secondary": [],
+      "movementType": "PUSH",
+      "equipment": "dumbbell"
+    },
+    {
+      "name": "C Triceps Extension",
+      "region": "UPPER",
+      "primary": [
+        "triceps"
+      ],
+      "secondary": [],
+      "movementType": "PUSH",
+      "equipment": "cable"
+    },
+    {
+      "name": "C Overhead Triceps Extension",
+      "region": "UPPER",
+      "primary": [
+        "triceps"
+      ],
+      "secondary": [],
+      "movementType": "PUSH",
+      "equipment": "cable"
+    },
+    {
+      "name": "M Pulldown Neutra",
+      "region": "UPPER",
+      "primary": [
+        "back"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": "machine"
+    },
+    {
+      "name": "M Pulldown Aberta",
+      "region": "UPPER",
+      "primary": [
+        "back"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": "machine"
+    },
+    {
+      "name": "M Low Row",
+      "region": "UPPER",
+      "primary": [
+        "back"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": "machine"
+    },
+    {
+      "name": "M High Row",
+      "region": "UPPER",
+      "primary": [
+        "back"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": "machine"
+    },
+    {
+      "name": "C Pullover",
+      "region": "UPPER",
+      "primary": [
+        "back"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": "cable"
+    },
+    {
+      "name": "DB Bent Row",
+      "region": "UPPER",
+      "primary": [
+        "back"
+      ],
+      "secondary": [],
+      "movementType": "PULL",
+      "equipment": "dumbbell"
+    }
   ],
   "mobility": [
-    { "name": "90/90 de anca", "areas": ["hip"], "metricType": "DURATION", "isUnilateral": true },
-    { "name": "Alongamento de flexores da anca (couch stretch)", "areas": ["hip"], "metricType": "DURATION", "isUnilateral": true },
-    { "name": "World's greatest stretch", "areas": ["hip", "thoracic"], "metricType": "REPS", "isUnilateral": true },
-    { "name": "Pombo (pigeon)", "areas": ["hip"], "metricType": "DURATION", "isUnilateral": true },
-    { "name": "Agachamento profundo (manter)", "areas": ["hip", "ankle"], "metricType": "DURATION", "isUnilateral": false },
-    { "name": "Cossack squat", "areas": ["hip"], "metricType": "REPS", "isUnilateral": true },
-    { "name": "Mobilidade de tornozelo na parede", "areas": ["ankle"], "metricType": "REPS", "isUnilateral": true },
-    { "name": "Gato-camelo", "areas": ["thoracic", "lumbar"], "metricType": "REPS", "isUnilateral": false },
-    { "name": "Rotação torácica em quadrupedia", "areas": ["thoracic"], "metricType": "REPS", "isUnilateral": true },
-    { "name": "Rotação torácica deitado (open book)", "areas": ["thoracic"], "metricType": "REPS", "isUnilateral": true },
-    { "name": "Alongamento de peitoral na porta", "areas": ["shoulder"], "metricType": "DURATION", "isUnilateral": true },
-    { "name": "Dislocates de ombro com banda", "areas": ["shoulder"], "metricType": "REPS", "isUnilateral": false, "equipment": "band" },
-    { "name": "Posição da criança", "areas": ["lumbar", "shoulder"], "metricType": "DURATION", "isUnilateral": false },
-    { "name": "Alongamento de isquiotibiais", "areas": ["hip"], "metricType": "DURATION", "isUnilateral": true }
+    {
+      "name": "90/90 de anca",
+      "areas": [
+        "hip"
+      ],
+      "metricType": "DURATION",
+      "isUnilateral": true
+    },
+    {
+      "name": "Alongamento de flexores da anca (couch stretch)",
+      "areas": [
+        "hip"
+      ],
+      "metricType": "DURATION",
+      "isUnilateral": true
+    },
+    {
+      "name": "World's greatest stretch",
+      "areas": [
+        "hip",
+        "thoracic"
+      ],
+      "metricType": "REPS",
+      "isUnilateral": true
+    },
+    {
+      "name": "Pombo (pigeon)",
+      "areas": [
+        "hip"
+      ],
+      "metricType": "DURATION",
+      "isUnilateral": true
+    },
+    {
+      "name": "Agachamento profundo (manter)",
+      "areas": [
+        "hip",
+        "ankle"
+      ],
+      "metricType": "DURATION",
+      "isUnilateral": false
+    },
+    {
+      "name": "Cossack squat",
+      "areas": [
+        "hip"
+      ],
+      "metricType": "REPS",
+      "isUnilateral": true
+    },
+    {
+      "name": "Mobilidade de tornozelo na parede",
+      "areas": [
+        "ankle"
+      ],
+      "metricType": "REPS",
+      "isUnilateral": true
+    },
+    {
+      "name": "Gato-camelo",
+      "areas": [
+        "thoracic",
+        "lumbar"
+      ],
+      "metricType": "REPS",
+      "isUnilateral": false
+    },
+    {
+      "name": "Rotação torácica em quadrupedia",
+      "areas": [
+        "thoracic"
+      ],
+      "metricType": "REPS",
+      "isUnilateral": true
+    },
+    {
+      "name": "Rotação torácica deitado (open book)",
+      "areas": [
+        "thoracic"
+      ],
+      "metricType": "REPS",
+      "isUnilateral": true
+    },
+    {
+      "name": "Alongamento de peitoral na porta",
+      "areas": [
+        "shoulder"
+      ],
+      "metricType": "DURATION",
+      "isUnilateral": true
+    },
+    {
+      "name": "Dislocates de ombro com banda",
+      "areas": [
+        "shoulder"
+      ],
+      "metricType": "REPS",
+      "isUnilateral": false,
+      "equipment": "band"
+    },
+    {
+      "name": "Posição da criança",
+      "areas": [
+        "lumbar",
+        "shoulder"
+      ],
+      "metricType": "DURATION",
+      "isUnilateral": false
+    },
+    {
+      "name": "Alongamento de isquiotibiais",
+      "areas": [
+        "hip"
+      ],
+      "metricType": "DURATION",
+      "isUnilateral": true
+    }
   ]
 }

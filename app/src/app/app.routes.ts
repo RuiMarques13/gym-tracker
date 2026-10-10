@@ -13,6 +13,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/exercises/exercises.page').then((m) => m.ExercisesPage),
   },
   {
+    path: 'exercicios/biblioteca',
+    loadComponent: () => import('./features/library/library.page').then((m) => m.LibraryPage),
+  },
+  {
     path: 'definicoes',
     loadComponent: () => import('./features/settings/settings.page').then((m) => m.SettingsPage),
   },

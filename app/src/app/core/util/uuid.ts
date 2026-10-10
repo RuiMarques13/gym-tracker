@@ -23,6 +23,8 @@ export function stableId(key: string): string {
 /** IDs determinísticos por tipo de entidade (chaves documentadas em docs/ids.md). */
 export const ids = {
   exercise: (name: string) => stableId(`exercise:${name.trim()}`),
+  /** Exercício adicionado da biblioteca: o mesmo item dá o mesmo id em qualquer dispositivo. */
+  libraryExercise: (libraryKey: string) => stableId(`library:${libraryKey}`),
   equipment: (key: string) => stableId(`equipment:${key}`),
   muscle: (key: string) => stableId(`muscle:${key}`),
   mobilityArea: (key: string) => stableId(`mobility_area:${key}`),

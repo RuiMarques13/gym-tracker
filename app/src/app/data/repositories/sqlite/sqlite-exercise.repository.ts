@@ -1,6 +1,8 @@
 import type { DbAdapter, SqlValue } from '../../../core/db/db-adapter';
+import type { Clock } from '../../../core/util/clock';
+import { ids, newId } from '../../../core/util/uuid';
 import type { Kind, MetricType, MovementType, Region } from '../../models/enums';
-import type { Exercise, ExerciseFilter } from '../../models/exercise';
+import { Exercise, ExerciseFilter, ExerciseInput, ExerciseValidationError } from '../../models/exercise';
 import type { ExerciseRepository } from '../exercise.repository';
 
 interface ExerciseRow {
@@ -23,13 +25,166 @@ interface ExerciseRow {
 
 const placeholders = (n: number) => Array(n).fill('?').join(', ');
 
+const unique = (xs: string[]) => [...new Set(xs)];
+const emptyToNull = (s: string | null | undefined) => (s && s.trim() ? s.trim() : null);
+
 /** Remove acentos e passa a minúsculas, para a pesquisa ignorar «é» vs «e». */
 export function fold(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
 export class SqliteExerciseRepository implements ExerciseRepository {
-  constructor(private readonly db: DbAdapter) {}
+  constructor(
+    private readonly db: DbAdapter,
+    private readonly clock: Clock,
+    private readonly deviceId: string,
+  ) {}
+
+  async save(input: ExerciseInput): Promise<Exercise> {
+    const name = input.name?.trim() ?? '';
+    if (!name) throw new ExerciseValidationError('name', 'O nome é obrigatório.');
+    if (input.kind === 'MOBILITY' && input.metricType === 'WEIGHT_REPS') {
+      throw new ExerciseValidationError('metricType', 'Mobilidade mede-se por repetições ou duração, não por carga.');
+    }
+    const id = input.id ?? newId();
+    await this.assertNameFree(name, id);
+
+    const isMobility = input.kind === 'MOBILITY';
+    const primary = isMobility ? [] : unique(input.primaryMuscleIds ?? []);
+    const secondary = isMobility ? [] : unique(input.secondaryMuscleIds ?? []).filter((m) => !primary.includes(m));
+    const areas = isMobility ? unique(input.mobilityAreaIds ?? []) : [];
+    const now = this.clock.nowIso();
+
+    await this.db.transaction(async (tx) => {
+      // Upsert: também reativa uma linha apagada ou arquivada com o mesmo id (ex.: biblioteca).
+      await tx.run(
+        `INSERT INTO exercise (id, name, kind, metric_type, is_unilateral, region, movement_type, is_isometric,
+           equipment_id, default_rest_seconds, notes, video_url, archived_at, updated_at, deleted_at, device_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?)
+         ON CONFLICT(id) DO UPDATE SET name = excluded.name, kind = excluded.kind,
+           metric_type = excluded.metric_type, is_unilateral = excluded.is_unilateral, region = excluded.region,
+           movement_type = excluded.movement_type, is_isometric = excluded.is_isometric,
+           equipment_id = excluded.equipment_id, default_rest_seconds = excluded.default_rest_seconds,
+           notes = excluded.notes, video_url = excluded.video_url, archived_at = NULL,
+           updated_at = excluded.updated_at, deleted_at = NULL, device_id = excluded.device_id`,
+        [
+          id, name, input.kind, input.metricType, input.isUnilateral ? 1 : 0, input.region ?? null,
+          isMobility ? null : (input.movementType ?? null), input.isIsometric ? 1 : 0, input.equipmentId ?? null,
+          input.defaultRestSeconds ?? null, emptyToNull(input.notes), emptyToNull(input.videoUrl), now, this.deviceId,
+        ],
+      );
+      await this.syncLinks(
+        tx, 'exercise_muscle', 'muscle_group_id', id,
+        [...primary.map((m) => ({ ref: m, primary: 1 })), ...secondary.map((m) => ({ ref: m, primary: 0 }))],
+        (ref) => ids.exerciseMuscle(id, ref), now,
+      );
+      await this.syncLinks(
+        tx, 'exercise_mobility_area', 'mobility_area_id', id,
+        areas.map((a) => ({ ref: a })), (ref) => ids.exerciseMobilityArea(id, ref), now,
+      );
+    });
+    return (await this.get(id))!;
+  }
+
+  async archive(id: string): Promise<void> {
+    const now = this.clock.nowIso();
+    await this.db.run(
+      'UPDATE exercise SET archived_at = ?, updated_at = ?, device_id = ? WHERE id = ? AND deleted_at IS NULL',
+      [now, now, this.deviceId, id],
+    );
+  }
+
+  async restore(id: string): Promise<void> {
+    const ex = await this.get(id);
+    if (!ex) return;
+    await this.assertNameFree(ex.name, id);
+    await this.db.run('UPDATE exercise SET archived_at = NULL, updated_at = ?, device_id = ? WHERE id = ?', [
+      this.clock.nowIso(), this.deviceId, id,
+    ]);
+  }
+
+  async isUsed(id: string): Promise<boolean> {
+    const rows = await this.db.query<{ n: number }>(
+      `SELECT (SELECT COUNT(*) FROM planned_exercise WHERE exercise_id = ? AND deleted_at IS NULL)
+            + (SELECT COUNT(*) FROM session_exercise WHERE exercise_id = ? AND deleted_at IS NULL) AS n`,
+      [id, id],
+    );
+    return (rows[0]?.n ?? 0) > 0;
+  }
+
+  async remove(id: string): Promise<void> {
+    if (await this.isUsed(id)) {
+      throw new ExerciseValidationError('usage', 'Este exercício já foi usado. Arquiva-o em vez de o apagar.');
+    }
+    const now = this.clock.nowIso();
+    // Soft delete (deleted_at) para o sync propagar a remoção; as ligações vão com ele.
+    await this.db.transaction(async (tx) => {
+      for (const table of ['exercise_muscle', 'exercise_mobility_area']) {
+        await tx.run(
+          `UPDATE ${table} SET deleted_at = ?, updated_at = ?, device_id = ? WHERE exercise_id = ? AND deleted_at IS NULL`,
+          [now, now, this.deviceId, id],
+        );
+      }
+      await tx.run('UPDATE exercise SET deleted_at = ?, updated_at = ?, device_id = ? WHERE id = ?', [
+        now, now, this.deviceId, id,
+      ]);
+    });
+  }
+
+  /** Nome único entre exercícios ativos (sem contar arquivados nem o próprio). */
+  private async assertNameFree(name: string, selfId: string): Promise<void> {
+    const rows = await this.db.query<{ id: string; name: string }>(
+      'SELECT id, name FROM exercise WHERE deleted_at IS NULL AND archived_at IS NULL AND id <> ?',
+      [selfId],
+    );
+    const target = fold(name.trim());
+    if (rows.some((r) => fold(r.name.trim()) === target)) {
+      throw new ExerciseValidationError('name', `Já tens um exercício chamado «${name.trim()}».`);
+    }
+  }
+
+  /**
+   * Acerta uma tabela de ligação para o conjunto pedido. IDs determinísticos, por isso
+   * ligar, desligar e voltar a ligar reutiliza a mesma linha (e converge no sync).
+   */
+  private async syncLinks(
+    tx: DbAdapter,
+    table: string,
+    refColumn: string,
+    exerciseId: string,
+    wanted: { ref: string; primary?: number }[],
+    linkId: (ref: string) => string,
+    now: string,
+  ): Promise<void> {
+    const hasPrimary = table === 'exercise_muscle';
+    const current = await tx.query<{ id: string; ref: string; deleted_at: string | null; is_primary?: number }>(
+      `SELECT id, ${refColumn} AS ref, deleted_at${hasPrimary ? ', is_primary' : ''} FROM ${table} WHERE exercise_id = ?`,
+      [exerciseId],
+    );
+    const wantedRefs = new Set(wanted.map((w) => w.ref));
+    for (const row of current) {
+      if (!wantedRefs.has(row.ref) && row.deleted_at === null) {
+        await tx.run(`UPDATE ${table} SET deleted_at = ?, updated_at = ?, device_id = ? WHERE id = ?`, [
+          now, now, this.deviceId, row.id,
+        ]);
+      }
+    }
+    for (const w of wanted) {
+      const existing = current.find((c) => c.ref === w.ref);
+      const unchanged =
+        existing && existing.deleted_at === null && (!hasPrimary || existing.is_primary === w.primary);
+      if (unchanged) continue;
+      const cols = ['id', 'exercise_id', refColumn, ...(hasPrimary ? ['is_primary'] : [])];
+      const vals: SqlValue[] = [linkId(w.ref), exerciseId, w.ref, ...(hasPrimary ? [w.primary ?? 0] : [])];
+      await tx.run(
+        `INSERT INTO ${table} (${cols.join(', ')}, updated_at, deleted_at, device_id)
+         VALUES (${cols.map(() => '?').join(', ')}, ?, NULL, ?)
+         ON CONFLICT(id) DO UPDATE SET ${hasPrimary ? 'is_primary = excluded.is_primary, ' : ''}
+           deleted_at = NULL, updated_at = excluded.updated_at, device_id = excluded.device_id`,
+        [...vals, now, this.deviceId],
+      );
+    }
+  }
 
   async list(filter: ExerciseFilter = {}): Promise<Exercise[]> {
     const where: string[] = ['e.deleted_at IS NULL'];

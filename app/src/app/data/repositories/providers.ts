@@ -1,5 +1,6 @@
 import { inject, InjectionToken } from '@angular/core';
 import { DatabaseService } from '../../core/db/database.service';
+import { CLOCK } from '../../core/util/clock';
 import { ExerciseRepository } from './exercise.repository';
 import { SqliteExerciseRepository } from './sqlite/sqlite-exercise.repository';
 
@@ -9,5 +10,8 @@ import { SqliteExerciseRepository } from './sqlite/sqlite-exercise.repository';
  */
 export const EXERCISE_REPOSITORY = new InjectionToken<ExerciseRepository>('ExerciseRepository', {
   providedIn: 'root',
-  factory: () => new SqliteExerciseRepository(inject(DatabaseService).db),
+  factory: () => {
+    const database = inject(DatabaseService);
+    return new SqliteExerciseRepository(database.db, inject(CLOCK), database.deviceId);
+  },
 });

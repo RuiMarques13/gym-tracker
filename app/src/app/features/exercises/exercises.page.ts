@@ -1,6 +1,10 @@
 import { Component, computed, inject, input, linkedSignal, resource, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import {
   IonBadge,
+  IonButton,
+  IonButtons,
+  IonIcon,
   IonContent,
   IonHeader,
   IonItem,
@@ -12,7 +16,10 @@ import {
   IonSegmentButton,
   IonTitle,
   IonToolbar,
+  ViewWillEnter,
 } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { libraryOutline } from 'ionicons/icons';
 import { Kind, METRIC_LABEL, REGION_LABEL } from '../../data/models/enums';
 import { Exercise } from '../../data/models/exercise';
 import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
@@ -20,18 +27,25 @@ import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
 type KindFilter = 'ALL' | Kind;
 
 /**
- * Fase 0: catálogo só de leitura, para confirmar o seed.
- * Fase 1.1 acrescenta filtros completos, formulário, arquivar e restaurar.
+ * Os teus exercícios. Novos vêm da biblioteca; o formulário de criar/editar chega na Fase 1.1.
  */
 @Component({
   selector: 'app-exercises',
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonContent, IonSearchbar, IonSegment, IonSegmentButton,
+    RouterLink, IonButtons, IonButton, IonIcon, IonHeader, IonToolbar, IonTitle, IonContent, IonSearchbar, IonSegment, IonSegmentButton,
     IonList, IonItem, IonLabel, IonNote, IonBadge,
   ],
   template: `
     <ion-header>
-      <ion-toolbar><ion-title>Exercícios</ion-title></ion-toolbar>
+      <ion-toolbar>
+        <ion-title>Exercícios</ion-title>
+        <ion-buttons slot="end">
+          <ion-button routerLink="/exercicios/biblioteca">
+            <ion-icon slot="start" name="library-outline" />
+            Biblioteca
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
       <ion-toolbar>
         <ion-searchbar
           placeholder="Pesquisar por nome"
@@ -66,7 +80,9 @@ type KindFilter = 'ALL' | Kind;
             </ion-item>
           } @empty {
             @if (!exercises.isLoading()) {
-              <ion-item lines="none"><ion-note>Nenhum exercício encontrado.</ion-note></ion-item>
+              <ion-item lines="none">
+                <ion-note>Nenhum exercício encontrado. Procura na <a routerLink="/exercicios/biblioteca">biblioteca</a>.</ion-note>
+              </ion-item>
             }
           }
         </ion-list>
@@ -81,7 +97,7 @@ type KindFilter = 'ALL' | Kind;
     h2 { font-weight: 600; }
   `,
 })
-export class ExercisesPage {
+export class ExercisesPage implements ViewWillEnter {
   private readonly repo = inject(EXERCISE_REPOSITORY);
 
   /** ?kind=STRENGTH|MOBILITY vindo da Home. */
@@ -101,6 +117,15 @@ export class ExercisesPage {
     const n = this.exercises.value()?.length ?? 0;
     return n === 1 ? '1 exercício' : `${n} exercícios`;
   });
+
+  constructor() {
+    addIcons({ libraryOutline });
+  }
+
+  /** Ao voltar da biblioteca, mostra o que acabaste de adicionar. */
+  ionViewWillEnter(): void {
+    this.exercises.reload();
+  }
 
   subtitle(e: Exercise): string {
     const parts = [
