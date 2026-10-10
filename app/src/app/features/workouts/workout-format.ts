@@ -42,3 +42,5 @@ export function formatTargets(kind: Kind, metric: MetricType, unilateral: boolea
   if (t.restSeconds) parts.push(`descanso ${formatDuration(t.restSeconds)}`);
   return parts.join(' · ').replace(' × ·', ' ×');
 }
+
+export { normalizeSupersets } from '../../data/models/workout';

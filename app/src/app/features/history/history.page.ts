@@ -8,6 +8,7 @@ import { addIcons } from 'ionicons';
 import { timeOutline } from 'ionicons/icons';
 import type { SessionSummary } from '../../data/models/session';
 import { SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { effortLabel } from '../../shared/effort-scale';
 import { formatDay, formatMonth, formatSpan, formatVolume } from './history-format';
 
 /** Sessões terminadas, da mais recente para a mais antiga, agrupadas por mês. */
@@ -32,7 +33,7 @@ import { formatDay, formatMonth, formatSpan, formatVolume } from './history-form
                 <ion-item [routerLink]="['/historico', s.id]" [detail]="true">
                   <ion-label class="ion-text-wrap">
                     <h2>{{ s.templateName ?? 'Sessão livre' }}
-                      @if (s.rpe !== null) { <ion-badge color="medium">esforço {{ s.rpe }}</ion-badge> }
+                      @if (s.rpe !== null) { <ion-badge color="medium">esforço {{ s.rpe }}{{ effortName(s.rpe) }}</ion-badge> }
                     </h2>
                     <p>{{ day(s.startedAt) }} · {{ span(s) }} · {{ s.setCount }} {{ s.setCount === 1 ? 'série' : 'séries' }}@if (s.volumeKg) { · {{ volume(s.volumeKg) }} }</p>
                   </ion-label>
@@ -55,6 +56,10 @@ import { formatDay, formatMonth, formatSpan, formatVolume } from './history-form
 })
 export class HistoryPage implements ViewWillEnter {
   private readonly repo = inject(SESSION_REPOSITORY);
+  effortName = (v: number): string => {
+    const l = effortLabel(v);
+    return l ? ' · ' + l.toLowerCase() : '';
+  };
   readonly sessions = resource({ loader: () => this.repo.listFinished() });
 
   readonly groups = computed(() => {

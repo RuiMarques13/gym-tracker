@@ -28,7 +28,7 @@ import {
   ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, copyOutline, trashOutline } from 'ionicons/icons';
+import { add, copyOutline, linkOutline, trashOutline } from 'ionicons/icons';
 import { newId } from '../../core/util/uuid';
 import type { Block, Kind, MetricType } from '../../data/models/enums';
 import type { Exercise } from '../../data/models/exercise';
@@ -36,6 +36,7 @@ import {
   BLOCK_LABEL,
   BLOCK_ORDER,
   defaultTargets,
+  normalizeSupersets,
   PlannedExerciseInput,
   WorkoutValidationError,
 } from '../../data/models/workout';
@@ -121,7 +122,16 @@ const BLOCK_HINT: Record<Block, string> = {
                             @if (item.archived) { <ion-badge color="medium">Arquivado</ion-badge> }
                           </h2>
                           <p>{{ targetsLabel(item) }}</p>
+                          @if (item.supersetGroup) { <p class="ss">Superset {{ item.supersetGroup }}</p> }
                         </ion-label>
+                        @if ($index > 0) {
+                          <ion-button slot="end" fill="clear" size="small" [color]="linked(block, $index) ? 'primary' : 'medium'"
+                            [attr.aria-pressed]="linked(block, $index)"
+                            [attr.aria-label]="linked(block, $index) ? 'Desfazer superset com o anterior' : 'Fazer superset com o anterior'"
+                            (click)="$event.stopPropagation(); toggleLink(block, $index)">
+                            <ion-icon slot="icon-only" name="link-outline" />
+                          </ion-button>
+                        }
                         <ion-reorder slot="end" />
                       </ion-item>
                     }
@@ -233,6 +243,7 @@ const BLOCK_HINT: Record<Block, string> = {
     .center { display: flex; justify-content: center; padding: 48px; }
     .banner { margin: 12px 16px 0; padding: 10px 14px; border-radius: 10px; background: rgba(var(--ion-color-medium-rgb), 0.15); font-size: 0.9rem; }
     .banner a { color: var(--ion-color-primary); cursor: pointer; font-weight: 600; }
+    .ss { color: var(--ion-color-primary); font-weight: 600; }
     .summary { margin: 14px 16px 0; font-size: 0.85rem; color: var(--ion-color-medium); }
     .block { margin-top: 18px; }
     .block-head { display: flex; justify-content: space-between; align-items: center; padding: 0 8px 0 16px; }
@@ -286,7 +297,7 @@ export class WorkoutEditorPage {
   });
 
   constructor() {
-    addIcons({ add, copyOutline, trashOutline });
+    addIcons({ add, copyOutline, linkOutline, trashOutline });
     // Recarrega sempre que o id da rota muda (ex.: depois de copiar, abre a cópia).
     effect(() => {
       const id = this.id();
@@ -309,7 +320,7 @@ export class WorkoutEditorPage {
       this.items.set(
         w.items.map((i) => ({
           id: i.id, exerciseId: i.exerciseId, exerciseName: i.exerciseName, kind: i.exerciseKind,
-          metricType: i.metricType, isUnilateral: i.isUnilateral, archived: i.exerciseArchived, block: i.block,
+          metricType: i.metricType, isUnilateral: i.isUnilateral, archived: i.exerciseArchived, block: i.block, supersetGroup: i.supersetGroup,
           targetSets: i.targetSets, targetReps: i.targetReps, targetDurationSeconds: i.targetDurationSeconds,
           targetWeightKg: i.targetWeightKg, targetDistanceM: i.targetDistanceM, restSeconds: i.restSeconds,
         })),
@@ -348,7 +359,28 @@ export class WorkoutEditorPage {
     const [moved] = inBlock.splice(from, 1);
     inBlock.splice(to, 0, moved);
     ev.detail.complete(false);
-    this.items.set(BLOCK_ORDER.flatMap((b) => (b === block ? inBlock : this.byBlock()[b])));
+    this.items.set(normalizeSupersets(BLOCK_ORDER.flatMap((b) => (b === block ? inBlock : this.byBlock()[b]))));
+  }
+
+  /** O exercício na posição `index` do bloco está em superset com o anterior? */
+  linked(block: Block, index: number): boolean {
+    const list = this.byBlock()[block];
+    const g = list[index]?.supersetGroup;
+    return !!g && list[index - 1]?.supersetGroup === g;
+  }
+
+  /** Liga/desliga o exercício ao anterior do mesmo bloco (supersets são exercícios seguidos). */
+  toggleLink(block: Block, index: number): void {
+    const list = this.byBlock()[block];
+    const cur = list[index];
+    const prev = list[index - 1];
+    if (!cur || !prev) return;
+    const unlink = this.linked(block, index);
+    const group = prev.supersetGroup ?? `g-${prev.id}`;
+    this.items.update((all) =>
+      normalizeSupersets(all.map((i) => (i.id === cur.id ? { ...i, supersetGroup: unlink ? null : group }
+        : i.id === prev.id && !unlink ? { ...i, supersetGroup: group } : i))),
+    );
   }
 
   patch(id: string, changes: Partial<EditItem>): void {
@@ -360,13 +392,13 @@ export class WorkoutEditorPage {
     this.items.update((list) => {
       const item = list.find((i) => i.id === id);
       if (!item || item.block === block) return list;
-      return [...list.filter((i) => i.id !== id), { ...item, block }];
+      return normalizeSupersets([...list.filter((i) => i.id !== id), { ...item, block, supersetGroup: null }]);
     });
   }
 
   removeItem(id: string): void {
     this.editing.set(null);
-    this.items.update((list) => list.filter((i) => i.id !== id));
+    this.items.update((list) => normalizeSupersets(list.filter((i) => i.id !== id)));
   }
 
   toNum(v: string | null | undefined): number | null {

@@ -1,3 +1,4 @@
+import { EffortScaleComponent } from '../../shared/effort-scale.component';
 import { SessionHealthComponent } from '../../shared/session-health.component';
 import { Component, computed, effect, inject, input, OnDestroy, resource, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -75,7 +76,7 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
 /** Sessão em curso: registar séries, descanso e duração com o temporizador, terminar. */
 @Component({
   selector: 'app-session',
-  imports: [SessionHealthComponent, 
+  imports: [SessionHealthComponent, EffortScaleComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonContent, IonFooter, IonList, IonItem,
     IonLabel, IonBadge, IonInput, IonTextarea, IonModal, IonSegment, IonSegmentButton, IonSpinner,
   ],
@@ -129,6 +130,7 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
                   <div class="title">
                     <h2>{{ ex.exerciseName }}</h2>
                     <p>{{ targets(ex) }}</p>
+                    @if (ssLabel(ex); as l) { <p class="ss">{{ l }}</p> }
                   </div>
                   <ion-button fill="clear" size="small" color="medium" (click)="removeExercise(ex)" aria-label="Tirar exercício">
                     <ion-icon slot="icon-only" name="trash-outline" />
@@ -275,9 +277,8 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
         <ion-content>
           <div class="sheet">
             <p class="sheet-sub">{{ elapsed() }} · {{ totalSets() }} séries</p>
-            <ion-input label="Esforço da sessão (0–10)" labelPlacement="stacked" fill="outline" type="number" inputmode="decimal"
-              placeholder="Opcional" [value]="finishRpe()" (ionInput)="finishRpe.set($any($event).detail.value ?? '')" />
-            <ion-textarea label="Notas" labelPlacement="stacked" fill="outline" [autoGrow]="true" placeholder="Opcional"
+            <app-effort-scale [text]="finishRpe()" (changed)="finishRpe.set($event)" />
+            <ion-textarea label="Notas (opcional)" labelPlacement="stacked" fill="outline" [autoGrow]="true" placeholder="Como te sentiste, dor, sono, stress…"
               [value]="finishNotes()" (ionInput)="finishNotes.set($any($event).detail.value ?? '')" />
             @if (!totalSets() && !historical()) { <p class="hint">Ainda não registaste nenhuma série.</p> }
             @if (historical()) {
@@ -310,6 +311,7 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
     .n { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 8px; border-radius: 50%;
       background: var(--ion-color-step-150, #ddd); font-size: 0.75rem; font-weight: 700; }
     .actions { padding: 8px 12px 12px; }
+    .ss { color: var(--ion-color-primary); font-weight: 600; }
     .warn { margin: 8px 0; padding: 8px 12px; border-radius: 10px; font-size: 0.85rem;
       background: var(--ion-color-warning-tint, #fff3cd); color: var(--ion-color-warning-shade, #6b5200); }
     .hint { text-align: center; color: var(--ion-color-medium); margin: 24px 0; }
@@ -613,8 +615,32 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
 
   /** Descanso: do treino, do exercício ou o global (só força; mobilidade e cardio não têm por defeito). */
   private startRest(ex: SessionExercise): void {
+    const next = this.supersetNext(ex);
+    if (next) {
+      // Superset: sem descanso entre os exercícios do grupo; descansa-se depois do último.
+      void this.toast(`Superset: segue para ${next.exerciseName}.`);
+      return;
+    }
     const seconds = ex.restSeconds ?? (ex.kind === 'STRENGTH' ? this.settings.get('defaultRestSeconds')() : 0);
     if (seconds > 0) this.timer.start('REST', ex.exerciseName, seconds);
+  }
+
+  /** Exercícios do mesmo superset (por ordem); vazio se o exercício não está em nenhum. */
+  private supersetMembers(ex: SessionExercise): SessionExercise[] {
+    if (!ex.supersetGroup) return [];
+    return (this.session()?.exercises ?? [])
+      .filter((e) => e.block === ex.block && e.supersetGroup === ex.supersetGroup)
+      .sort((a, b) => a.position - b.position);
+  }
+  /** O exercício a fazer a seguir dentro do superset, ou null se este é o último (ou não há superset). */
+  private supersetNext(ex: SessionExercise): SessionExercise | null {
+    const m = this.supersetMembers(ex);
+    const i = m.findIndex((e) => e.id === ex.id);
+    return m.length > 1 && i >= 0 && i < m.length - 1 ? m[i + 1] : null;
+  }
+  ssLabel(ex: SessionExercise): string | null {
+    const m = this.supersetMembers(ex);
+    return m.length > 1 ? `Superset ${ex.supersetGroup} · ${m.findIndex((e) => e.id === ex.id) + 1}/${m.length}` : null;
   }
 
   // --- terminar -----------------------------------------------------------------------------------

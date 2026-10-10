@@ -60,6 +60,20 @@ describe('SqliteWorkoutRepository', () => {
     expect((await repo.list())[0].blockCounts).toEqual({ WARMUP: 1, MAIN: 3 });
   });
 
+  it('guarda supersets (só grupos de 2+ seguidos) e a cópia mantém-nos', async () => {
+    const w = await repo.save({
+      name: 'Upper',
+      items: [
+        { exerciseId: squat, block: 'MAIN', supersetGroup: 'x' },
+        { exerciseId: rdl, block: 'MAIN', supersetGroup: 'x' },
+        { exerciseId: pigeon, block: 'MAIN', supersetGroup: 'solo' },
+      ],
+    });
+    expect(w.items.map((i) => i.supersetGroup)).toEqual(['A', 'A', null]);
+    const c = await repo.copy(w.id);
+    expect(c.items.map((i) => i.supersetGroup)).toEqual(['A', 'A', null]);
+  });
+
   it('normaliza os alvos conforme a medida do exercício', async () => {
     const w = await repo.save({
       name: 'X',

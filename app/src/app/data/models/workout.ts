@@ -57,6 +57,8 @@ export interface PlannedExerciseInput {
   id?: string;
   exerciseId: string;
   block: Block;
+  /** Exercícios seguidos com o mesmo grupo fazem superset (A, B…); a repo normaliza. */
+  supersetGroup?: string | null;
   targetSets?: number | null;
   targetReps?: number | null;
   targetDurationSeconds?: number | null;
@@ -96,4 +98,26 @@ export function defaultTargets(kind: Kind, metric: MetricType): Omit<PlannedExer
 /** Bloco natural para um tipo de exercício. */
 export function defaultBlock(kind: Kind): Block {
   return kind === 'STRENGTH' ? 'MAIN' : 'WARMUP';
+}
+
+/**
+ * Supersets: só vale um grupo de 2 ou mais exercícios seguidos no mesmo bloco. Grupos partidos (por reordenar ou
+ * remover) ou com um só exercício desfazem-se; os restantes são renomeados A, B, C… pela ordem.
+ */
+export function normalizeSupersets<T extends { block: string; supersetGroup?: string | null }>(items: T[]): T[] {
+  const runs: number[][] = [];
+  items.forEach((it, i) => {
+    const prev = items[i - 1];
+    const g = it.supersetGroup ?? null;
+    if (g && prev && prev.block === it.block && (prev.supersetGroup ?? null) === g) runs[runs.length - 1].push(i);
+    else runs.push([i]);
+  });
+  const label = new Map<number, string>();
+  let n = 0;
+  for (const r of runs) {
+    if (r.length < 2 || !items[r[0]].supersetGroup) continue;
+    const name = String.fromCharCode(65 + (n++ % 26));
+    for (const i of r) label.set(i, name);
+  }
+  return items.map((it, i) => ({ ...it, supersetGroup: label.get(i) ?? null }));
 }

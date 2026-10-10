@@ -3,6 +3,7 @@ import type { Clock } from '../../../core/util/clock';
 import { newId } from '../../../core/util/uuid';
 import type { Block, Kind, MetricType } from '../../models/enums';
 import {
+  normalizeSupersets,
   BLOCK_ORDER,
   normalizeBlock,
   PlannedExercise,
@@ -135,7 +136,7 @@ export class SqliteWorkoutRepository implements WorkoutRepository {
     if (missing.length) throw new WorkoutValidationError('items', 'Um dos exercícios já não existe. Remove-o do treino.');
 
     // Ordem: blocos pela ordem fixa, e dentro de cada bloco pela ordem do array.
-    const ordered = BLOCK_ORDER.flatMap((b) => input.items.filter((i) => i.block === b));
+    const ordered = normalizeSupersets(BLOCK_ORDER.flatMap((b) => input.items.filter((i) => i.block === b)));
     if (ordered.length !== input.items.length) throw new WorkoutValidationError('items', 'Bloco inválido.');
     const now = this.clock.nowIso();
 
@@ -158,15 +159,16 @@ export class SqliteWorkoutRepository implements WorkoutRepository {
         const itemId = item.id ?? newId();
         keep.add(itemId);
         const values: SqlValue[] = [
-          itemId, id, item.exerciseId, index + 1, item.block, t.sets, t.reps, t.duration, t.weight, t.distance, t.rest,
+          itemId, id, item.exerciseId, index + 1, item.block, item.supersetGroup ?? null, t.sets, t.reps, t.duration, t.weight, t.distance, t.rest,
           now, this.deviceId,
         ];
         await tx.run(
-          `INSERT INTO planned_exercise (id, template_id, exercise_id, position, block, target_sets, target_reps,
+          `INSERT INTO planned_exercise (id, template_id, exercise_id, position, block, superset_group, target_sets, target_reps,
              target_duration_seconds, target_weight_kg, target_distance_m, rest_seconds, updated_at, deleted_at, device_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)
            ON CONFLICT(id) DO UPDATE SET template_id = excluded.template_id, exercise_id = excluded.exercise_id,
-             position = excluded.position, block = excluded.block, target_sets = excluded.target_sets,
+             position = excluded.position, block = excluded.block, superset_group = excluded.superset_group,
+             target_sets = excluded.target_sets,
              target_reps = excluded.target_reps, target_duration_seconds = excluded.target_duration_seconds,
              target_weight_kg = excluded.target_weight_kg, target_distance_m = excluded.target_distance_m,
              rest_seconds = excluded.rest_seconds, updated_at = excluded.updated_at, deleted_at = NULL,
@@ -200,6 +202,7 @@ export class SqliteWorkoutRepository implements WorkoutRepository {
       items: source.items.map((i) => ({
         exerciseId: i.exerciseId,
         block: i.block,
+        supersetGroup: i.supersetGroup,
         targetSets: i.targetSets,
         targetReps: i.targetReps,
         targetDurationSeconds: i.targetDurationSeconds,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatTargets } from './workout-format';
+import { formatTargets, normalizeSupersets } from './workout-format';
 
 describe('formatTargets', () => {
   it('força com carga e descanso', () => {
@@ -13,5 +13,17 @@ describe('formatTargets', () => {
     expect(formatTargets('CARDIO', 'DURATION', false, { targetSets: 1, targetDurationSeconds: 1500, targetDistanceM: 5000 }))
       .toBe('25 min · 5 km');
     expect(formatTargets('CARDIO', 'DURATION', false, { targetSets: 4, targetDurationSeconds: 90 })).toBe('4 × 1 min 30 s');
+  });
+});
+
+describe('normalizeSupersets', () => {
+  const mk = (g: string | null, block = 'MAIN') => ({ block, supersetGroup: g });
+  it('desfaz grupos de um só e renomeia', () => {
+    const r = normalizeSupersets([mk('x'), mk(null), mk('q'), mk('q'), mk('z'), mk('q')]);
+    expect(r.map((x) => x.supersetGroup)).toEqual([null, null, 'A', 'A', null, null]);
+  });
+  it('não junta exercícios de blocos diferentes', () => {
+    const r = normalizeSupersets([mk('g', 'WARMUP'), mk('g', 'MAIN')]);
+    expect(r.map((x) => x.supersetGroup)).toEqual([null, null]);
   });
 });
