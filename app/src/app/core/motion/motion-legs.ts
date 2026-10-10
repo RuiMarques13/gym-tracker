@@ -12,9 +12,10 @@ export const LEG_MOTIONS: Motion[] = [
   m({ id: 'hack', label: 'Hack squat', props: [{ kind: 'machine', d: 'M34 12 L50 90' }] },
     standing({ at: [52, 90], shin: -4, thigh: -4, torso: -12, uarm: 180, farm: 180 }),
     standing({ at: [52, 90], shin: 30, thigh: -90, torso: -12, uarm: 180, farm: 180 })),
-  m({ id: 'legpress', label: 'Prensa de pernas', props: [{ kind: 'machine', d: 'M52 80 L72 52' }] },
-    { anchor: 'hip', at: [52, 76], shin: 96, thigh: 156, torso: 38, uarm: 150, farm: 150 },
-    { anchor: 'hip', at: [52, 76], shin: 128, thigh: 128, torso: 38, uarm: 150, farm: 150 }),
+  // Prensa: o pé fica fixo na plataforma e é o corpo que se aproxima dela; costas encostadas ao banco inclinado.
+  m({ id: 'legpress', label: 'Prensa de pernas', props: [{ kind: 'machine', d: 'M20 90 L64 54 M70 44 L82 58' }] },
+    { anchor: 'ankle', at: [72, 54], shin: 229, thigh: 229, torso: -50, uarm: 160, farm: 170, foot: 140 },
+    { anchor: 'ankle', at: [72, 54], shin: 290, thigh: 183, torso: -50, uarm: 160, farm: 170, foot: 140 }),
   m({ id: 'lunge', label: 'Afundo' }, standing({ at: [46, 88], leg2: [0, 0], uarm: 178, farm: 178 }),
     standing({ at: [46, 88], shin: 20, thigh: -62, torso: 6, leg2: [32, 86], uarm: 178, farm: 178 }), true),
   m({ id: 'split', label: 'Agachamento búlgaro', props: [{ kind: 'bench', d: 'M4 76 H30 M8 76 V90' }] },

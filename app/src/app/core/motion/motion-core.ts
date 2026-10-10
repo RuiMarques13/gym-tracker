@@ -10,8 +10,11 @@ export interface Frame {
   /** Polilinhas do corpo (mesmo número e mesmo nº de pontos nas duas frames). */
   lines: string[];
   head: Pt;
-  /** Pesos desenhados (discos), um por ponto. */
+  /** Pesos desenhados (discos), um por ponto (as mãos, quando o exercício leva carga). */
   weights: Pt[];
+  /** Mãos (pulsos) e pés (tornozelos): onde se desenha o implemento e de onde sai a seta de trajetória. */
+  hands: Pt[];
+  feet: Pt[];
 }
 
 export interface Prop {
@@ -22,6 +25,8 @@ export interface Prop {
 export interface Motion {
   id: string;
   label: string;
+  /** Onde está a polia/âncora do cabo ou elástico (por defeito, ao lado do boneco, à altura das mãos). */
+  pulley?: Pt;
   from: Frame;
   /** Frame intermédia (interpolada pelos ângulos, para os membros não encolherem a meio do arco). */
   mid: Frame;
@@ -97,6 +102,8 @@ export function side(p: Pose, weight = false): Frame {
     ],
     head: [r1(j.head[0]), r1(j.head[1])],
     weights: weight ? [[r1(j.wrist[0]), r1(j.wrist[1])]] : [],
+    hands: [[r1(j.wrist[0]), r1(j.wrist[1])]],
+    feet: [[r1(j.ankle[0]), r1(j.ankle[1])], ...(j.ankle2 ? [[r1(j.ankle2[0]), r1(j.ankle2[1])] as Pt] : [])],
   };
 }
 
@@ -155,6 +162,8 @@ export function front(p: FrontPose, weight = false): Frame {
     ],
     head: [r1(50 + sx + (p.tilt ? Math.sin(rad(p.tilt)) * 7 : 0)), r1(sy - 7 + lean / 25)],
     weights: weight ? [wL, wR].map((w) => [r1(w[0]), r1(w[1])] as Pt) : [],
+    hands: [wL, wR].map((w) => [r1(w[0]), r1(w[1])] as Pt),
+    feet: [legL, legR].map((w) => [r1(w[0]), r1(w[1])] as Pt),
   };
 }
 
@@ -163,6 +172,7 @@ export interface Spec {
   id: string;
   label: string;
   props?: Prop[];
+  pulley?: Pt;
 }
 
 const mix = (a: number, b: number): number => (a + b) / 2;
@@ -185,10 +195,10 @@ const mixFront = (a: FrontPose, b: FrontPose): FrontPose => {
 };
 
 export const sideMotion = (s: Spec, a: Pose, b: Pose, weight = false): Motion => ({
-  id: s.id, label: s.label, props: s.props ?? [], from: side(a, weight), mid: side(mixPose(a, b), weight), to: side(b, weight),
+  id: s.id, label: s.label, pulley: s.pulley, props: s.props ?? [], from: side(a, weight), mid: side(mixPose(a, b), weight), to: side(b, weight),
 });
 export const frontMotion = (s: Spec, a: FrontPose, b: FrontPose, weight = false): Motion => ({
-  id: s.id, label: s.label, props: s.props ?? [], from: front(a, weight), mid: front(mixFront(a, b), weight), to: front(b, weight),
+  id: s.id, label: s.label, pulley: s.pulley, props: s.props ?? [], from: front(a, weight), mid: front(mixFront(a, b), weight), to: front(b, weight),
 });
 
 export const BENCH: Prop = { kind: 'bench', d: 'M20 76 H72 M26 76 V90 M66 76 V90' };

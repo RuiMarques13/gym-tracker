@@ -6,12 +6,13 @@ const INCLINE = { kind: 'incline' as const, d: 'M18 78 L52 54 M26 78 V90 M56 54 
 
 export const UPPER_MOTIONS: Motion[] = [
   // ---- Peito ----
-  m({ id: 'bench', label: 'Supino', props: [BENCH] }, lying({ uarm: 0, farm: 0 }), lying({ uarm: 125, farm: 5 }), true),
+  // Supino: em cima, braços esticados na vertical; em baixo, cotovelos para o lado dos pés e antebraços na vertical.
+  m({ id: 'bench', label: 'Supino', props: [BENCH] }, lying({ uarm: 0, farm: 0 }), lying({ uarm: 252, farm: 2 }), true),
   m({ id: 'bench-incline', label: 'Supino inclinado', props: [INCLINE] },
-    { anchor: 'hip', at: [28, 74], shin: 0, thigh: 92, torso: 52, uarm: 30, farm: 30 },
-    { anchor: 'hip', at: [28, 74], shin: 0, thigh: 92, torso: 52, uarm: 110, farm: 50 }, true),
+    { anchor: 'hip', at: [28, 74], shin: 0, thigh: 92, torso: 52, uarm: 342, farm: 342 },
+    { anchor: 'hip', at: [28, 74], shin: 0, thigh: 92, torso: 52, uarm: 238, farm: 338 }, true),
   m({ id: 'bench-decline', label: 'Supino declinado', props: [{ kind: 'incline', d: 'M16 70 L58 82 M20 70 V90 M56 82 V90' }] },
-    lying({ at: [26, 66], torso: 105, uarm: 15, farm: 15 }), lying({ at: [26, 66], torso: 105, uarm: 135, farm: 20 }), true),
+    lying({ at: [26, 66], torso: 105, uarm: 4, farm: 4 }), lying({ at: [26, 66], torso: 105, uarm: 258, farm: 6 }), true),
   f({ id: 'fly', label: 'Abertura (vista de frente)' }, { ua: [88, 88], fa: [60, 60] }, { ua: [30, 30], fa: [10, 10] }, true),
   m({ id: 'pullover', label: 'Pullover', props: [BENCH] }, lying({ uarm: 0, farm: 0 }), lying({ uarm: 80, farm: 92 }), true),
   m({ id: 'pushup', label: 'Flexão', props: [PAD] },
@@ -31,7 +32,7 @@ export const UPPER_MOTIONS: Motion[] = [
   m({ id: 'row-seated', label: 'Remada sentada', props: [{ kind: 'cable', d: 'M60 50 H94' }, { kind: 'bench', d: 'M14 66 H46 M20 66 V90' }] },
     { anchor: 'hip', at: [32, 66], shin: 4, thigh: -88, torso: 12, uarm: 100, farm: 85 },
     { anchor: 'hip', at: [32, 66], shin: 4, thigh: -88, torso: -6, uarm: 245, farm: 95 }, true),
-  m({ id: 'pulldown', label: 'Puxada', props: [{ kind: 'bar', d: 'M36 22 H62' }, { kind: 'pad', d: 'M26 74 H50' }] },
+  m({ id: 'pulldown', label: 'Puxada', pulley: [58, 4], props: [{ kind: 'pad', d: 'M26 74 H50' }] },
     { anchor: 'hip', at: [40, 74], shin: 4, thigh: -92, torso: 6, uarm: 8, farm: 4 },
     { anchor: 'hip', at: [40, 74], shin: 4, thigh: -92, torso: -8, uarm: 200, farm: 30 }, true),
   m({ id: 'pullup', label: 'Barra fixa', props: [{ kind: 'bar', d: 'M32 10 H62' }] },

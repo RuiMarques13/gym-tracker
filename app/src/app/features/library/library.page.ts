@@ -89,7 +89,7 @@ const PAGE = 60;
                   <p>{{ subtitle(item) }}</p>
                   @if (openKey() === item.key && (item.kind === 'STRENGTH' || motionOf(item))) {
                     <div class="visual">
-                      @if (motionOf(item); as mo) { <app-exercise-motion [motion]="mo" /> }
+                      @if (motionOf(item); as mo) { <app-exercise-motion [motion]="mo" [equipment]="item.equipment ?? 'none'" /> }
                       @if (item.kind === 'STRENGTH') { <app-muscle-map [primary]="specOf(item.primary)" [secondary]="specOf(item.secondary)" /> }
                     </div>
                   }

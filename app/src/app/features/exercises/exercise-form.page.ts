@@ -42,10 +42,12 @@ import {
 import { Exercise, ExerciseInput, ExerciseValidationError } from '../../data/models/exercise';
 import { specOfMuscleIds } from '../../core/metrics/muscles';
 import { motionFor } from '../../core/motion/motion';
+import { ids } from '../../core/util/uuid';
 import { ExerciseMotionComponent } from '../../shared/exercise-motion.component';
 import { MuscleMapComponent } from '../../shared/muscle-map.component';
 import { MuscleGroup, NamedItem } from '../../data/repositories/lookup.repository';
 import { EXERCISE_REPOSITORY, LOOKUP_REPOSITORY } from '../../data/repositories/providers';
+const EQUIPMENT_KEYS = ['machine', 'cable', 'dumbbell', 'barbell', 'bodyweight', 'band', 'kettlebell', 'other', 'treadmill', 'bike', 'elliptical', 'rower', 'stair', 'skierg'];
 
 type MuscleRole = 'primary' | 'secondary';
 
@@ -158,7 +160,7 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
             </ion-item>
 
             @if (kind() !== 'STRENGTH' && motion(); as mo) {
-              <div class="visual"><app-exercise-motion [motion]="mo" /></div>
+              <div class="visual"><app-exercise-motion [motion]="mo" [equipment]="equipmentKey()" /></div>
             }
             @if (kind() !== 'MOBILITY') {
               <ion-list-header>
@@ -171,7 +173,7 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
                 </ion-label>
               </ion-list-header>
               <div class="visual">
-                @if (kind() === 'STRENGTH' && motion(); as mo) { <app-exercise-motion [motion]="mo" /> }
+                @if (kind() === 'STRENGTH' && motion(); as mo) { <app-exercise-motion [motion]="mo" [equipment]="equipmentKey()" /> }
                 <app-muscle-map [primary]="specPrimary()" [secondary]="specSecondary()" />
               </div>
               @for (group of muscleGroups(); track group.region) {
@@ -318,6 +320,8 @@ export class ExerciseFormPage implements OnInit {
     this.kind() === 'MOBILITY' ? 'Sem descanso' : `Usa o global (${this.settings.get('defaultRestSeconds')()} s)`,
   );
   readonly validVideoUrl = computed(() => (/^https?:\/\/\S+$/i.test(this.videoUrl().trim()) ? this.videoUrl().trim() : null));
+  /** Chave do equipamento escolhido (os IDs são determinísticos), para desenhar o implemento certo. */
+  readonly equipmentKey = computed(() => EQUIPMENT_KEYS.find((k) => ids.equipment(k) === this.equipmentId()) ?? 'none');
   readonly motion = computed(() => motionFor(this.name(), this.specPrimary(), this.kind()));
   readonly specPrimary = computed(() =>
     specOfMuscleIds([...this.muscleRoles()].filter(([, r]) => r === 'primary').map(([id]) => id)),
