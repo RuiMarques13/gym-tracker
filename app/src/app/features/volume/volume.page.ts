@@ -1,8 +1,9 @@
-import { Component, computed, inject, resource } from '@angular/core';
+import { Component, computed, inject, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonHeader, IonTitle, IonToolbar, ViewWillEnter } from '@ionic/angular';
 import { VolumeService } from '../../core/metrics/volume.service';
 import { MuscleBarsComponent } from '../../shared/muscle-bars.component';
+import { RecoveryCardComponent } from '../../shared/recovery-card.component';
 import { SettingsService } from '../../core/settings/settings.service';
 import { NavButtonComponent } from '../../shared/nav-button.component';
 
@@ -11,7 +12,7 @@ const LEVEL_LABEL = { beginner: 'Iniciante', intermediate: 'Intermédio', advanc
 /** Volume semanal por músculo (últimos 7 dias): séries efetivas fracionais vs faixa recomendada. */
 @Component({
   selector: 'app-volume',
-  imports: [RouterLink, NavButtonComponent, MuscleBarsComponent, IonHeader, IonToolbar, IonTitle, IonContent],
+  imports: [RouterLink, NavButtonComponent, MuscleBarsComponent, RecoveryCardComponent, IonHeader, IonToolbar, IonTitle, IonContent],
   template: `
     <ion-header>
       <ion-toolbar><app-nav-button slot="start" /><ion-title>Volume semanal</ion-title></ion-toolbar>
@@ -43,6 +44,10 @@ const LEVEL_LABEL = { beginner: 'Iniciante', intermediate: 'Intermédio', advanc
             <app-muscle-bars [rows]="rows()" />
           </section>
         }
+        <section class="card" aria-label="Descanso recomendado">
+          <h2>Descanso recomendado</h2>
+          <app-recovery-card [refresh]="tick()" />
+        </section>
         <p class="legal">Orientação geral de treino, não aconselhamento médico. Séries efetivas: de trabalho, 5–30 repetições, RIR ≤ 3 (ou sem RIR). Músculos secundários contam 0,5.</p>
       </div>
     </ion-content>
@@ -78,7 +83,10 @@ export class VolumePage implements ViewWillEnter {
   readonly rows = computed(() => this.data.value()?.rows ?? []);
   readonly tips = computed(() => this.data.value()?.tips ?? []);
 
+  readonly tick = signal(0);
+
   ionViewWillEnter(): void {
+    this.tick.update((n) => n + 1);
     this.data.reload();
   }
 }

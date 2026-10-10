@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { IonButton } from '@ionic/angular';
 import { VolumeService } from '../../core/metrics/volume.service';
 import { MuscleBarsComponent } from '../../shared/muscle-bars.component';
+import { RecoveryCardComponent } from '../../shared/recovery-card.component';
 import { SettingsService } from '../../core/settings/settings.service';
 import { CLOCK } from '../../core/util/clock';
 import { addDays, toLocalDate, weekStartOf } from '../../core/util/week';
@@ -15,7 +16,7 @@ import { normalizeWidgets } from './widget-list';
 /** Os widgets da Home, pela ordem e com os que escolheres (definição home.widgets). */
 @Component({
   selector: 'app-home-widgets',
-  imports: [RouterLink, IonButton, MuscleBarsComponent],
+  imports: [RouterLink, IonButton, MuscleBarsComponent, RecoveryCardComponent],
   template: `
     @for (id of enabled(); track id) {
       @switch (id) {
@@ -70,6 +71,12 @@ import { normalizeWidgets } from './widget-list';
             } @else {
               <p class="muted">A calcular…</p>
             }
+          </section>
+        }
+        @case ('recovery') {
+          <section class="widget">
+            <h3>Descanso recomendado</h3>
+            <app-recovery-card [refresh]="refresh()" />
           </section>
         }
         @case ('exercise-counts') {

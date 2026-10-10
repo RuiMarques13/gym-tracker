@@ -25,6 +25,7 @@ export const MERGE_TABLES = [
   'setting',
   'body_metric',
   'progress_photo',
+  'muscle_recovery',
 ] as const;
 export type MergeTable = (typeof MERGE_TABLES)[number];
 
