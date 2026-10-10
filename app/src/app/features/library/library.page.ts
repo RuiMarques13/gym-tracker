@@ -24,6 +24,8 @@ import { add, checkmark, refreshOutline } from 'ionicons/icons';
 import { libraryItemToInput, LibraryItemState } from '../../core/library/library';
 import type { LibraryItem } from '../../core/library/library-types';
 import { specOfKeys } from '../../core/metrics/muscles';
+import { motionFor } from '../../core/motion/motion';
+import { ExerciseMotionComponent } from '../../shared/exercise-motion.component';
 import { MuscleMapComponent } from '../../shared/muscle-map.component';
 import { SEED } from '../../core/seed/seed.generated';
 import { ids } from '../../core/util/uuid';
@@ -43,7 +45,7 @@ const PAGE = 60;
  */
 @Component({
   selector: 'app-library',
-  imports: [MuscleMapComponent, 
+  imports: [MuscleMapComponent, ExerciseMotionComponent, 
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent, IonSearchbar, IonChip, IonLabel,
     IonList, IonItem, IonNote, IonBadge, IonButton, IonIcon, IonSpinner,
   ],
@@ -86,7 +88,10 @@ const PAGE = 60;
                   <h2>{{ item.name }}</h2>
                   <p>{{ subtitle(item) }}</p>
                   @if (openKey() === item.key && item.kind === 'STRENGTH') {
-                    <app-muscle-map [primary]="specOf(item.primary)" [secondary]="specOf(item.secondary)" />
+                    <div class="visual">
+                      @if (motionOf(item); as mo) { <app-exercise-motion [motion]="mo" /> }
+                      <app-muscle-map [primary]="specOf(item.primary)" [secondary]="specOf(item.secondary)" />
+                    </div>
                   }
                 </ion-label>
                 <div slot="end" class="end">
@@ -126,6 +131,8 @@ const PAGE = 60;
     </ion-content>
   `,
   styles: `
+    .visual { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: center; margin-top: 8px; }
+    .visual > * { flex: 1 1 150px; min-width: 0; }
     .page { max-width: 860px; margin: 0 auto; }
     .filters { background: var(--ion-toolbar-background, var(--ion-background-color)); padding: 0 0 6px; }
     .chip-row { display: flex; gap: 2px; overflow-x: auto; padding: 0 8px; scrollbar-width: none; }
@@ -150,6 +157,7 @@ export class LibraryPage implements ViewWillEnter {
   readonly busy = signal<string | null>(null);
   readonly openKey = signal<string | null>(null);
   readonly specOf = specOfKeys;
+  motionOf = (item: LibraryItem) => motionFor(item.name, specOfKeys(item.primary), item.kind);
   toggleOpen(key: string): void {
     this.openKey.update((k) => (k === key ? null : key));
   }

@@ -41,6 +41,8 @@ import {
 } from '../../data/models/enums';
 import { Exercise, ExerciseInput, ExerciseValidationError } from '../../data/models/exercise';
 import { specOfMuscleIds } from '../../core/metrics/muscles';
+import { motionFor } from '../../core/motion/motion';
+import { ExerciseMotionComponent } from '../../shared/exercise-motion.component';
 import { MuscleMapComponent } from '../../shared/muscle-map.component';
 import { MuscleGroup, NamedItem } from '../../data/repositories/lookup.repository';
 import { EXERCISE_REPOSITORY, LOOKUP_REPOSITORY } from '../../data/repositories/providers';
@@ -56,7 +58,7 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
  */
 @Component({
   selector: 'app-exercise-form',
-  imports: [MuscleMapComponent, 
+  imports: [MuscleMapComponent, ExerciseMotionComponent, 
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonContent, IonFooter, IonList,
     IonListHeader, IonItem, IonLabel, IonInput, IonTextarea, IonToggle, IonSelect, IonSelectOption, IonSegment,
     IonSegmentButton, IonChip, IonNote, IonBadge, IonSpinner, RouterLink,
@@ -165,7 +167,10 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
                   </p>
                 </ion-label>
               </ion-list-header>
-              <app-muscle-map [primary]="specPrimary()" [secondary]="specSecondary()" />
+              <div class="visual">
+                @if (motion(); as mo) { <app-exercise-motion [motion]="mo" /> }
+                <app-muscle-map [primary]="specPrimary()" [secondary]="specSecondary()" />
+              </div>
               @for (group of muscleGroups(); track group.region) {
                 <div class="chips-block">
                   <span class="chips-title">{{ group.label }}</span>
@@ -241,6 +246,8 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
     </ion-footer>
   `,
   styles: `
+    .visual { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: center; padding: 8px 16px; }
+    .visual > * { flex: 1 1 150px; min-width: 0; }
     .page { max-width: 720px; margin: 0 auto; padding-bottom: 24px; }
     .center { display: flex; justify-content: center; padding: 48px; }
     .archived { margin-right: 12px; }
@@ -308,6 +315,7 @@ export class ExerciseFormPage implements OnInit {
     this.kind() === 'MOBILITY' ? 'Sem descanso' : `Usa o global (${this.settings.get('defaultRestSeconds')()} s)`,
   );
   readonly validVideoUrl = computed(() => (/^https?:\/\/\S+$/i.test(this.videoUrl().trim()) ? this.videoUrl().trim() : null));
+  readonly motion = computed(() => motionFor(this.name(), this.specPrimary(), this.kind()));
   readonly specPrimary = computed(() =>
     specOfMuscleIds([...this.muscleRoles()].filter(([, r]) => r === 'primary').map(([id]) => id)),
   );
