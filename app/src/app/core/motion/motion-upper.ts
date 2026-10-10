@@ -105,7 +105,7 @@ export const UPPER_MOTIONS: Motion[] = [
     // sentado (sobra espaço por cima da cabeça): braço vertical, ligeiramente à frente da orelha; o antebraço desce atrás da cabeça
     const pose: Pose = { anchor: 'hip', at: [44, 66], shin: 4, thigh: -90, torso: 0 };
     return m({ id: 'tri-overhead', label: 'Extensão acima da cabeça', pulley: [6, 88], props: seatAt(pose) },
-      { ...pose, uarm: 24, farm: 232 }, { ...pose, uarm: 24, farm: 24 }, true);
+      { ...pose, uarm: 10, farm: 236 }, { ...pose, uarm: 10, farm: 10 }, true);
   })(),
   m({ id: 'skull', label: 'Skull crusher', props: [BENCH] }, lying({ uarm: 4, farm: 128 }), lying({ uarm: 4, farm: 4 }), true),
   m({ id: 'kickback-tri', label: 'Kickback de tríceps', pulley: [94, 84] },
