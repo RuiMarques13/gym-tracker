@@ -52,7 +52,7 @@ export class DatabaseService {
       const db = await CapacitorSqliteAdapter.open();
       const migration = await migrate(db, undefined, () => this.clock.nowIso());
       const deviceId = await ensureDeviceId(db);
-      const seed = await loadSeed(db, SEED, deviceId);
+      const seed = await loadSeed(db, SEED, deviceId, () => this.clock.nowIso());
       this.adapter = db;
       this.deviceIdValue = deviceId;
       this.status.set({

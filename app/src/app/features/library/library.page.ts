@@ -32,6 +32,7 @@ import { fold } from '../../data/repositories/sqlite/sqlite-exercise.repository'
 
 const MUSCLE_NAME = new Map(SEED.muscles.map((m) => [m.key, m.name]));
 const EQUIPMENT_NAME = new Map(SEED.equipment.map((e) => [e.key, e.name]));
+const AREA_NAME = new Map(SEED.mobilityAreas.map((a) => [a.key, a.name]));
 const PAGE = 60;
 
 /**
@@ -188,9 +189,12 @@ export class LibraryPage implements ViewWillEnter {
   }
 
   subtitle(item: LibraryItem): string {
-    const muscles = [...item.primary, ...item.secondary].map((k) => MUSCLE_NAME.get(k)).filter(Boolean);
+    const muscles = [
+      ...[...item.primary, ...item.secondary].map((k) => MUSCLE_NAME.get(k)),
+      ...item.mobilityAreas.map((k) => AREA_NAME.get(k)),
+    ].filter(Boolean);
     return [
-      EQUIPMENT_NAME.get(item.equipment),
+      item.equipment ? EQUIPMENT_NAME.get(item.equipment) : null,
       muscles.length ? muscles.join(', ') : this.groupLabel().get(item.group),
       METRIC_LABEL[item.metricType],
     ]

@@ -1,8 +1,8 @@
 // GERADO por tools/import-excel/build-seed.mjs a partir de catalog.json. Não editar à mão.
-import { SeedData } from './seed-types';
+import { SeedData, SeedExercise } from './seed-types';
 
 export const SEED: SeedData = {
-  "version": 3,
+  "version": 4,
   "equipment": [
     {
       "key": "machine",
@@ -182,644 +182,688 @@ export const SEED: SeedData = {
       "name": "Joelho"
     }
   ],
-  "exercises": [
-    {
-      "name": "Squat",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "LOWER",
-      "movementType": "PUSH",
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [
-        "quadriceps"
-      ],
-      "secondary": [
-        "glutes"
-      ],
-      "mobilityAreas": []
-    },
-    {
-      "name": "Sumo Squat",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "LOWER",
-      "movementType": "PUSH",
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [
-        "adductors"
-      ],
-      "secondary": [
-        "glutes"
-      ],
-      "mobilityAreas": []
-    },
-    {
-      "name": "RDL",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "LOWER",
-      "movementType": "PULL",
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [
-        "hamstrings"
-      ],
-      "secondary": [
-        "glutes"
-      ],
-      "mobilityAreas": []
-    },
-    {
-      "name": "Bulgarian Split Squat",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": "LOWER",
-      "movementType": "PUSH",
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [
-        "quadriceps"
-      ],
-      "secondary": [
-        "glutes"
-      ],
-      "mobilityAreas": []
-    },
-    {
-      "name": "Lunges",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": "LOWER",
-      "movementType": "PUSH",
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [
-        "quadriceps"
-      ],
-      "secondary": [
-        "glutes"
-      ],
-      "mobilityAreas": []
-    },
-    {
-      "name": "DB Stiff",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "LOWER",
-      "movementType": "PULL",
-      "equipment": "dumbbell",
-      "defaultRestSeconds": null,
-      "primary": [
-        "hamstrings"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "Hip Thrust",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "LOWER",
-      "movementType": "PULL",
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [
-        "glutes"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "1 Leg Hip Thrust",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": "LOWER",
-      "movementType": "PULL",
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [
-        "glutes"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "M Chest Press",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PUSH",
-      "equipment": "machine",
-      "defaultRestSeconds": null,
-      "primary": [
-        "chest"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "DB Incline Chest Press",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PUSH",
-      "equipment": "dumbbell",
-      "defaultRestSeconds": null,
-      "primary": [
-        "chest"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "DB Chest Press",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PUSH",
-      "equipment": "dumbbell",
-      "defaultRestSeconds": null,
-      "primary": [
-        "chest"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "DB Chest Fly",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PUSH",
-      "equipment": "dumbbell",
-      "defaultRestSeconds": null,
-      "primary": [
-        "chest"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "C Chest Fly",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PUSH",
-      "equipment": "cable",
-      "defaultRestSeconds": null,
-      "primary": [
-        "chest"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "DB Biceps curl",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PULL",
-      "equipment": "dumbbell",
-      "defaultRestSeconds": null,
-      "primary": [
-        "biceps"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "DB Biceps Hammer curl",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PULL",
-      "equipment": "dumbbell",
-      "defaultRestSeconds": null,
-      "primary": [
-        "biceps"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "C Biceps curl",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PULL",
-      "equipment": "cable",
-      "defaultRestSeconds": null,
-      "primary": [
-        "biceps"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "DB Triceps Extension",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PUSH",
-      "equipment": "dumbbell",
-      "defaultRestSeconds": null,
-      "primary": [
-        "triceps"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "C Triceps Extension",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PUSH",
-      "equipment": "cable",
-      "defaultRestSeconds": null,
-      "primary": [
-        "triceps"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "C Overhead Triceps Extension",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PUSH",
-      "equipment": "cable",
-      "defaultRestSeconds": null,
-      "primary": [
-        "triceps"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "M Pulldown Neutra",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PULL",
-      "equipment": "machine",
-      "defaultRestSeconds": null,
-      "primary": [
-        "back"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "M Pulldown Aberta",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PULL",
-      "equipment": "machine",
-      "defaultRestSeconds": null,
-      "primary": [
-        "back"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "M Low Row",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PULL",
-      "equipment": "machine",
-      "defaultRestSeconds": null,
-      "primary": [
-        "back"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "M High Row",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PULL",
-      "equipment": "machine",
-      "defaultRestSeconds": null,
-      "primary": [
-        "back"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "C Pullover",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PULL",
-      "equipment": "cable",
-      "defaultRestSeconds": null,
-      "primary": [
-        "back"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "DB Bent Row",
-      "kind": "STRENGTH",
-      "metricType": "WEIGHT_REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": "UPPER",
-      "movementType": "PULL",
-      "equipment": "dumbbell",
-      "defaultRestSeconds": null,
-      "primary": [
-        "back"
-      ],
-      "secondary": [],
-      "mobilityAreas": []
-    },
-    {
-      "name": "90/90 de anca",
-      "kind": "MOBILITY",
-      "metricType": "DURATION",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "hip"
-      ]
-    },
-    {
-      "name": "Alongamento de flexores da anca (couch stretch)",
-      "kind": "MOBILITY",
-      "metricType": "DURATION",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "hip"
-      ]
-    },
-    {
-      "name": "World's greatest stretch",
-      "kind": "MOBILITY",
-      "metricType": "REPS",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "hip",
-        "thoracic"
-      ]
-    },
-    {
-      "name": "Pombo (pigeon)",
-      "kind": "MOBILITY",
-      "metricType": "DURATION",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "hip"
-      ]
-    },
-    {
-      "name": "Agachamento profundo (manter)",
-      "kind": "MOBILITY",
-      "metricType": "DURATION",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "hip",
-        "ankle"
-      ]
-    },
-    {
-      "name": "Cossack squat",
-      "kind": "MOBILITY",
-      "metricType": "REPS",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "hip"
-      ]
-    },
-    {
-      "name": "Mobilidade de tornozelo na parede",
-      "kind": "MOBILITY",
-      "metricType": "REPS",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "ankle"
-      ]
-    },
-    {
-      "name": "Gato-camelo",
-      "kind": "MOBILITY",
-      "metricType": "REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "thoracic",
-        "lumbar"
-      ]
-    },
-    {
-      "name": "Rotação torácica em quadrupedia",
-      "kind": "MOBILITY",
-      "metricType": "REPS",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "thoracic"
-      ]
-    },
-    {
-      "name": "Rotação torácica deitado (open book)",
-      "kind": "MOBILITY",
-      "metricType": "REPS",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "thoracic"
-      ]
-    },
-    {
-      "name": "Alongamento de peitoral na porta",
-      "kind": "MOBILITY",
-      "metricType": "DURATION",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "shoulder"
-      ]
-    },
-    {
-      "name": "Dislocates de ombro com banda",
-      "kind": "MOBILITY",
-      "metricType": "REPS",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": "band",
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "shoulder"
-      ]
-    },
-    {
-      "name": "Posição da criança",
-      "kind": "MOBILITY",
-      "metricType": "DURATION",
-      "isUnilateral": false,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "lumbar",
-        "shoulder"
-      ]
-    },
-    {
-      "name": "Alongamento de isquiotibiais",
-      "kind": "MOBILITY",
-      "metricType": "DURATION",
-      "isUnilateral": true,
-      "isIsometric": false,
-      "region": null,
-      "movementType": null,
-      "equipment": null,
-      "defaultRestSeconds": null,
-      "primary": [],
-      "secondary": [],
-      "mobilityAreas": [
-        "hip"
-      ]
-    }
+  "exercises": [],
+  "retiredExercises": [
+    "Squat",
+    "Sumo Squat",
+    "RDL",
+    "Bulgarian Split Squat",
+    "Lunges",
+    "DB Stiff",
+    "Hip Thrust",
+    "1 Leg Hip Thrust",
+    "M Chest Press",
+    "DB Incline Chest Press",
+    "DB Chest Press",
+    "DB Chest Fly",
+    "C Chest Fly",
+    "DB Biceps curl",
+    "DB Biceps Hammer curl",
+    "C Biceps curl",
+    "DB Triceps Extension",
+    "C Triceps Extension",
+    "C Overhead Triceps Extension",
+    "M Pulldown Neutra",
+    "M Pulldown Aberta",
+    "M Low Row",
+    "M High Row",
+    "C Pullover",
+    "DB Bent Row",
+    "90/90 de anca",
+    "Alongamento de flexores da anca (couch stretch)",
+    "World's greatest stretch",
+    "Pombo (pigeon)",
+    "Agachamento profundo (manter)",
+    "Cossack squat",
+    "Mobilidade de tornozelo na parede",
+    "Gato-camelo",
+    "Rotação torácica em quadrupedia",
+    "Rotação torácica deitado (open book)",
+    "Alongamento de peitoral na porta",
+    "Dislocates de ombro com banda",
+    "Posição da criança",
+    "Alongamento de isquiotibiais"
   ]
 };
+
+/** Os 39 exercícios dos seeds v1–v3. Só para testes e para saber o que retirar. */
+export const LEGACY_EXERCISES: SeedExercise[] = [
+  {
+    "name": "Squat",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "LOWER",
+    "movementType": "PUSH",
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [
+      "quadriceps"
+    ],
+    "secondary": [
+      "glutes"
+    ],
+    "mobilityAreas": []
+  },
+  {
+    "name": "Sumo Squat",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "LOWER",
+    "movementType": "PUSH",
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [
+      "adductors"
+    ],
+    "secondary": [
+      "glutes"
+    ],
+    "mobilityAreas": []
+  },
+  {
+    "name": "RDL",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "LOWER",
+    "movementType": "PULL",
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [
+      "hamstrings"
+    ],
+    "secondary": [
+      "glutes"
+    ],
+    "mobilityAreas": []
+  },
+  {
+    "name": "Bulgarian Split Squat",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": "LOWER",
+    "movementType": "PUSH",
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [
+      "quadriceps"
+    ],
+    "secondary": [
+      "glutes"
+    ],
+    "mobilityAreas": []
+  },
+  {
+    "name": "Lunges",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": "LOWER",
+    "movementType": "PUSH",
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [
+      "quadriceps"
+    ],
+    "secondary": [
+      "glutes"
+    ],
+    "mobilityAreas": []
+  },
+  {
+    "name": "DB Stiff",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "LOWER",
+    "movementType": "PULL",
+    "equipment": "dumbbell",
+    "defaultRestSeconds": null,
+    "primary": [
+      "hamstrings"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "Hip Thrust",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "LOWER",
+    "movementType": "PULL",
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [
+      "glutes"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "1 Leg Hip Thrust",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": "LOWER",
+    "movementType": "PULL",
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [
+      "glutes"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "M Chest Press",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PUSH",
+    "equipment": "machine",
+    "defaultRestSeconds": null,
+    "primary": [
+      "chest"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "DB Incline Chest Press",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PUSH",
+    "equipment": "dumbbell",
+    "defaultRestSeconds": null,
+    "primary": [
+      "chest"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "DB Chest Press",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PUSH",
+    "equipment": "dumbbell",
+    "defaultRestSeconds": null,
+    "primary": [
+      "chest"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "DB Chest Fly",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PUSH",
+    "equipment": "dumbbell",
+    "defaultRestSeconds": null,
+    "primary": [
+      "chest"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "C Chest Fly",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PUSH",
+    "equipment": "cable",
+    "defaultRestSeconds": null,
+    "primary": [
+      "chest"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "DB Biceps curl",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PULL",
+    "equipment": "dumbbell",
+    "defaultRestSeconds": null,
+    "primary": [
+      "biceps"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "DB Biceps Hammer curl",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PULL",
+    "equipment": "dumbbell",
+    "defaultRestSeconds": null,
+    "primary": [
+      "biceps"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "C Biceps curl",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PULL",
+    "equipment": "cable",
+    "defaultRestSeconds": null,
+    "primary": [
+      "biceps"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "DB Triceps Extension",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PUSH",
+    "equipment": "dumbbell",
+    "defaultRestSeconds": null,
+    "primary": [
+      "triceps"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "C Triceps Extension",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PUSH",
+    "equipment": "cable",
+    "defaultRestSeconds": null,
+    "primary": [
+      "triceps"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "C Overhead Triceps Extension",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PUSH",
+    "equipment": "cable",
+    "defaultRestSeconds": null,
+    "primary": [
+      "triceps"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "M Pulldown Neutra",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PULL",
+    "equipment": "machine",
+    "defaultRestSeconds": null,
+    "primary": [
+      "back"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "M Pulldown Aberta",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PULL",
+    "equipment": "machine",
+    "defaultRestSeconds": null,
+    "primary": [
+      "back"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "M Low Row",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PULL",
+    "equipment": "machine",
+    "defaultRestSeconds": null,
+    "primary": [
+      "back"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "M High Row",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PULL",
+    "equipment": "machine",
+    "defaultRestSeconds": null,
+    "primary": [
+      "back"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "C Pullover",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PULL",
+    "equipment": "cable",
+    "defaultRestSeconds": null,
+    "primary": [
+      "back"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "DB Bent Row",
+    "kind": "STRENGTH",
+    "metricType": "WEIGHT_REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": "UPPER",
+    "movementType": "PULL",
+    "equipment": "dumbbell",
+    "defaultRestSeconds": null,
+    "primary": [
+      "back"
+    ],
+    "secondary": [],
+    "mobilityAreas": []
+  },
+  {
+    "name": "90/90 de anca",
+    "kind": "MOBILITY",
+    "metricType": "DURATION",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "hip"
+    ]
+  },
+  {
+    "name": "Alongamento de flexores da anca (couch stretch)",
+    "kind": "MOBILITY",
+    "metricType": "DURATION",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "hip"
+    ]
+  },
+  {
+    "name": "World's greatest stretch",
+    "kind": "MOBILITY",
+    "metricType": "REPS",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "hip",
+      "thoracic"
+    ]
+  },
+  {
+    "name": "Pombo (pigeon)",
+    "kind": "MOBILITY",
+    "metricType": "DURATION",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "hip"
+    ]
+  },
+  {
+    "name": "Agachamento profundo (manter)",
+    "kind": "MOBILITY",
+    "metricType": "DURATION",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "hip",
+      "ankle"
+    ]
+  },
+  {
+    "name": "Cossack squat",
+    "kind": "MOBILITY",
+    "metricType": "REPS",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "hip"
+    ]
+  },
+  {
+    "name": "Mobilidade de tornozelo na parede",
+    "kind": "MOBILITY",
+    "metricType": "REPS",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "ankle"
+    ]
+  },
+  {
+    "name": "Gato-camelo",
+    "kind": "MOBILITY",
+    "metricType": "REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "thoracic",
+      "lumbar"
+    ]
+  },
+  {
+    "name": "Rotação torácica em quadrupedia",
+    "kind": "MOBILITY",
+    "metricType": "REPS",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "thoracic"
+    ]
+  },
+  {
+    "name": "Rotação torácica deitado (open book)",
+    "kind": "MOBILITY",
+    "metricType": "REPS",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "thoracic"
+    ]
+  },
+  {
+    "name": "Alongamento de peitoral na porta",
+    "kind": "MOBILITY",
+    "metricType": "DURATION",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "shoulder"
+    ]
+  },
+  {
+    "name": "Dislocates de ombro com banda",
+    "kind": "MOBILITY",
+    "metricType": "REPS",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": "band",
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "shoulder"
+    ]
+  },
+  {
+    "name": "Posição da criança",
+    "kind": "MOBILITY",
+    "metricType": "DURATION",
+    "isUnilateral": false,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "lumbar",
+      "shoulder"
+    ]
+  },
+  {
+    "name": "Alongamento de isquiotibiais",
+    "kind": "MOBILITY",
+    "metricType": "DURATION",
+    "isUnilateral": true,
+    "isIsometric": false,
+    "region": null,
+    "movementType": null,
+    "equipment": null,
+    "defaultRestSeconds": null,
+    "primary": [],
+    "secondary": [],
+    "mobilityAreas": [
+      "hip"
+    ]
+  }
+];

@@ -20,7 +20,12 @@ export interface SeedResult {
  * Idempotente: ON CONFLICT(id) DO NOTHING nunca sobrepõe edições,
  * arquivos ou apagados teus.
  */
-export async function loadSeed(db: DbAdapter, seed: SeedData, deviceId: string): Promise<SeedResult> {
+export async function loadSeed(
+  db: DbAdapter,
+  seed: SeedData,
+  deviceId: string,
+  nowIso: () => string = () => new Date().toISOString(),
+): Promise<SeedResult> {
   const current = Number((await getMeta(db, 'seed_version')) ?? 0);
   if (current >= seed.version) return { skipped: true, version: current };
 
@@ -78,6 +83,34 @@ export async function loadSeed(db: DbAdapter, seed: SeedData, deviceId: string):
         );
       }
     }
+    // Retirar exercícios de seeds antigos: apaga (soft delete) se nunca foram usados, arquiva se foram.
+    // Usa a hora real, para ganhar no sync ao updated_at fixo das linhas de seed.
+    const now = nowIso();
+    for (const name of seed.retiredExercises ?? []) {
+      const id = ids.exercise(name);
+      const used = await tx.query<{ n: number }>(
+        `SELECT (SELECT COUNT(*) FROM planned_exercise WHERE exercise_id = ? AND deleted_at IS NULL)
+              + (SELECT COUNT(*) FROM session_exercise WHERE exercise_id = ? AND deleted_at IS NULL) AS n`,
+        [id, id],
+      );
+      if (used[0].n > 0) {
+        await tx.run(
+          'UPDATE exercise SET archived_at = ?, updated_at = ?, device_id = ? WHERE id = ? AND deleted_at IS NULL AND archived_at IS NULL',
+          [now, now, deviceId, id],
+        );
+        continue;
+      }
+      for (const table of ['exercise_muscle', 'exercise_mobility_area']) {
+        await tx.run(
+          `UPDATE ${table} SET deleted_at = ?, updated_at = ?, device_id = ? WHERE exercise_id = ? AND deleted_at IS NULL`,
+          [now, now, deviceId, id],
+        );
+      }
+      await tx.run('UPDATE exercise SET deleted_at = ?, updated_at = ?, device_id = ? WHERE id = ? AND deleted_at IS NULL', [
+        now, now, deviceId, id,
+      ]);
+    }
+
     await tx.run(
       'INSERT INTO local_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
       ['seed_version', String(seed.version)],

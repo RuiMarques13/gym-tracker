@@ -3,7 +3,7 @@ import { LIBRARY } from '../../../core/library/library.generated';
 import { libraryItemToInput } from '../../../core/library/library';
 import { SEED } from '../../../core/seed/seed.generated';
 import { loadSeed } from '../../../core/seed/seed-loader';
-import { createTestDb } from '../../../core/testing/test-db';
+import { createTestDb, TEST_SEED } from '../../../core/testing/test-db';
 import { FixedClock } from '../../../core/util/clock';
 import { ids } from '../../../core/util/uuid';
 import { ExerciseValidationError } from '../../models/exercise';
@@ -17,7 +17,7 @@ let clock: FixedClock;
 beforeEach(async () => {
   const t = await createTestDb();
   db = t.db;
-  await loadSeed(db, SEED, t.deviceId);
+  await loadSeed(db, TEST_SEED, t.deviceId);
   clock = new FixedClock(new Date('2026-10-10T08:00:00.000Z'));
   repo = new SqliteExerciseRepository(db, clock, t.deviceId);
 });
@@ -142,7 +142,7 @@ describe('biblioteca', () => {
       expect(keys.has(i.key), i.key).toBe(false);
       names.add(i.name.toLowerCase());
       keys.add(i.key);
-      expect(equipmentKeys.has(i.equipment), i.name).toBe(true);
+      if (i.equipment) expect(equipmentKeys.has(i.equipment), i.name).toBe(true);
       for (const m of [...i.primary, ...i.secondary]) expect(muscleKeys.has(m), `${i.name}: ${m}`).toBe(true);
     }
   });
@@ -156,6 +156,17 @@ describe('biblioteca', () => {
       primaryMuscleIds: [ids.muscle('back')], secondaryMuscleIds: [ids.muscle('biceps')],
       notes: 'Variações: pega larga, fechada, neutra, supinada',
     });
+  });
+
+  it('mobilidade da biblioteca traz áreas e sem equipamento', async () => {
+    // base nova com o seed de produção (sem os exercícios antigos)
+    const t = await createTestDb();
+    await loadSeed(t.db, SEED, t.deviceId);
+    const fresh = new SqliteExerciseRepository(t.db, clock, t.deviceId);
+    const ex = await fresh.save(libraryItemToInput(libItem('90/90 de anca')));
+    expect(ex).toMatchObject({ kind: 'MOBILITY', metricType: 'DURATION', isUnilateral: true, equipmentId: null,
+      mobilityAreaIds: [ids.mobilityArea('hip')] });
+    expect(LIBRARY.items.filter((i) => i.kind === 'MOBILITY')).toHaveLength(14);
   });
 
   it('peso corporal mede-se por reps, pranchas por duração, búlgaro é unilateral', async () => {
@@ -176,7 +187,7 @@ describe('biblioteca', () => {
 
   it('os novos grupos musculares chegam a bases que já tinham o seed v1', async () => {
     const t = await createTestDb();
-    await loadSeed(t.db, { ...SEED, version: 1, muscles: SEED.muscles.filter((m) => m.key !== 'traps') }, t.deviceId);
+    await loadSeed(t.db, { ...TEST_SEED, version: 1, muscles: SEED.muscles.filter((m) => m.key !== 'traps') }, t.deviceId);
     await loadSeed(t.db, SEED, t.deviceId);
     const traps = await t.db.query('SELECT 1 FROM muscle_group WHERE id = ?', [ids.muscle('traps')]);
     expect(traps).toHaveLength(1);

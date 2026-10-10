@@ -2,6 +2,11 @@ import initSqlJs, { SqlJsStatic } from 'sql.js';
 import { SqlJsAdapter } from '../db/adapters/sqljs-adapter';
 import { ensureDeviceId } from '../db/local-meta';
 import { migrate } from '../db/migrator';
+import { LEGACY_EXERCISES, SEED } from '../seed/seed.generated';
+import type { SeedData } from '../seed/seed-types';
+
+/** Seed com os 39 exercícios antigos, para testes que precisam de um catálogo. */
+export const TEST_SEED: SeedData = { ...SEED, exercises: LEGACY_EXERCISES, retiredExercises: [] };
 
 let SQL: SqlJsStatic | null = null;
 

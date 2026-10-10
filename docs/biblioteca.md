@@ -1,6 +1,6 @@
 # Biblioteca de exercícios
 
-A biblioteca é um catálogo **só de consulta** que vem com a app (400 exercícios, por grupo muscular e
+A biblioteca é um catálogo **só de consulta** que vem com a app (414 exercícios, por grupo muscular e
 equipamento). Nada entra nos teus exercícios até tocares em **Adicionar** (Exercícios → Biblioteca).
 Depois de adicionado, o exercício é teu e editas como quiseres.
 

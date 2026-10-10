@@ -222,9 +222,20 @@ for (const line of source.split('\n')) {
   }
 }
 
+// ---- Mobilidade: os 14 de catalog.json (seeds antigos) passam a viver na biblioteca ----
+const mobility = catalog.mobility.map((m) => ({
+  section: 'mobilidade', name: m.name, variants: null, equipment: m.equipment ?? null, region: null,
+  kind: 'MOBILITY', primary: null, secondary: [], move: null, metricType: m.metricType,
+  isIsometric: false, isUnilateral: !!m.isUnilateral, mobilityAreas: m.areas ?? [],
+}));
+const areaKeys = new Set(catalog.mobilityAreas.map((a) => a.key));
+for (const m of mobility) {
+  for (const a of m.mobilityAreas) if (!areaKeys.has(a)) throw new Error(`${m.name}: área ${a} não existe`);
+}
+
 // ---- Juntar repetidos (mesmo nome + equipamento) ----
 const merged = new Map();
-for (const it of [...items, ...cardio]) {
+for (const it of [...items, ...mobility, ...cardio]) {
   const k = `${fold(it.name)}|${it.equipment}`;
   const prev = merged.get(k);
   if (!prev) {
@@ -247,12 +258,12 @@ for (const it of merged.values()) {
 const muscleKeys = new Set(catalog.muscles.map((m) => m.key));
 const errors = [];
 const library = [...merged.values()].map((it) => {
-  const display = byName.get(fold(it.name)) > 1 ? `${it.name} (${EQUIPMENT_SUFFIX[it.equipment]})` : it.name;
+  const display = byName.get(fold(it.name)) > 1 && it.equipment ? `${it.name} (${EQUIPMENT_SUFFIX[it.equipment]})` : it.name;
   for (const m of [it.primary, ...it.secondary].filter(Boolean)) {
     if (!muscleKeys.has(m)) errors.push(`${display}: músculo ${m} não existe em catalog.json`);
   }
   return {
-    key: `${slug(it.name)}--${it.equipment}`,
+    key: `${slug(it.name)}--${it.equipment ?? 'none'}`,
     name: display,
     group: it.section,
     kind: it.kind ?? 'STRENGTH',
@@ -264,6 +275,7 @@ const library = [...merged.values()].map((it) => {
     equipment: it.equipment,
     primary: it.primary ? [it.primary] : [],
     secondary: it.secondary,
+    mobilityAreas: it.mobilityAreas ?? [],
     variants: it.variants,
   };
 });
@@ -288,19 +300,20 @@ const GROUP_LABELS = {
   'triceps': 'Tríceps', 'quadriceps': 'Quadríceps', 'isquiotibiais e gluteos': 'Isquiotibiais e glúteos',
   'gemeos, adutores e abdutores': 'Gémeos, adutores e abdutores', 'core e abdominais': 'Core e abdominais',
   'corpo inteiro, funcional e cardio': 'Corpo inteiro e funcional',
+  'mobilidade': 'Mobilidade',
   'cardio': 'Cardio',
 };
-const groups = [...Object.keys(SECTIONS), 'cardio'].map((k) => ({ key: k, label: GROUP_LABELS[k] }));
+const groups = [...Object.keys(SECTIONS), 'mobilidade', 'cardio'].map((k) => ({ key: k, label: GROUP_LABELS[k] }));
 
 const out = `// GERADO por tools/exercise-library/build-library.mjs a partir de catalogo-exercicios.md. Não editar à mão.
 import type { LibraryData } from './library-types';
 
-export const LIBRARY: LibraryData = ${JSON.stringify({ version: 2, groups, items: library }, null, 2)};
+export const LIBRARY: LibraryData = ${JSON.stringify({ version: 3, groups, items: library }, null, 2)};
 `;
 writeFileSync(outPath, out);
 
 const count = (f) => library.filter(f).length;
-console.log(`Biblioteca: ${library.length} exercícios (${items.length + cardio.length - library.length} repetidos juntados)`);
+console.log(`Biblioteca: ${library.length} exercícios (${items.length + mobility.length + cardio.length - library.length} repetidos juntados)`);
 for (const g of groups) console.log(`  ${g.label}: ${count((l) => l.group === g.key)}`);
 console.log(`  unilaterais: ${count((l) => l.isUnilateral)}, duração: ${count((l) => l.metricType === 'DURATION')}, reps: ${count((l) => l.metricType === 'REPS')}`);
 console.log(`→ ${outPath}`);

@@ -91,21 +91,27 @@ if (errors.length) {
   process.exit(1);
 }
 
+// Desde o seed v4 a app não cria exercícios: os teus vêm da biblioteca ou do formulário.
+// Os 39 exercícios de origem (strength + mobility em catalog.json) ficam só como:
+// - retiredExercises: apagados das bases que os receberam (seeds v1–v3);
+// - LEGACY_EXERCISES: dados de teste.
+// A lista de mobilidade continua a alimentar a biblioteca (grupo «Mobilidade»).
 const seed = {
   version: catalog.version,
   equipment: catalog.equipment,
   muscles: catalog.muscles,
   mobilityAreas: catalog.mobilityAreas,
-  exercises,
+  exercises: [],
+  retiredExercises: exercises.map((e) => e.name),
 };
 
 const out = `// GERADO por tools/import-excel/build-seed.mjs a partir de catalog.json. Não editar à mão.
-import { SeedData } from './seed-types';
+import { SeedData, SeedExercise } from './seed-types';
 
 export const SEED: SeedData = ${JSON.stringify(seed, null, 2)};
+
+/** Os 39 exercícios dos seeds v1–v3. Só para testes e para saber o que retirar. */
+export const LEGACY_EXERCISES: SeedExercise[] = ${JSON.stringify(exercises, null, 2)};
 `;
 writeFileSync(outPath, out);
-console.log(
-  `Seed v${seed.version}: ${exercises.filter((e) => e.kind === 'STRENGTH').length} força, ` +
-    `${exercises.filter((e) => e.kind === 'MOBILITY').length} mobilidade → ${outPath}`,
-);
+console.log(`Seed v${seed.version}: 0 exercícios criados, ${exercises.length} a retirar de bases antigas → ${outPath}`);

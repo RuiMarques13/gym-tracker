@@ -13,12 +13,12 @@ export function libraryItemToInput(item: LibraryItem): ExerciseInput {
     isIsometric: item.isIsometric,
     region: item.region,
     movementType: item.movementType,
-    equipmentId: ids.equipment(item.equipment),
+    equipmentId: item.equipment ? ids.equipment(item.equipment) : null,
     defaultRestSeconds: null,
     notes: item.variants ? `Variações: ${item.variants}` : null,
     primaryMuscleIds: item.primary.map((k) => ids.muscle(k)),
     secondaryMuscleIds: item.secondary.map((k) => ids.muscle(k)),
-    mobilityAreaIds: [],
+    mobilityAreaIds: item.mobilityAreas.map((k) => ids.mobilityArea(k)),
   };
 }
 

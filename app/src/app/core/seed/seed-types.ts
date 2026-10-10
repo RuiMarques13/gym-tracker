@@ -11,6 +11,8 @@ export interface SeedData {
   muscles: { key: string; name: string; region: Region | null }[];
   mobilityAreas: { key: string; name: string }[];
   exercises: SeedExercise[];
+  /** Nomes de exercícios de seeds antigos a retirar (id = ids.exercise(nome)). */
+  retiredExercises?: string[];
 }
 
 export interface SeedExercise {

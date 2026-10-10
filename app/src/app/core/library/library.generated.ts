@@ -2,7 +2,7 @@
 import type { LibraryData } from './library-types';
 
 export const LIBRARY: LibraryData = {
-  "version": 2,
+  "version": 3,
   "groups": [
     {
       "key": "peito",
@@ -45,6 +45,10 @@ export const LIBRARY: LibraryData = {
       "label": "Corpo inteiro e funcional"
     },
     {
+      "key": "mobilidade",
+      "label": "Mobilidade"
+    },
+    {
       "key": "cardio",
       "label": "Cardio"
     }
@@ -67,6 +71,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -86,6 +91,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -105,6 +111,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -124,6 +131,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -141,6 +149,7 @@ export const LIBRARY: LibraryData = {
         "chest"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -160,6 +169,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "back"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -179,6 +189,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -198,6 +209,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -215,6 +227,7 @@ export const LIBRARY: LibraryData = {
         "chest"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -234,6 +247,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -253,6 +267,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -272,6 +287,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -291,6 +307,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -310,6 +327,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -329,6 +347,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -348,6 +367,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -368,6 +388,7 @@ export const LIBRARY: LibraryData = {
         "triceps",
         "shoulders"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -387,6 +408,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -406,6 +428,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -425,6 +448,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -442,6 +466,7 @@ export const LIBRARY: LibraryData = {
         "chest"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -461,6 +486,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": "plano/inclinado/declinado"
     },
     {
@@ -480,6 +506,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "back"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -499,6 +526,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -516,6 +544,7 @@ export const LIBRARY: LibraryData = {
         "chest"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -533,6 +562,7 @@ export const LIBRARY: LibraryData = {
         "chest"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -550,6 +580,7 @@ export const LIBRARY: LibraryData = {
         "chest"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -567,6 +598,7 @@ export const LIBRARY: LibraryData = {
         "chest"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -586,6 +618,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -603,6 +636,7 @@ export const LIBRARY: LibraryData = {
         "chest"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -622,6 +656,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -639,6 +674,7 @@ export const LIBRARY: LibraryData = {
         "chest"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -658,6 +694,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -675,6 +712,7 @@ export const LIBRARY: LibraryData = {
         "chest"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -694,6 +732,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": "normais, inclinadas, declinadas, diamante, pega larga, arqueiro, pliométricas, com batimento de mãos"
     },
     {
@@ -713,6 +752,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -732,6 +772,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -751,6 +792,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -770,6 +812,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -789,6 +832,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -808,6 +852,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -827,6 +872,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -844,6 +890,7 @@ export const LIBRARY: LibraryData = {
         "traps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -863,6 +910,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "traps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -882,6 +930,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": "pronada/supinada"
     },
     {
@@ -901,6 +950,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -920,6 +970,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -939,6 +990,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -958,6 +1010,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -978,6 +1031,7 @@ export const LIBRARY: LibraryData = {
         "hamstrings",
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -998,6 +1052,7 @@ export const LIBRARY: LibraryData = {
         "hamstrings",
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1015,6 +1070,7 @@ export const LIBRARY: LibraryData = {
         "traps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1035,6 +1091,7 @@ export const LIBRARY: LibraryData = {
         "lower_back",
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1054,6 +1111,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1073,6 +1131,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1092,6 +1151,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1111,6 +1171,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1128,6 +1189,7 @@ export const LIBRARY: LibraryData = {
         "back"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1147,6 +1209,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1166,6 +1229,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1183,6 +1247,7 @@ export const LIBRARY: LibraryData = {
         "traps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1202,6 +1267,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1221,6 +1287,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": "pega larga, fechada, neutra, supinada"
     },
     {
@@ -1240,6 +1307,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1259,6 +1327,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": "triângulo, barra larga"
     },
     {
@@ -1278,6 +1347,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1295,6 +1365,7 @@ export const LIBRARY: LibraryData = {
         "back"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1314,6 +1385,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "traps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1333,6 +1405,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "traps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1350,6 +1423,7 @@ export const LIBRARY: LibraryData = {
         "traps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1369,6 +1443,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1388,6 +1463,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1407,6 +1483,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "traps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1426,6 +1503,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "traps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1443,6 +1521,7 @@ export const LIBRARY: LibraryData = {
         "back"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1462,6 +1541,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1481,6 +1561,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1500,6 +1581,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": "lombar/posterior"
     },
     {
@@ -1519,6 +1601,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1538,6 +1621,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": "pronadas, supinadas/chin-ups, neutras, largas, arqueiro, com peso"
     },
     {
@@ -1557,6 +1641,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1576,6 +1661,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1595,6 +1681,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1614,6 +1701,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1633,6 +1721,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1652,6 +1741,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1669,6 +1759,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": "sentado, de pé, inclinado de lado, Lu raise"
     },
     {
@@ -1686,6 +1777,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1705,6 +1797,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "traps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1722,6 +1815,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1739,6 +1833,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1758,6 +1853,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1777,6 +1873,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1796,6 +1893,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1815,6 +1913,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1834,6 +1933,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1853,6 +1953,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "traps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1870,6 +1971,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1889,6 +1991,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1908,6 +2011,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1925,6 +2029,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1944,6 +2049,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "traps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1963,6 +2069,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1982,6 +2089,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "traps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -1999,6 +2107,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2016,6 +2125,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2035,6 +2145,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "traps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2052,6 +2163,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2069,6 +2181,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2086,6 +2199,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2105,6 +2219,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2122,6 +2237,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2139,6 +2255,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2156,6 +2273,7 @@ export const LIBRARY: LibraryData = {
         "shoulders"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2175,6 +2293,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2194,6 +2313,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2213,6 +2333,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2232,6 +2353,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2252,6 +2374,7 @@ export const LIBRARY: LibraryData = {
         "obliques",
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2271,6 +2394,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2290,6 +2414,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2309,6 +2434,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2328,6 +2454,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "triceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2345,6 +2472,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2362,6 +2490,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2381,6 +2510,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "forearms"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2398,6 +2528,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2415,6 +2546,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2432,6 +2564,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2451,6 +2584,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "forearms"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2468,6 +2602,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2485,6 +2620,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2502,6 +2638,7 @@ export const LIBRARY: LibraryData = {
         "forearms"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": "flexão/extensão"
     },
     {
@@ -2519,6 +2656,7 @@ export const LIBRARY: LibraryData = {
         "forearms"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2536,6 +2674,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2553,6 +2692,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2570,6 +2710,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2589,6 +2730,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "forearms"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2606,6 +2748,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2623,6 +2766,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2640,6 +2784,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2657,6 +2802,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2674,6 +2820,7 @@ export const LIBRARY: LibraryData = {
         "forearms"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2691,6 +2838,7 @@ export const LIBRARY: LibraryData = {
         "forearms"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2708,6 +2856,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2725,6 +2874,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2742,6 +2892,7 @@ export const LIBRARY: LibraryData = {
         "forearms"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2759,6 +2910,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2778,6 +2930,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "forearms"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2795,6 +2948,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2812,6 +2966,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2829,6 +2984,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2846,6 +3002,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2865,6 +3022,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "forearms"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2882,6 +3040,7 @@ export const LIBRARY: LibraryData = {
         "forearms"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2899,6 +3058,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2918,6 +3078,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "forearms"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2935,6 +3096,7 @@ export const LIBRARY: LibraryData = {
         "biceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2952,6 +3114,7 @@ export const LIBRARY: LibraryData = {
         "forearms"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2971,6 +3134,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "biceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -2990,6 +3154,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "forearms"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3007,6 +3172,7 @@ export const LIBRARY: LibraryData = {
         "forearms"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": "dead hang, para pega"
     },
     {
@@ -3024,6 +3190,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": "uni/bilateral"
     },
     {
@@ -3041,6 +3208,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3058,6 +3226,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3075,6 +3244,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3094,6 +3264,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "chest"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3111,6 +3282,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3128,6 +3300,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3145,6 +3318,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3164,6 +3338,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "chest"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3181,6 +3356,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3200,6 +3376,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "chest"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3219,6 +3396,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "chest"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3238,6 +3416,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "chest"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3255,6 +3434,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3272,6 +3452,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3289,6 +3470,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3306,6 +3488,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": "pega normal/invertida"
     },
     {
@@ -3323,6 +3506,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3340,6 +3524,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3357,6 +3542,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3374,6 +3560,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3391,6 +3578,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3411,6 +3599,7 @@ export const LIBRARY: LibraryData = {
         "glutes",
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3430,6 +3619,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "chest"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3449,6 +3639,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "chest"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3468,6 +3659,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "chest"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3485,6 +3677,7 @@ export const LIBRARY: LibraryData = {
         "triceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3504,6 +3697,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3523,6 +3717,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3542,6 +3737,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": "à frente, atrás, laterais, a andar"
     },
     {
@@ -3561,6 +3757,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3581,6 +3778,7 @@ export const LIBRARY: LibraryData = {
         "adductors",
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3600,6 +3798,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3619,6 +3818,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3638,6 +3838,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": "high bar/low bar"
     },
     {
@@ -3657,6 +3858,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3676,6 +3878,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3695,6 +3898,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3714,6 +3918,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3733,6 +3938,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3752,6 +3958,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3771,6 +3978,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3790,6 +3998,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3809,6 +4018,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3828,6 +4038,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": "45º, horizontal, unilateral"
     },
     {
@@ -3845,6 +4056,7 @@ export const LIBRARY: LibraryData = {
         "quadriceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3864,6 +4076,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3883,6 +4096,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3902,6 +4116,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3921,6 +4136,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3940,6 +4156,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3959,6 +4176,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3978,6 +4196,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -3995,6 +4214,7 @@ export const LIBRARY: LibraryData = {
         "quadriceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4014,6 +4234,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4033,6 +4254,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4050,6 +4272,7 @@ export const LIBRARY: LibraryData = {
         "quadriceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4067,6 +4290,7 @@ export const LIBRARY: LibraryData = {
         "quadriceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4084,6 +4308,7 @@ export const LIBRARY: LibraryData = {
         "quadriceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4103,6 +4328,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4122,6 +4348,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4141,6 +4368,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4160,6 +4388,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4179,6 +4408,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4196,6 +4426,7 @@ export const LIBRARY: LibraryData = {
         "quadriceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4215,6 +4446,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4232,6 +4464,7 @@ export const LIBRARY: LibraryData = {
         "quadriceps"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4251,6 +4484,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4270,6 +4504,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4289,6 +4524,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4308,6 +4544,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": "bi/unilateral"
     },
     {
@@ -4327,6 +4564,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4346,6 +4584,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4365,6 +4604,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4384,6 +4624,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "quadriceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4403,6 +4644,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "quadriceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4422,6 +4664,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "quadriceps"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4441,6 +4684,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4460,6 +4704,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4479,6 +4724,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4498,6 +4744,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4517,6 +4764,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4536,6 +4784,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4555,6 +4804,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4574,6 +4824,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4593,6 +4844,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4612,6 +4864,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4631,6 +4884,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4650,6 +4904,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4669,6 +4924,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4688,6 +4944,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4707,6 +4964,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4726,6 +4984,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4745,6 +5004,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4764,6 +5024,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4783,6 +5044,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4802,6 +5064,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4821,6 +5084,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4840,6 +5104,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4859,6 +5124,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4878,6 +5144,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4897,6 +5164,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4916,6 +5184,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4935,6 +5204,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4954,6 +5224,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4973,6 +5244,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -4992,6 +5264,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5011,6 +5284,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5030,6 +5304,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5049,6 +5324,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5068,6 +5344,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": "uni/bilateral"
     },
     {
@@ -5087,6 +5364,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5106,6 +5384,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5125,6 +5404,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5144,6 +5424,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5163,6 +5444,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5182,6 +5464,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "glutes"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5201,6 +5484,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "hamstrings"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5218,6 +5502,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": "uni/bilateral"
     },
     {
@@ -5235,6 +5520,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5252,6 +5538,7 @@ export const LIBRARY: LibraryData = {
         "adductors"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5269,6 +5556,7 @@ export const LIBRARY: LibraryData = {
         "adductors"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5286,6 +5574,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5303,6 +5592,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5320,6 +5610,7 @@ export const LIBRARY: LibraryData = {
         "tibialis"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5337,6 +5628,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5354,6 +5646,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5371,6 +5664,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5388,6 +5682,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5405,6 +5700,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5422,6 +5718,7 @@ export const LIBRARY: LibraryData = {
         "adductors"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5439,6 +5736,7 @@ export const LIBRARY: LibraryData = {
         "abductors"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5456,6 +5754,7 @@ export const LIBRARY: LibraryData = {
         "tibialis"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5473,6 +5772,7 @@ export const LIBRARY: LibraryData = {
         "adductors"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5490,6 +5790,7 @@ export const LIBRARY: LibraryData = {
         "abductors"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5507,6 +5808,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5524,6 +5826,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5541,6 +5844,7 @@ export const LIBRARY: LibraryData = {
         "tibialis"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5558,6 +5862,7 @@ export const LIBRARY: LibraryData = {
         "abductors"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5575,6 +5880,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": "uni/bilateral"
     },
     {
@@ -5592,6 +5898,7 @@ export const LIBRARY: LibraryData = {
         "calves"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5609,6 +5916,7 @@ export const LIBRARY: LibraryData = {
         "tibialis"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5626,6 +5934,7 @@ export const LIBRARY: LibraryData = {
         "adductors"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5643,6 +5952,7 @@ export const LIBRARY: LibraryData = {
         "abductors"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5662,6 +5972,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5681,6 +5992,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5698,6 +6010,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5717,6 +6030,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5734,6 +6048,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5753,6 +6068,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5770,6 +6086,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5787,6 +6104,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5806,6 +6124,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5825,6 +6144,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5842,6 +6162,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5859,6 +6180,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5878,6 +6200,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5895,6 +6218,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": "elevação de joelhos/pernas"
     },
     {
@@ -5912,6 +6236,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5931,6 +6256,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5948,6 +6274,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -5967,6 +6294,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": "alto→baixo, baixo→alto"
     },
     {
@@ -5984,6 +6312,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6003,6 +6332,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6022,6 +6352,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6039,6 +6370,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6058,6 +6390,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6075,6 +6408,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6092,6 +6426,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6111,6 +6446,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6130,6 +6466,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6147,6 +6484,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": "frontal, lateral, com toques no ombro"
     },
     {
@@ -6164,6 +6502,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6181,6 +6520,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6198,6 +6538,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6215,6 +6556,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6232,6 +6574,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6251,6 +6594,7 @@ export const LIBRARY: LibraryData = {
       "secondary": [
         "abs"
       ],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6268,6 +6612,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6285,6 +6630,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6302,6 +6648,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6319,6 +6666,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6336,6 +6684,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6353,6 +6702,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6370,6 +6720,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6387,6 +6738,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6404,6 +6756,7 @@ export const LIBRARY: LibraryData = {
         "abs"
       ],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6419,6 +6772,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "barbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6434,6 +6788,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "barbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6449,6 +6804,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "barbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6464,6 +6820,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "barbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6479,6 +6836,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "barbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6494,6 +6852,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "barbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6509,6 +6868,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "barbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6524,6 +6884,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "barbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6539,6 +6900,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "dumbbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6554,6 +6916,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "dumbbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6569,6 +6932,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "dumbbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6584,6 +6948,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "dumbbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6599,6 +6964,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "dumbbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6614,6 +6980,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "dumbbell",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6629,6 +6996,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6644,6 +7012,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6659,6 +7028,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6674,6 +7044,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6689,6 +7060,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6704,6 +7076,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6719,6 +7092,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6734,6 +7108,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": "remadas, flexões, agachamentos, pike"
     },
     {
@@ -6749,6 +7124,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6764,6 +7140,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6779,6 +7156,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6794,6 +7172,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6809,6 +7188,263 @@ export const LIBRARY: LibraryData = {
       "equipment": "other",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
+      "variants": null
+    },
+    {
+      "key": "90-90-de-anca--none",
+      "name": "90/90 de anca",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "DURATION",
+      "isUnilateral": true,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "hip"
+      ],
+      "variants": null
+    },
+    {
+      "key": "alongamento-de-flexores-da-anca-couch-stretch--none",
+      "name": "Alongamento de flexores da anca (couch stretch)",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "DURATION",
+      "isUnilateral": true,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "hip"
+      ],
+      "variants": null
+    },
+    {
+      "key": "world-s-greatest-stretch--none",
+      "name": "World's greatest stretch",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "REPS",
+      "isUnilateral": true,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "hip",
+        "thoracic"
+      ],
+      "variants": null
+    },
+    {
+      "key": "pombo-pigeon--none",
+      "name": "Pombo (pigeon)",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "DURATION",
+      "isUnilateral": true,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "hip"
+      ],
+      "variants": null
+    },
+    {
+      "key": "agachamento-profundo-manter--none",
+      "name": "Agachamento profundo (manter)",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "DURATION",
+      "isUnilateral": false,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "hip",
+        "ankle"
+      ],
+      "variants": null
+    },
+    {
+      "key": "cossack-squat--none",
+      "name": "Cossack squat",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "REPS",
+      "isUnilateral": true,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "hip"
+      ],
+      "variants": null
+    },
+    {
+      "key": "mobilidade-de-tornozelo-na-parede--none",
+      "name": "Mobilidade de tornozelo na parede",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "REPS",
+      "isUnilateral": true,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "ankle"
+      ],
+      "variants": null
+    },
+    {
+      "key": "gato-camelo--none",
+      "name": "Gato-camelo",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "REPS",
+      "isUnilateral": false,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "thoracic",
+        "lumbar"
+      ],
+      "variants": null
+    },
+    {
+      "key": "rotacao-toracica-em-quadrupedia--none",
+      "name": "Rotação torácica em quadrupedia",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "REPS",
+      "isUnilateral": true,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "thoracic"
+      ],
+      "variants": null
+    },
+    {
+      "key": "rotacao-toracica-deitado-open-book--none",
+      "name": "Rotação torácica deitado (open book)",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "REPS",
+      "isUnilateral": true,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "thoracic"
+      ],
+      "variants": null
+    },
+    {
+      "key": "alongamento-de-peitoral-na-porta--none",
+      "name": "Alongamento de peitoral na porta",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "DURATION",
+      "isUnilateral": true,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "shoulder"
+      ],
+      "variants": null
+    },
+    {
+      "key": "dislocates-de-ombro-com-banda--band",
+      "name": "Dislocates de ombro com banda",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "REPS",
+      "isUnilateral": false,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": "band",
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "shoulder"
+      ],
+      "variants": null
+    },
+    {
+      "key": "posicao-da-crianca--none",
+      "name": "Posição da criança",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "DURATION",
+      "isUnilateral": false,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "lumbar",
+        "shoulder"
+      ],
+      "variants": null
+    },
+    {
+      "key": "alongamento-de-isquiotibiais--none",
+      "name": "Alongamento de isquiotibiais",
+      "group": "mobilidade",
+      "kind": "MOBILITY",
+      "metricType": "DURATION",
+      "isUnilateral": true,
+      "isIsometric": false,
+      "region": null,
+      "movementType": null,
+      "equipment": null,
+      "primary": [],
+      "secondary": [],
+      "mobilityAreas": [
+        "hip"
+      ],
       "variants": null
     },
     {
@@ -6824,6 +7460,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "treadmill",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6839,6 +7476,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "treadmill",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6854,6 +7492,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "treadmill",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6869,6 +7508,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "treadmill",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6884,6 +7524,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "treadmill",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6899,6 +7540,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "treadmill",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6914,6 +7556,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "treadmill",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6929,6 +7572,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "treadmill",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6944,6 +7588,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "bike",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6959,6 +7604,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "bike",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6974,6 +7620,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "bike",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -6989,6 +7636,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "bike",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7004,6 +7652,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "elliptical",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7019,6 +7668,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "elliptical",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7034,6 +7684,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "elliptical",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7049,6 +7700,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "elliptical",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7064,6 +7716,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "rower",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7079,6 +7732,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "rower",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7094,6 +7748,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "rower",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7109,6 +7764,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "stair",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7124,6 +7780,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "stair",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7139,6 +7796,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "stair",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7154,6 +7812,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "skierg",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     },
     {
@@ -7169,6 +7828,7 @@ export const LIBRARY: LibraryData = {
       "equipment": "skierg",
       "primary": [],
       "secondary": [],
+      "mobilityAreas": [],
       "variants": null
     }
   ]

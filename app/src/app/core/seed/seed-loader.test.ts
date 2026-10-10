@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { setMeta } from '../db/local-meta';
-import { createTestDb } from '../testing/test-db';
+import { createTestDb, TEST_SEED } from '../testing/test-db';
 import { ids } from '../util/uuid';
-import { SEED } from './seed.generated';
+import { LEGACY_EXERCISES, SEED } from './seed.generated';
 import { loadSeed, SEED_UPDATED_AT } from './seed-loader';
 
 const count = async (db: Awaited<ReturnType<typeof createTestDb>>['db'], table: string) =>
@@ -17,10 +17,10 @@ const allIds = async (db: Awaited<ReturnType<typeof createTestDb>>['db']) => {
   return out;
 };
 
-describe('seed', () => {
+describe('seed (mecânica, com os 39 exercícios antigos)', () => {
   it('carrega o catálogo completo (25 força + 14 mobilidade)', async () => {
     const { db, deviceId } = await createTestDb();
-    const result = await loadSeed(db, SEED, deviceId);
+    const result = await loadSeed(db, TEST_SEED, deviceId);
     expect(result.skipped).toBe(false);
 
     const kinds = await db.query<{ kind: string; n: number }>(
@@ -36,7 +36,7 @@ describe('seed', () => {
 
   it('classifica como no documento', async () => {
     const { db, deviceId } = await createTestDb();
-    await loadSeed(db, SEED, deviceId);
+    await loadSeed(db, TEST_SEED, deviceId);
 
     const squat = (await db.query<Record<string, unknown>>('SELECT * FROM exercise WHERE id = ?', [ids.exercise('Squat')]))[0];
     expect(squat).toMatchObject({ name: 'Squat', region: 'LOWER', movement_type: 'PUSH', metric_type: 'WEIGHT_REPS', equipment_id: null });
@@ -74,19 +74,19 @@ describe('seed', () => {
 
   it('não volta a correr com a mesma versão', async () => {
     const { db, deviceId } = await createTestDb();
-    await loadSeed(db, SEED, deviceId);
-    expect((await loadSeed(db, SEED, deviceId)).skipped).toBe(true);
+    await loadSeed(db, TEST_SEED, deviceId);
+    expect((await loadSeed(db, TEST_SEED, deviceId)).skipped).toBe(true);
   });
 
   it('repetir o seed não duplica nem sobrepõe edições', async () => {
     const { db, deviceId } = await createTestDb();
-    await loadSeed(db, SEED, deviceId);
+    await loadSeed(db, TEST_SEED, deviceId);
     const before = await count(db, 'exercise');
 
     await db.run("UPDATE exercise SET name = 'Agachamento', updated_at = '2026-10-10T10:00:00.000Z' WHERE id = ?", [ids.exercise('Squat')]);
     await db.run("UPDATE exercise SET archived_at = '2026-10-10T10:00:00.000Z' WHERE id = ?", [ids.exercise('Lunges')]);
     await setMeta(db, 'seed_version', '0');
-    await loadSeed(db, SEED, deviceId);
+    await loadSeed(db, TEST_SEED, deviceId);
 
     expect(await count(db, 'exercise')).toBe(before);
     const squat = (await db.query<{ name: string }>('SELECT name FROM exercise WHERE id = ?', [ids.exercise('Squat')]))[0];
@@ -99,15 +99,56 @@ describe('seed', () => {
     const a = await createTestDb();
     const b = await createTestDb();
     expect(a.deviceId).not.toBe(b.deviceId);
-    await loadSeed(a.db, SEED, a.deviceId);
-    await loadSeed(b.db, SEED, b.deviceId);
+    await loadSeed(a.db, TEST_SEED, a.deviceId);
+    await loadSeed(b.db, TEST_SEED, b.deviceId);
     expect(await allIds(a.db)).toEqual(await allIds(b.db));
   });
 
   it('linhas de seed têm updated_at fixo, para qualquer edição ganhar no sync', async () => {
     const { db, deviceId } = await createTestDb();
-    await loadSeed(db, SEED, deviceId);
+    await loadSeed(db, TEST_SEED, deviceId);
     const distinct = await db.query<{ updated_at: string }>('SELECT DISTINCT updated_at FROM exercise');
     expect(distinct).toEqual([{ updated_at: SEED_UPDATED_AT }]);
+  });
+});
+
+describe('seed de produção (v4)', () => {
+  it('não cria exercícios numa instalação nova', async () => {
+    const { db, deviceId } = await createTestDb();
+    await loadSeed(db, SEED, deviceId);
+    expect(await count(db, 'exercise')).toBe(0);
+    expect(await count(db, 'muscle_group')).toBe(SEED.muscles.length);
+  });
+
+  it('retira os 39 de bases antigas, arquiva os usados e não toca nos teus', async () => {
+    const { db, deviceId } = await createTestDb();
+    await loadSeed(db, { ...TEST_SEED, version: 3 }, deviceId);
+    expect(await count(db, 'exercise')).toBe(39);
+    // um exercício teu e um antigo usado num treino
+    await db.run(`INSERT INTO exercise (id, name, kind, metric_type, updated_at, device_id)
+                  VALUES ('meu', 'Meu exercício', 'STRENGTH', 'REPS', '2026-10-10T00:00:00Z', ?)`, [deviceId]);
+    await db.run("INSERT INTO workout_template (id, name, updated_at, device_id) VALUES ('t', 'A', '2026-10-10T00:00:00Z', 'd')");
+    await db.run(`INSERT INTO planned_exercise (id, template_id, exercise_id, position, updated_at, device_id)
+                  VALUES ('p', 't', ?, 1, '2026-10-10T00:00:00Z', 'd')`, [ids.exercise('Squat')]);
+
+    await loadSeed(db, SEED, deviceId, () => '2026-10-10T09:00:00.000Z');
+
+    const active = await db.query<{ name: string; archived_at: string | null }>(
+      'SELECT name, archived_at FROM exercise WHERE deleted_at IS NULL ORDER BY name',
+    );
+    expect(active).toEqual([
+      { name: 'Meu exercício', archived_at: null },
+      { name: 'Squat', archived_at: '2026-10-10T09:00:00.000Z' },
+    ]);
+    const deleted = await db.query<{ n: number; t: string }>(
+      'SELECT COUNT(*) AS n, MAX(updated_at) AS t FROM exercise WHERE deleted_at IS NOT NULL',
+    );
+    expect(deleted[0]).toEqual({ n: 38, t: '2026-10-10T09:00:00.000Z' });
+    const links = await db.query<{ n: number }>(
+      `SELECT COUNT(*) AS n FROM exercise_muscle em JOIN exercise e ON e.id = em.exercise_id
+       WHERE e.deleted_at IS NOT NULL AND em.deleted_at IS NULL`,
+    );
+    expect(links[0].n).toBe(0);
+    expect(LEGACY_EXERCISES).toHaveLength(39);
   });
 });
