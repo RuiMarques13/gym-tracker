@@ -1,4 +1,4 @@
-import { Motion, PAD, sideMotion, standing } from './motion-core';
+import { benchAlong, Motion, PAD, Pose, sideMotion, standing } from './motion-core';
 
 const m = sideMotion;
 const STEP = { kind: 'step' as const, d: 'M20 80 H44 V90' };
@@ -19,10 +19,26 @@ export const LEG_MOTIONS: Motion[] = [
   m({ id: 'hack', label: 'Hack squat', props: [{ kind: 'machine', d: 'M34 12 L50 90' }] },
     standing({ at: [52, 90], shin: -4, thigh: -4, torso: -12, uarm: 180, farm: 180 }),
     standing({ at: [52, 90], shin: 30, thigh: -90, torso: -12, uarm: 180, farm: 180 })),
-  // Prensa: o pé fica fixo na plataforma e é o corpo que se aproxima dela; costas encostadas ao banco inclinado.
-  m({ id: 'legpress', label: 'Prensa de pernas', props: [{ kind: 'machine', d: 'M20 90 L64 54 M70 44 L82 58' }] },
-    { anchor: 'ankle', at: [72, 54], shin: 229, thigh: 229, torso: -50, uarm: 160, farm: 170, foot: 140 },
-    { anchor: 'ankle', at: [72, 54], shin: 290, thigh: 183, torso: -50, uarm: 160, farm: 170, foot: 140 }),
+  // Prensa 45°: anca fixa no banco (costas ~28° acima da horizontal), os pés sobem e descem ao longo da calha (40° acima da
+  // horizontal). Em baixo o joelho fecha ~98° (coxa quase vertical, sem a anca sair do banco); em cima fica ~168° (nunca bloqueado).
+  // Ângulos obtidos por cinemática inversa com a anca em [40,70]; o joelho fica acima da linha anca-tornozelo.
+  (() => {
+    const base: Pose = { anchor: 'hip', at: [40, 70], shin: 0, thigh: 0, torso: -62, uarm: 130, farm: 95, foot: -40 };
+    return m({ id: 'legpress', label: 'Prensa de pernas', props: [...benchAlong(base, { kind: 'machine' }), { kind: 'machine', d: 'M41.4 78 L79.7 45.8' }] },
+      { ...base, thigh: -135.5, shin: -124.2 }, { ...base, thigh: -169.7, shin: -87.9 });
+  })(),
+  // Pistol: perna de apoio fixa, joelho à frente do pé (tíbia ~40°), anca desce abaixo do joelho; a outra perna fica esticada à
+  // frente e os braços à frente para contrapeso; o tronco inclina-se para manter o peso sobre o meio do pé.
+  m({ id: 'pistol', label: 'Pistol squat' },
+    standing({ at: [46, 90], neckX: 46, leg2: [-90, -90], uarm: 90, farm: 90 }),
+    standing({ at: [46, 90], shin: 40, thigh: -106, neckX: 54, leg2: [-90, -90], uarm: 90, farm: 90 }), true),
+  // Agachamento sumo: base larga e pontas dos pés abertas 30–45° (não se vê de lado); de lado: tíbias quase verticais,
+  // tronco direito e coxas à horizontal.
+  m({ id: 'squat-sumo', label: 'Agachamento sumo' },
+    standing({ at: [44, 90], neckX: 45, reach: [8, 8], elbow: 'down' }), standing({ at: [44, 90], shin: 12, thigh: -100, neckX: 36, reach: [8, 8], elbow: 'down' }), true),
+  // Wall sit: isométrico, costas na parede, joelhos e ancas a 90°, joelhos sobre os tornozelos.
+  m({ id: 'wallsit', label: 'Wall sit (isométrico, 90°)', props: [{ kind: 'wall', d: 'M34.5 22 V90' }] },
+    standing({ at: [58, 90], shin: 0, thigh: -90, torso: 0, uarm: 140, farm: 100 }), standing({ at: [58, 90], shin: 0, thigh: -90, torso: 0, uarm: 140, farm: 100 })),
   m({ id: 'lunge', label: 'Afundo' }, standing({ at: [46, 88], leg2: [0, 0], uarm: 178, farm: 178 }),
     standing({ at: [46, 88], shin: 20, thigh: -62, torso: 6, leg2: [32, 86], uarm: 178, farm: 178 }), true),
   m({ id: 'split', label: 'Agachamento búlgaro', props: [{ kind: 'bench', d: 'M4 76 H30 M8 76 V90' }] },

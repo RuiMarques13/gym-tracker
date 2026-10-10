@@ -39,6 +39,11 @@ describe('animações', () => {
     expect(id('Hip thrust (barra)')).toBe('hipthrust');
     expect(id('Farmer’s walk')).toBe('carry');
     expect(id('Curl inclinado')).toBe('curl-incline');
+    expect(id('Agachamento sumo')).toBe('squat-sumo');
+    expect(id('Sumo deadlift')).toBe('deadlift');
+    expect(id('Pistol squat')).toBe('pistol');
+    expect(id('Wall sit')).toBe('wallsit');
+    expect(id('Leg press')).toBe('legpress');
     expect(id('Gato-camelo')).toBe('mob-catcamel');
     expect(id('Bicicleta: spinning')).toBe('bike');
   });
@@ -47,5 +52,23 @@ describe('animações', () => {
     expect(motionFor('Exercício esquisito', ['gemeos'])?.id).toBe('calf');
     expect(motionFor('Exercício esquisito', [])).toBeNull();
     expect(motionFor('Exercício esquisito', ['gemeos'], 'MOBILITY')).toBeNull();
+  });
+
+  it('prensa: joelho fecha ~100° em baixo e não bloqueia em cima, com a anca fixa', () => {
+    const m = MOTIONS['legpress'];
+    const hip = (f: typeof m.from) => f.lines[0].split(' ').at(-1)!;
+    expect(hip(m.from)).toBe(hip(m.to));
+    const knee = (f: typeof m.from) => f.lines[0].split(' ')[2].split(',').map(Number);
+    const hipP = hip(m.from).split(',').map(Number);
+    const ankle = (f: typeof m.from) => f.lines[0].split(' ')[1].split(',').map(Number);
+    const ang = (f: typeof m.from) => {
+      const k = knee(f), a = ankle(f);
+      const v1 = [hipP[0] - k[0], hipP[1] - k[1]], v2 = [a[0] - k[0], a[1] - k[1]];
+      return Math.acos((v1[0] * v2[0] + v1[1] * v2[1]) / (Math.hypot(...v1) * Math.hypot(...v2))) * 180 / Math.PI;
+    };
+    expect(ang(m.to)).toBeGreaterThan(90);
+    expect(ang(m.to)).toBeLessThan(110);
+    expect(ang(m.from)).toBeGreaterThan(160);
+    expect(ang(m.from)).toBeLessThan(178);
   });
 });

@@ -40,10 +40,10 @@ const BY_NAME: Array<[RegExp, string]> = [
   [/gemeos.*sentado|sentado.*gemeos|calf.*sentado/, 'calf-seated'], [/gemeos|calf/, 'calf'], [/tibial/, 'tibialis'],
   [/extensao de perna|leg extension|sissy|terminal knee|spanish/, 'legext'],
   [/leg press|prensa|belt squat|v-squat/, 'legpress'], [/hack|pendulum/, 'hack'],
-  [/bulgaro|split squat|pistol|shrimp/, 'split'], [/step-?up/, 'stepup'], [/lunge|afundo|passada/, 'lunge'],
+  [/pistol|shrimp/, 'pistol'], [/bulgaro|split squat/, 'split'], [/step-?up/, 'stepup'], [/lunge|afundo|passada/, 'lunge'],
   [/com salto|box jump|jumping jack/, 'jump'],
   [/agachamento frontal|front rack|zercher|overhead squat/, 'squat-front'], [/goblet/, 'goblet'], [/box squat/, 'squat-box'],
-  [/agachamento \(peso corporal|agachamento \(elastico|wall sit/, 'squat-bw'], [/agachamento|squat/, 'squat'],
+  [/wall sit/, 'wallsit'], [/agachamento sumo|sumo squat/, 'squat-sumo'], [/agachamento \(peso corporal|agachamento \(elastico/, 'squat-bw'], [/agachamento|squat/, 'squat'],
   // dobradiça da anca
   [/good morning/, 'goodmorning'], [/swing/, 'swing'], [/pull-through/, 'pullthrough'],
   [/peso morto romeno|stiff|rdl|single-leg dead/, 'hinge'], [/peso morto|deadlift|rack pull|saco de areia/, 'deadlift'],

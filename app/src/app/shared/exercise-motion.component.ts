@@ -24,6 +24,38 @@ const LEGEND: Record<Implement, string | null> = {
   bar: 'Barra', db: 'Halteres', kb: 'Kettlebell', cable: 'Cabo', band: 'Elástico', machine: 'Máquina', none: null, legacy: null,
 };
 
+/** Movimentos em que a fase concêntrica (a que vence a resistência) começa na pose final (to) e não na inicial (from). */
+const CONCENTRIC_FROM_END: ReadonlySet<string> = new Set([
+  'squat', 'squat-front', 'goblet', 'squat-bw', 'squat-box', 'squat-sumo', 'hack', 'legpress', 'hinge', 'deadlift', 'pullthrough',
+  'lunge', 'split', 'stepup', 'pistol',
+]);
+
+/** Ancoragem fixa (cabo e elástico) quando a regra do vetor não chega: pull-through de costas para a torre; afundos com carga vertical. */
+const ANCHOR: Record<string, Pt> = { pullthrough: [6, 86], lunge: [46, 90], split: [52, 90], stepup: [46, 90] };
+
+/** Elástico: onde o elástico fica preso (por baixo dos pés, na porta…) quando difere da polia do cabo. */
+const BAND_ANCHOR: Record<string, Pt> = {
+  curl: [44, 90], 'curl-hammer': [44, 90], 'curl-preacher': [36, 90], 'curl-incline': [66, 90], 'wrist-curl': [56, 90],
+  upright: [46, 90], 'kickback-tri': [80, 84],
+};
+
+/**
+ * Ponto onde o cabo/elástico está preso: no prolongamento da trajetória da mão, para além do ponto onde a fase concêntrica
+ * começa, até ao limite do desenho (chão em y=90). Devolve null se o movimento for (quase) estático.
+ */
+export function anchorOnForceLine(xs: readonly number[], ys: readonly number[], fromEnd: boolean): Pt | null {
+  const i = fromEnd ? 2 : 0, j = fromEnd ? 0 : 2;
+  const s: Pt = [xs[i], ys[i]], e: Pt = [xs[j], ys[j]];
+  const dx = s[0] - e[0], dy = s[1] - e[1];
+  const len = Math.hypot(dx, dy);
+  if (len < 3) return null;
+  const ux = dx / len, uy = dy / len;
+  const lim = (v: number, u: number, lo: number, hi: number): number => (u > 1e-6 ? (hi - v) / u : u < -1e-6 ? (lo - v) / u : Infinity);
+  const t = Math.min(lim(s[0], ux, 4, 96), lim(s[1], uy, 4, 90));
+  if (!(t > 8)) return null;
+  return [Math.round((s[0] + ux * t) * 10) / 10, Math.round((s[1] + uy * t) * 10) / 10];
+}
+
 let uid = 0;
 
 interface Track { x: number[]; y: number[]; t: string }
@@ -186,7 +218,10 @@ export class ExerciseMotionComponent {
       const pc = m.props.find((p) => p.kind === 'cable');
       // o desenho do cabo vai do boneco à polia: a polia é a ponta mais longe da mão
       const far = pc ? farthest(pathPoints(pc.d), [end.x[0], end.y[0]]) : null;
-      const from: Pt = m.pulley ?? far ?? [90, impl === 'band' ? 86 : Math.round(end.y[0])];
+      // a ancoragem fica sobre o vetor da força: na linha do movimento, do lado oposto àquele para onde a mão se desloca
+      // (o cabo/elástico puxa de volta para a polia); no início da fase concentrica (que nos agachamentos e afins é a pose final)
+      const auto = anchorOnForceLine(end.x, end.y, CONCENTRIC_FROM_END.has(m.id));
+      const from: Pt = (impl === 'band' ? BAND_ANCHOR[m.id] : undefined) ?? ANCHOR[m.id] ?? m.pulley ?? far ?? auto ?? [90, impl === 'band' ? 86 : Math.round(end.y[0])];
       cable = { from, x: end.x, y: end.y };
     }
     // barra com duas mãos (vista de frente): a barra liga as mãos

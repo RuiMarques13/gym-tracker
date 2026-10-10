@@ -1,11 +1,45 @@
 import { Component, computed, input } from '@angular/core';
 
 /** Exercícios cuja animação mostra também a posição dos pés (agachamentos e prensa/hack). */
-export const STANCE_MOTIONS: ReadonlySet<string> = new Set(['squat', 'squat-front', 'goblet', 'squat-bw', 'squat-box', 'hack', 'legpress']);
+export const STANCE_MOTIONS: ReadonlySet<string> = new Set(['squat', 'squat-front', 'goblet', 'squat-bw', 'squat-box', 'squat-sumo', 'hack', 'legpress', 'wallsit']);
 
 export const stanceApplies = (motionId: string): boolean => STANCE_MOTIONS.has(motionId);
 
 interface Option { label: string; sub: string; angle: number; gap: number; rec: boolean }
+interface Variant { angles: Option[]; widths: Option[]; tip: string }
+
+const PARALLEL: Option = { label: 'Paralelos', sub: '0°', angle: 0, gap: 20, rec: false };
+const INWARD: Option = { label: 'Para dentro', sub: 'evitar', angle: -16, gap: 14, rec: false };
+const NARROW: Option = { label: 'Estreita', sub: 'pés juntos', angle: 8, gap: 9, rec: false };
+const SHOULDER: Option = { label: 'Ombros', sub: 'base normal', angle: 22, gap: 20, rec: true };
+const WIDE: Option = { label: 'Larga', sub: 'sumo / anca', angle: 28, gap: 34, rec: false };
+
+/** Pés: por defeito agachamento (15–30°, ombros; Starting Strength: ~30–35° no agachamento com barra). */
+const BASE: Variant = {
+  angles: [PARALLEL, { label: 'Abertos', sub: '15–30°', angle: 22, gap: 20, rec: true }, INWARD],
+  widths: [NARROW, SHOULDER, WIDE],
+  tip: 'Ponto de partida: pés à largura dos ombros e pontas abertas 15–30°. Ajusta à tua anca: o joelho segue a direção da ponta do pé e os calcanhares ficam no chão.',
+};
+const VARIANTS: Record<string, Variant> = {
+  // Sumo: base ~1,5–2× a largura dos ombros e pontas a 30–45°; joelhos acompanham as pontas.
+  'squat-sumo': {
+    angles: [PARALLEL, { label: 'Muito abertos', sub: '30–45°', angle: 38, gap: 34, rec: true }, INWARD],
+    widths: [NARROW, { ...SHOULDER, rec: false }, { ...WIDE, label: 'Larga', sub: '1,5–2× ombros', rec: true, angle: 38 }],
+    tip: 'Sumo: pés bem afastados (cerca de 1,5–2× a largura dos ombros) e pontas a 30–45°. Os joelhos abrem na direção das pontas e o tronco fica direito.',
+  },
+  // Prensa: pés a meio da plataforma, largura dos ombros, pontas 10–15°; joelhos sobre o 2.º dedo.
+  legpress: {
+    angles: [PARALLEL, { label: 'Ligeiramente abertos', sub: '10–15°', angle: 12, gap: 20, rec: true }, INWARD],
+    widths: [NARROW, SHOULDER, { ...WIDE, sub: '30–45° se larga', angle: 36 }],
+    tip: 'Prensa: pés a meio da plataforma, largura dos ombros, pontas 10–15°. Joelhos sobre o 2.º dedo, desce até ~90–100° sem a anca sair do banco e pára a ~5° do bloqueio.',
+  },
+  // Wall sit: pés paralelos, à largura da anca/ombros, joelhos exatamente sobre os tornozelos.
+  wallsit: {
+    angles: [{ ...PARALLEL, rec: true }, { label: 'Abertos', sub: '15°', angle: 15, gap: 20, rec: false }, INWARD],
+    widths: [NARROW, SHOULDER, WIDE],
+    tip: 'Wall sit: costas encostadas à parede, coxas paralelas ao chão (joelhos a 90°) e joelhos sobre os tornozelos. Pés à largura da anca/ombros.',
+  },
+};
 
 const FOOT = 'M0 -9 C3.2 -9 4.2 -4 3.4 2 C3 6 1.8 9 0 9 C-2.2 9 -3.4 6.6 -3.4 3 C-3.4 -3 -2.8 -9 0 -9 Z';
 
@@ -20,7 +54,7 @@ const FOOT = 'M0 -9 C3.2 -9 4.2 -4 3.4 2 C3 6 1.8 9 0 9 C-2.2 9 -3.4 6.6 -3.4 3 
       <h4>Posição dos pés (vista de cima)</h4>
       <p class="cap">Ângulo das pontas</p>
       <div class="row">
-        @for (o of angles; track o.label) {
+        @for (o of variant().angles; track o.label) {
           <figure [class.rec]="o.rec">
             <svg viewBox="0 0 60 34" aria-hidden="true">
               <g [attr.transform]="'translate(' + (30 - o.gap / 2) + ' 17) rotate(' + (-o.angle) + ')'"><path [attr.d]="foot" /></g>
@@ -32,7 +66,7 @@ const FOOT = 'M0 -9 C3.2 -9 4.2 -4 3.4 2 C3 6 1.8 9 0 9 C-2.2 9 -3.4 6.6 -3.4 3 
       </div>
       <p class="cap">Largura da base</p>
       <div class="row">
-        @for (o of widths; track o.label) {
+        @for (o of variant().widths; track o.label) {
           <figure [class.rec]="o.rec">
             <svg viewBox="0 0 60 34" aria-hidden="true">
               <g [attr.transform]="'translate(' + (30 - o.gap / 2) + ' 17) rotate(' + (-o.angle) + ')'"><path [attr.d]="foot" /></g>
@@ -42,7 +76,7 @@ const FOOT = 'M0 -9 C3.2 -9 4.2 -4 3.4 2 C3 6 1.8 9 0 9 C-2.2 9 -3.4 6.6 -3.4 3 
           </figure>
         }
       </div>
-      <p class="tip">Ponto de partida: pés à largura dos ombros e pontas abertas 15–30°. Ajusta à tua anca: o joelho segue a direção da ponta do pé e os calcanhares ficam no chão.</p>
+      <p class="tip">{{ variant().tip }}</p>
     </section>
   `,
   styles: `
@@ -65,15 +99,6 @@ const FOOT = 'M0 -9 C3.2 -9 4.2 -4 3.4 2 C3 6 1.8 9 0 9 C-2.2 9 -3.4 6.6 -3.4 3 
 export class StanceGuideComponent {
   readonly motionId = input<string>('');
   readonly foot = FOOT;
-  readonly angles: Option[] = [
-    { label: 'Paralelos', sub: '0°', angle: 0, gap: 20, rec: false },
-    { label: 'Abertos', sub: '15–30°', angle: 22, gap: 20, rec: true },
-    { label: 'Para dentro', sub: 'evitar', angle: -16, gap: 14, rec: false },
-  ];
-  readonly widths: Option[] = [
-    { label: 'Estreita', sub: 'pés juntos', angle: 8, gap: 9, rec: false },
-    { label: 'Ombros', sub: 'base normal', angle: 22, gap: 20, rec: true },
-    { label: 'Larga', sub: 'sumo / anca', angle: 28, gap: 34, rec: false },
-  ];
+  readonly variant = computed<Variant>(() => VARIANTS[this.motionId()] ?? BASE);
   readonly show = computed(() => stanceApplies(this.motionId()));
 }
