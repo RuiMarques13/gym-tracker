@@ -10,20 +10,20 @@ export const UPPER_MOTIONS: Motion[] = [
   // vertical (pulso sobre o cotovelo) e o cotovelo para o lado dos pés; em cima o braço fica esticado. O banco acompanha o
   // tronco: horizontal (0°), inclinado (~35° acima da horizontal) e declinado (~15° abaixo).
   ...[
-    { id: 'bench', label: 'Supino', pose: lying({ at: [30, 72] }), lock: [-3, -21.3] as [number, number], touch: [-3, -6.5] as [number, number], elbow: 'down' as const },
-    { id: 'bench-incline', label: 'Supino inclinado', pose: { anchor: 'hip', at: [46, 71], shin: 0, thigh: -90, torso: -55 } as Pose, lock: [6, -21.3] as [number, number], touch: [6, -1] as [number, number], elbow: 'down' as const },
-    { id: 'bench-decline', label: 'Supino declinado', pose: lying({ at: [26, 64], torso: 105 }), lock: [-4, -21.3] as [number, number], touch: [-4, -6] as [number, number], elbow: 'down' as const },
+    { id: 'bench', label: 'Supino', pose: lying({ at: [30, 72] }), lock: [-9, -27] as [number, number], touch: [-9, -7] as [number, number], elbow: 'down' as const },
+    { id: 'bench-incline', label: 'Supino inclinado', pose: { anchor: 'hip', at: [46, 71], shin: 0, thigh: -90, torso: -55 } as Pose, lock: [8, -27] as [number, number], touch: [8, -6] as [number, number], elbow: 'down' as const },
+    { id: 'bench-decline', label: 'Supino declinado', pose: lying({ at: [26, 64], torso: 105 }), lock: [-9, -27] as [number, number], touch: [-9, -7] as [number, number], elbow: 'down' as const },
   ].map((b) => m({ id: b.id, label: b.label, props: benchAlong(b.pose) },
     { ...b.pose, reach: b.lock, elbow: b.elbow }, { ...b.pose, reach: b.touch, elbow: b.elbow }, true)),
   // Chest press (máquina): costas encostadas, as mãos empurram em linha recta à frente do peito (perpendicular ao encosto).
   ...[
-    { id: 'chestpress', label: 'Chest press', torso: -3, from: [4, 9], to: [26, 9] },
-    { id: 'chestpress-incline', label: 'Chest press inclinado', torso: -24, from: [4, 9], to: [23, -3] },
-    { id: 'chestpress-decline', label: 'Chest press declinado', torso: -3, from: [4, 7], to: [24, 19] },
+    { id: 'chestpress', label: 'Chest press', torso: -3, from: [10, 10], to: [26, 9] },
+    { id: 'chestpress-incline', label: 'Chest press inclinado', torso: -24, from: [10, 7], to: [26, 0] },
+    { id: 'chestpress-decline', label: 'Chest press declinado', torso: -3, from: [10, 6], to: [24, 14] },
   ].map((c) => {
     const base: Pose = { anchor: 'hip', at: [36, 70], shin: 2, thigh: -90, torso: c.torso };
     return m({ id: c.id, label: c.label, props: benchAlong(base, { kind: 'machine' }) },
-      { ...base, reach: c.from as [number, number], elbow: 'back' }, { ...base, reach: c.to as [number, number], elbow: 'back' }, true);
+      { ...base, reach: c.from as [number, number], elbow: c.torso < -10 ? 'down' : 'back' }, { ...base, reach: c.to as [number, number], elbow: c.torso < -10 ? 'down' : 'back' }, true);
   }),
   m({ id: 'chestpress-standing', label: 'Chest press de pé', pulley: [6, 38] },
     standing({ shin: 6, thigh: -4, torso: 12, reach: [3, 10], elbow: 'back' }), standing({ shin: 6, thigh: -4, torso: 12, reach: [26, 8], elbow: 'back' }), true),
