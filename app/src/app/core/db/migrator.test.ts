@@ -17,8 +17,8 @@ describe('migrações', () => {
   it('cria o esquema numa base vazia', async () => {
     const db = await createEmptyDb();
     const result = await migrate(db);
-    expect(result).toEqual({ from: 0, to: 6, applied: ['001-init', '002-cardio', '003-sync-state', '004-rir', '005-progress-photo', '006-recovery'] });
-    expect(await currentSchemaVersion(db)).toBe(6);
+    expect(result).toEqual({ from: 0, to: 7, applied: ['001-init', '002-cardio', '003-sync-state', '004-rir', '005-progress-photo', '006-recovery', '007-health'] });
+    expect(await currentSchemaVersion(db)).toBe(7);
 
     const tables = (
       await db.query<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table'")
@@ -40,7 +40,7 @@ describe('migrações', () => {
     await migrate(db);
     const again = await migrate(db);
     expect(again.applied).toEqual([]);
-    expect(again.from).toBe(6);
+    expect(again.from).toBe(7);
   });
 
   it('uma migração que falha não deixa nada a meio', async () => {
@@ -51,7 +51,7 @@ describe('migrações', () => {
       { version: 7, name: '007-broken', sql: 'CREATE TABLE half_done (id TEXT); SELECT * FROM nao_existe;' },
     ];
     await expect(migrate(db, broken)).rejects.toThrow();
-    expect(await currentSchemaVersion(db)).toBe(6);
+    expect(await currentSchemaVersion(db)).toBe(7);
     const half = await db.query("SELECT name FROM sqlite_master WHERE name = 'half_done'");
     expect(half).toEqual([]);
   });
@@ -66,7 +66,7 @@ describe('migrações', () => {
     await db.run(`INSERT INTO exercise_muscle (id, exercise_id, muscle_group_id, is_primary, updated_at, device_id)
                   VALUES ('em', 'e', 'm', 1, ${t})`);
 
-    expect((await migrate(db)).applied).toEqual(['002-cardio', '003-sync-state', '004-rir', '005-progress-photo', '006-recovery']);
+    expect((await migrate(db)).applied).toEqual(['002-cardio', '003-sync-state', '004-rir', '005-progress-photo', '006-recovery', '007-health']);
     expect(await db.query('SELECT id, name, archived_at FROM exercise')).toEqual([
       { id: 'e', name: 'Supino', archived_at: '2026-01-01' },
     ]);

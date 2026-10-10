@@ -1,3 +1,4 @@
+import { SessionHealthComponent } from '../../shared/session-health.component';
 import { Component, computed, effect, inject, input, OnDestroy, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
@@ -71,7 +72,7 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
 /** Sessão em curso: registar séries, descanso e duração com o temporizador, terminar. */
 @Component({
   selector: 'app-session',
-  imports: [
+  imports: [SessionHealthComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonContent, IonFooter, IonList, IonItem,
     IonLabel, IonBadge, IonInput, IonTextarea, IonModal, IonSegment, IonSegmentButton, IonSpinner,
   ],
@@ -109,6 +110,9 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
             <span>{{ totalSets() }} {{ totalSets() === 1 ? 'série' : 'séries' }}</span>
             <span>{{ session()!.exercises.length }} {{ session()!.exercises.length === 1 ? 'exercício' : 'exercícios' }}</span>
           </div>
+          @if (historical()) {
+            <app-session-health [sessionId]="session()!.id" [startedAt]="session()!.startedAt" [endedAt]="session()!.endedAt" />
+          }
 
           @for (b of blocks(); track b.block) {
             <h3 class="block-title">{{ blockLabel[b.block] }}</h3>

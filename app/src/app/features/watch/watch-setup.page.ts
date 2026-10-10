@@ -4,6 +4,7 @@ import {
 } from '@ionic/angular';
 import { SettingsService } from '../../core/settings/settings.service';
 import { TimerService } from '../../core/timer/timer.service';
+import { HealthService } from '../../core/health/health.service';
 
 interface Step {
   id: string;
@@ -49,7 +50,21 @@ const STEPS: Step[] = [
           <ion-button (click)="test()">Testar aviso (5 segundos)</ion-button>
           <p class="note">Põe o telemóvel a dormir antes de acabar os 5 segundos. No browser só toca e vibra dentro da app; a notificação para o relógio só existe na app Android.</p>
         </div>
-        <ion-note class="foot">Importar frequência cardíaca e calorias do relógio (Health Connect) chega na Fase 6.</ion-note>
+        <ion-list lines="full">
+          <ion-list-header><ion-label>Frequência cardíaca e calorias</ion-label></ion-list-header>
+          <ion-item lines="none">
+            <ion-label class="ion-text-wrap">
+              <p>1) No Samsung Health: Definições → Health Connect (ou «Dados e privacidade») → permite que o Samsung Health escreva frequência cardíaca e calorias.
+                2) Aqui: autoriza o Gym Tracker a ler. 3) No detalhe de cada treino, toca em «Importar do relógio».</p>
+              <p class="note">{{ healthStatus() }}</p>
+            </ion-label>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-button (click)="authorize()">Autorizar Health Connect</ion-button>
+            <ion-button fill="outline" (click)="openHealth()">Abrir Health Connect</ion-button>
+          </ion-item>
+        </ion-list>
+        <ion-note class="foot">A app só lê; nada sai deste telemóvel.</ion-note>
       </div>
     </ion-content>
   `,
@@ -64,6 +79,8 @@ const STEPS: Step[] = [
 export class WatchSetupPage {
   private readonly settings = inject(SettingsService);
   private readonly timer = inject(TimerService);
+  private readonly health = inject(HealthService);
+  readonly healthStatus = signal('');
   readonly steps = STEPS;
   private readonly checked = this.settings.get('watchChecklist');
   private readonly local = signal<string[] | null>(null);
@@ -75,6 +92,27 @@ export class WatchSetupPage {
     const next = this.isDone(id) ? this.done().filter((x) => x !== id) : [...this.done(), id];
     this.local.set(next);
     void this.settings.set('watchChecklist', next);
+  }
+
+  async authorize(): Promise<void> {
+    const av = await this.health.availability();
+    if (!av.available) {
+      this.healthStatus.set(av.reason);
+      return;
+    }
+    try {
+      this.healthStatus.set((await this.health.requestAccess()) ? 'Autorizado: já podes importar do relógio.' : 'Não autorizado. Tenta de novo ou abre o Health Connect.');
+    } catch (err) {
+      this.healthStatus.set(err instanceof Error ? err.message : 'Não foi possível pedir a autorização.');
+    }
+  }
+
+  async openHealth(): Promise<void> {
+    try {
+      await this.health.openSettings();
+    } catch {
+      this.healthStatus.set('O Health Connect só abre na app Android.');
+    }
   }
 
   test(): void {

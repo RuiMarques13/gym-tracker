@@ -1,3 +1,5 @@
+import { HEALTH_PROVIDER } from './core/health/health-provider';
+import { CapacitorHealthProvider } from './core/health/capacitor-health.provider';
 import {
   ApplicationConfig,
   inject,
@@ -30,6 +32,7 @@ export const appConfig: ApplicationConfig = {
       enabled: !isDevMode() && !Capacitor.isNativePlatform(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
+    { provide: HEALTH_PROVIDER, useFactory: () => new CapacitorHealthProvider() },
     // Base pronta antes do primeiro ecrã: migrações, device_id, seed, definições.
     provideAppInitializer(async () => {
       const db = inject(DatabaseService);
