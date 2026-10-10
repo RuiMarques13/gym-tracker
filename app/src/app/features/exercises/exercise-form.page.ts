@@ -31,7 +31,13 @@ import { RouterLink } from '@angular/router';
 import { SettingsService } from '../../core/settings/settings.service';
 import {
   Kind,
+  CATEGORIES_BY_KIND,
+  CATEGORY_HINT,
+  CATEGORY_LABEL,
+  Category,
   KIND_LABEL,
+  KIND_OF_CATEGORY,
+  defaultCategory,
   METRIC_LABEL,
   MetricType,
   METRICS_BY_KIND,
@@ -101,6 +107,16 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
                 }
               </ion-segment>
             </ion-item>
+
+            <ion-item>
+              <ion-select label="Categoria" interface="popover" [value]="category()"
+                (ionChange)="category.set($any($event).detail.value)">
+                @for (c of categoriesOfKind(); track c) {
+                  <ion-select-option [value]="c">{{ categoryLabel[c] }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+            <ion-item lines="none"><ion-note class="hint">{{ categoryHint[category()] }}</ion-note></ion-item>
 
             <ion-item>
               <ion-select label="Medida" interface="popover" [value]="metricType()"
@@ -287,6 +303,8 @@ export class ExerciseFormPage implements OnInit {
   readonly kinds = KINDS;
   readonly regions = REGIONS;
   readonly kindLabel = KIND_LABEL;
+  readonly categoryLabel = CATEGORY_LABEL;
+  readonly categoryHint = CATEGORY_HINT;
   readonly metricLabel = METRIC_LABEL;
   readonly regionLabel = REGION_LABEL;
 
@@ -298,6 +316,8 @@ export class ExerciseFormPage implements OnInit {
   readonly name = signal('');
   readonly nameError = signal<string | null>(null);
   readonly kind = signal<Kind>('STRENGTH');
+  readonly category = signal<Category>('STRENGTH');
+  readonly categoriesOfKind = computed(() => CATEGORIES_BY_KIND[this.kind()]);
   readonly metricType = signal<MetricType>('WEIGHT_REPS');
   readonly isUnilateral = signal(false);
   readonly isIsometric = signal(false);
@@ -359,6 +379,7 @@ export class ExerciseFormPage implements OnInit {
   private fill(ex: Exercise): void {
     this.name.set(ex.name);
     this.kind.set(ex.kind);
+    this.category.set(ex.category);
     this.metricType.set(ex.metricType);
     this.isUnilateral.set(ex.isUnilateral);
     this.isIsometric.set(ex.isIsometric);
@@ -378,6 +399,7 @@ export class ExerciseFormPage implements OnInit {
 
   setKind(kind: Kind): void {
     this.kind.set(kind);
+    if (KIND_OF_CATEGORY[this.category()] !== kind) this.category.set(defaultCategory(kind));
     if (!METRICS_BY_KIND[kind].includes(this.metricType())) this.metricType.set(METRICS_BY_KIND[kind][0]);
     if (kind === 'CARDIO' && !this.region()) this.region.set('FULL_BODY');
   }
@@ -418,6 +440,7 @@ export class ExerciseFormPage implements OnInit {
       id: this.id(),
       name: this.name(),
       kind: this.kind(),
+      category: this.category(),
       metricType: this.metricType(),
       isUnilateral: this.isUnilateral(),
       isIsometric: this.isIsometric(),

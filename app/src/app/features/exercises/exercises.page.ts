@@ -28,6 +28,9 @@ import {
 import { addIcons } from 'ionicons';
 import { add, libraryOutline, optionsOutline } from 'ionicons/icons';
 import {
+  Category,
+  CATEGORIES,
+  CATEGORY_LABEL,
   Kind,
   KIND_LABEL,
   METRIC_LABEL,
@@ -85,6 +88,12 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
           }
         </div>
         <div class="chip-row">
+          <ion-chip class="small" [outline]="category() !== null" (click)="category.set(null)">Todas as categorias</ion-chip>
+          @for (c of categories; track c) {
+            <ion-chip class="small" [outline]="category() !== c" (click)="category.set(c)">{{ categoryLabel[c] }}</ion-chip>
+          }
+        </div>
+        <div class="chip-row">
           <ion-chip class="small" [outline]="equipmentIds().length > 0" (click)="equipmentIds.set([])">Qualquer equipamento</ion-chip>
           @for (e of lookups.value()?.equipment ?? []; track e.id) {
             <ion-chip class="small" [outline]="equipmentIds()[0] !== e.id" (click)="equipmentIds.set([e.id])">{{ e.name }}</ion-chip>
@@ -109,7 +118,7 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
               <div slot="end" class="badges">
                 @if (e.archivedAt) { <ion-badge color="medium">Arquivado</ion-badge> }
                 @if (e.isUnilateral) { <ion-badge color="tertiary">Unilateral</ion-badge> }
-                <ion-badge [color]="kindColor[e.kind]">{{ kindLabel[e.kind] }}</ion-badge>
+                <ion-badge [color]="kindColor[e.kind]">{{ categoryLabel[e.category] }}</ion-badge>
               </div>
             </ion-item>
           } @empty {
@@ -219,6 +228,9 @@ export class ExercisesPage implements ViewWillEnter {
   private readonly lookupRepo = inject(LOOKUP_REPOSITORY);
 
   readonly kindLabel = KIND_LABEL;
+  readonly categoryLabel = CATEGORY_LABEL;
+  readonly categories = CATEGORIES;
+  readonly category = signal<Category | null>(null);
   readonly kindColor = KIND_COLOR;
   readonly regionLabel = REGION_LABEL;
   readonly regions: Region[] = ['UPPER', 'LOWER', 'CORE', 'FULL_BODY'];
@@ -259,6 +271,7 @@ export class ExercisesPage implements ViewWillEnter {
 
   private readonly filter = computed<ExerciseFilter>(() => ({
     q: this.query(),
+    category: this.category() ?? undefined,
     muscleGroupIds: this.muscleIds(),
     equipmentIds: this.equipmentIds(),
     mobilityAreaIds: this.areaIds(),
@@ -311,6 +324,7 @@ export class ExercisesPage implements ViewWillEnter {
     this.isometric.set('any');
     this.unilateral.set('any');
     this.includeArchived.set(false);
+    this.category.set(null);
   }
 
   subtitle(e: Exercise): string {

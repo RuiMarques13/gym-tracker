@@ -1,4 +1,4 @@
-import type { Kind, MetricType, MovementType, Region } from '../../data/models/enums';
+import type { Category, Kind, MetricType, MovementType, Region } from '../../data/models/enums';
 
 /** Biblioteca de exercícios: só consulta. Um item passa a exercício teu quando o adicionas. */
 export interface LibraryData {
@@ -13,6 +13,7 @@ export interface LibraryItem {
   name: string;
   group: string;
   kind: Kind;
+  category: Category;
   metricType: MetricType;
   isUnilateral: boolean;
   isIsometric: boolean;

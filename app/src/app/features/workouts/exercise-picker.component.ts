@@ -18,7 +18,7 @@ import {
   ModalController,
 } from '@ionic/angular';
 import { buildGroupLookup, groupOfExercise } from '../../core/library/exercise-group';
-import { Kind, KIND_LABEL, METRIC_LABEL } from '../../data/models/enums';
+import { CATEGORY_LABEL, Kind, METRIC_LABEL } from '../../data/models/enums';
 import type { Exercise } from '../../data/models/exercise';
 import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
 
@@ -60,7 +60,7 @@ type KindFilter = 'ALL' | Kind;
               <h2>{{ e.name }}</h2>
               <p>{{ metricLabel[e.metricType] }}{{ e.equipmentName ? ' · ' + e.equipmentName : '' }}</p>
             </ion-label>
-            <ion-badge slot="end" color="light">{{ kindLabel[e.kind] }}</ion-badge>
+            <ion-badge slot="end" color="light">{{ categoryLabel[e.category] }}</ion-badge>
           </ion-item>
         } @empty {
           @if (!exercises.isLoading()) {
@@ -98,7 +98,7 @@ export class ExercisePickerComponent implements OnInit {
   title = 'Adicionar exercícios';
   initialKind: KindFilter = 'ALL';
 
-  readonly kindLabel = KIND_LABEL;
+  readonly categoryLabel = CATEGORY_LABEL;
   readonly metricLabel = METRIC_LABEL;
   readonly query = signal('');
   readonly selected = signal<Exercise[]>([]);

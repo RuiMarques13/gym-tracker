@@ -1,7 +1,9 @@
 import type { DbAdapter, SqlValue } from '../../../core/db/db-adapter';
 import type { Clock } from '../../../core/util/clock';
 import { ids, newId } from '../../../core/util/uuid';
-import { Kind, MetricType, METRICS_BY_KIND, MovementType, Region } from '../../models/enums';
+import {
+  Category, Kind, KIND_OF_CATEGORY, MetricType, METRICS_BY_KIND, MovementType, Region, defaultCategory, isCategory, resolveCategory,
+} from '../../models/enums';
 import { Exercise, ExerciseFilter, ExerciseInput, ExerciseValidationError } from '../../models/exercise';
 import type { ExerciseRepository } from '../exercise.repository';
 
@@ -9,6 +11,7 @@ interface ExerciseRow {
   id: string;
   name: string;
   kind: Kind;
+  category: Category | null;
   metric_type: MetricType;
   is_unilateral: number;
   is_isometric: number;
@@ -51,6 +54,10 @@ export class SqliteExerciseRepository implements ExerciseRepository {
           : 'Mobilidade mede-se por repetições ou duração, não por carga.',
       );
     }
+    if (input.category != null && (!isCategory(input.category) || KIND_OF_CATEGORY[input.category] !== input.kind)) {
+      throw new ExerciseValidationError('category', 'A categoria não corresponde ao tipo do exercício.');
+    }
+    const category = resolveCategory(input.kind, input.category);
     const id = input.id ?? newId();
     await this.assertNameFree(name, id);
 
@@ -64,17 +71,17 @@ export class SqliteExerciseRepository implements ExerciseRepository {
     await this.db.transaction(async (tx) => {
       // Upsert: também reativa uma linha apagada ou arquivada com o mesmo id (ex.: biblioteca).
       await tx.run(
-        `INSERT INTO exercise (id, name, kind, metric_type, is_unilateral, region, movement_type, is_isometric,
+        `INSERT INTO exercise (id, name, kind, category, metric_type, is_unilateral, region, movement_type, is_isometric,
            equipment_id, default_rest_seconds, notes, video_url, archived_at, updated_at, deleted_at, device_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?)
-         ON CONFLICT(id) DO UPDATE SET name = excluded.name, kind = excluded.kind,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?)
+         ON CONFLICT(id) DO UPDATE SET name = excluded.name, kind = excluded.kind, category = excluded.category,
            metric_type = excluded.metric_type, is_unilateral = excluded.is_unilateral, region = excluded.region,
            movement_type = excluded.movement_type, is_isometric = excluded.is_isometric,
            equipment_id = excluded.equipment_id, default_rest_seconds = excluded.default_rest_seconds,
            notes = excluded.notes, video_url = excluded.video_url, archived_at = NULL,
            updated_at = excluded.updated_at, deleted_at = NULL, device_id = excluded.device_id`,
         [
-          id, name, input.kind, input.metricType, input.kind !== 'CARDIO' && input.isUnilateral ? 1 : 0, input.region ?? null,
+          id, name, input.kind, category, input.metricType, input.kind !== 'CARDIO' && input.isUnilateral ? 1 : 0, input.region ?? null,
           isStrength ? (input.movementType ?? null) : null, isStrength && input.isIsometric ? 1 : 0, input.equipmentId ?? null,
           input.defaultRestSeconds ?? null, emptyToNull(input.notes), emptyToNull(input.videoUrl), now, this.deviceId,
         ],
@@ -201,6 +208,12 @@ export class SqliteExerciseRepository implements ExerciseRepository {
       where.push('e.kind = ?');
       params.push(filter.kind);
     }
+    if (filter.category) {
+      // Sem categoria guardada vale a por omissão do kind (a primeira de cada kind).
+      where.push('(e.category = ? OR (e.category IS NULL AND e.kind = ? AND ? = 1))');
+      const k = KIND_OF_CATEGORY[filter.category];
+      params.push(filter.category, k, defaultCategory(k) === filter.category ? 1 : 0);
+    }
     if (filter.region) {
       where.push('e.region = ?');
       params.push(filter.region);
@@ -279,6 +292,7 @@ export class SqliteExerciseRepository implements ExerciseRepository {
       id: r.id,
       name: r.name,
       kind: r.kind,
+      category: resolveCategory(r.kind, r.category),
       metricType: r.metric_type,
       isUnilateral: r.is_unilateral === 1,
       isIsometric: r.is_isometric === 1,

@@ -2,6 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { SEED } from '../seed/seed.generated';
 import { loadSeed } from '../seed/seed-loader';
 import { refineStoredMuscles, fixStoredMovement } from '../library/refine-stored-muscles';
+import { refineStoredCategories } from '../library/refine-stored-category';
 import { CLOCK } from '../util/clock';
 import { CapacitorSqliteAdapter } from './adapters/capacitor-adapter';
 import { DbAdapter } from './db-adapter';
@@ -51,6 +52,12 @@ export class DatabaseService {
   async refineMuscles(): Promise<void> {
     await refineStoredMuscles(this.db, this.deviceId, this.clock.nowIso());
     await fixStoredMovement(this.db, this.deviceId, this.clock.nowIso());
+    await this.refineCategories(this.db, this.deviceId);
+  }
+
+  private async refineCategories(db: DbAdapter, deviceId: string): Promise<void> {
+    const { LIBRARY } = await import('../library/library-data');
+    await refineStoredCategories(db, deviceId, this.clock.nowIso(), LIBRARY.items);
   }
 
   async init(): Promise<void> {
@@ -62,6 +69,7 @@ export class DatabaseService {
       const seed = await loadSeed(db, SEED, deviceId, () => this.clock.nowIso());
       await refineStoredMuscles(db, deviceId, this.clock.nowIso());
       await fixStoredMovement(db, deviceId, this.clock.nowIso());
+      await this.refineCategories(db, deviceId);
       this.adapter = db;
       this.deviceIdValue = deviceId;
       this.status.set({

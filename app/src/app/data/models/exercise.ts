@@ -1,9 +1,10 @@
-import type { Kind, MetricType, MovementType, Region } from './enums';
+import type { Category, Kind, MetricType, MovementType, Region } from './enums';
 
 export interface Exercise {
   id: string;
   name: string;
   kind: Kind;
+  category: Category;
   metricType: MetricType;
   isUnilateral: boolean;
   isIsometric: boolean;
@@ -24,6 +25,7 @@ export interface Exercise {
 export interface ExerciseFilter {
   q?: string;
   kind?: Kind;
+  category?: Category;
   muscleGroupIds?: string[];
   mobilityAreaIds?: string[];
   region?: Region;
@@ -41,6 +43,8 @@ export interface ExerciseInput {
   id?: string;
   name: string;
   kind: Kind;
+  /** Se vazia, usa a categoria por omissão do `kind`. Tem de pertencer ao `kind`. */
+  category?: Category | null;
   metricType: MetricType;
   isUnilateral?: boolean;
   isIsometric?: boolean;
@@ -57,7 +61,7 @@ export interface ExerciseInput {
 
 export class ExerciseValidationError extends Error {
   constructor(
-    readonly field: 'name' | 'metricType' | 'usage',
+    readonly field: 'name' | 'metricType' | 'category' | 'usage',
     message: string,
   ) {
     super(message);

@@ -19,6 +19,11 @@ const norm = (s: string): string => s.normalize('NFD').replace(/[̀-ͯ]/g, '').t
  */
 const BY_NAME: Array<[RegExp, string]> = [
   // mobilidade
+  [/circulos de anca/, 'mob-hipcar'], [/circulos de ombro/, 'mob-shouldercar'], [/quadriceps em pe/, 'mob-quad'],
+  [/gemeos na parede/, 'mob-calf'], [/borboleta/, 'mob-butterfly'], [/figura 4/, 'mob-fig4'], [/triceps e ombro/, 'mob-triceps'],
+  [/alongamento de pescoco/, 'mob-neck'], [/tandem/, 'walk'], [/star excursion/, 'mob-star'], [/bosu/, 'mob-bosu'],
+  [/equilibrio num pe/, 'mob-balance'], [/cao a olhar/, 'mob-dog'], [/cobra/, 'mob-cobra'], [/guerreiro/, 'mob-warrior'],
+  [/saudacao ao sol/, 'mob-sun'], [/the hundred/, 'mob-hundred'], [/roll.?up/, 'mob-rollup'],
   [/90.?90/, 'mob-9090'], [/couch stretch/, 'mob-couch'], [/world.?s greatest/, 'mob-wgs'], [/pombo|pigeon/, 'mob-pigeon'],
   [/agachamento profundo/, 'mob-squat'], [/cossack|lunge lateral/, 'mob-cossack'], [/tornozelo/, 'mob-ankle'],
   [/gato|camelo/, 'mob-catcamel'], [/quadrupedia/, 'mob-thoracic'], [/open book/, 'mob-openbook'],

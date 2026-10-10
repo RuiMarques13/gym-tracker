@@ -1,4 +1,4 @@
-import { frontMotion, lying, Motion, PAD, Pose, sideMotion, standing } from './motion-core';
+import { frontMotion, joints, lying, Motion, PAD, Pose, sideMotion, standing } from './motion-core';
 
 const m = sideMotion;
 const f = frontMotion;
@@ -6,6 +6,14 @@ const WALL = { kind: 'wall' as const, d: 'M78 14 V90' };
 const quad = (over: Partial<Pose> = {}): Pose => ({
   anchor: 'hip', at: [40, 66], shin: 90, thigh: 0, torso: 90, uarm: 180, farm: 180, leg2: [0, 90], ...over,
 });
+
+/** A mão segura o ponto `to` do corpo da própria pose (tornozelo da perna livre, joelho…). */
+const grab = (p: Pose, to: 'ankle2' | 'knee' | 'knee2', elbow: 'down' | 'up' | 'back' | 'front' = 'back'): Pose => {
+  const j = joints(p);
+  const t = j[to] ?? j.knee;
+  return { ...p, hand: [t[0], t[1]], elbow };
+};
+const DOME = { kind: 'step' as const, d: 'M26 90 Q46 76 66 90 Z' };
 
 export const MOBILITY_MOTIONS: Motion[] = [
   m({ id: 'mob-9090', label: '90/90 da anca', props: [PAD] },
@@ -40,6 +48,55 @@ export const MOBILITY_MOTIONS: Motion[] = [
   m({ id: 'mob-hamstring', label: 'Alongamento de isquiotibiais' },
     standing({ uarm: 175, farm: 175 }), standing({ shin: 4, thigh: -6, torso: 64, bend: 24, uarm: 175, farm: 175 })),
   f({ id: 'mob-cossack', label: 'Cossack squat' }, { leg: [10, 10] }, { hipY: 70, leg: [62, 62], ua: [40, -40], fa: [60, -60] }),
+
+  // ---- mobilidade dinâmica ----
+  m({ id: 'mob-hipcar', label: 'Círculos de anca (CARs)' },
+    standing({ uarm: 150, farm: 20, leg2: [-85, 0] }), standing({ uarm: 150, farm: 20, leg2: [-8, 125] })),
+  f({ id: 'mob-shouldercar', label: 'Círculos de ombro (CARs)' }, { ua: [8, 8], fa: [8, 8] }, { ua: [8, 170], fa: [8, 175] }),
+
+  // ---- alongamento estático ----
+  m({ id: 'mob-quad', label: 'Alongamento de quadríceps em pé' },
+    grab(standing({ torso: 0, leg2: [2, 125] }), 'ankle2'), grab(standing({ torso: -8, leg2: [8, 150] }), 'ankle2')),
+  m({ id: 'mob-calf', label: 'Alongamento de gémeos na parede', props: [{ kind: 'wall', d: 'M80 12 V90' }] },
+    { anchor: 'ankle', at: [28, 90], shin: 14, thigh: 14, torso: 14, uarm: 76, farm: 86, leg2: [-40, -8] },
+    { anchor: 'ankle', at: [28, 90], shin: 22, thigh: 22, torso: 22, uarm: 76, farm: 86, leg2: [-40, -8] }),
+  m({ id: 'mob-butterfly', label: 'Borboleta (adutores)', props: [PAD] },
+    { anchor: 'hip', at: [40, 80], shin: 97, thigh: -75, torso: 4, uarm: 120, farm: 100, leg2: [-75, 97] },
+    { anchor: 'hip', at: [40, 80], shin: 97, thigh: -75, torso: 48, uarm: 125, farm: 105, leg2: [-75, 97] }),
+  m({ id: 'mob-fig4', label: 'Figura 4 (glúteos)', props: [PAD] },
+    grab(lying({ at: [48, 82], shin: 6, thigh: 150, leg2: [128, 238] }), 'knee'),
+    grab(lying({ at: [48, 82], shin: 6, thigh: 178, leg2: [150, 250] }), 'knee')),
+  m({ id: 'mob-triceps', label: 'Alongamento de tríceps e ombro' },
+    standing({ torso: 0, uarm: 4, farm: 140 }), standing({ torso: 0, uarm: 4, farm: 206 })),
+  f({ id: 'mob-neck', label: 'Alongamento de pescoço' },
+    { ua: [8, 150], fa: [8, 215] }, { tilt: 10, ua: [8, 150], fa: [8, 215] }),
+
+  // ---- equilíbrio e estabilidade ----
+  m({ id: 'mob-balance', label: 'Equilíbrio num pé' },
+    standing({ torso: -2, uarm: 100, farm: 98, leg2: [-84, 2] }), standing({ torso: 3, uarm: 122, farm: 120, leg2: [-84, 2] })),
+  m({ id: 'mob-star', label: 'Star excursion' },
+    standing({ shin: 6, thigh: -8, torso: 14, uarm: 80, farm: 80, leg2: [-62, -62] }),
+    standing({ shin: 10, thigh: -12, torso: 30, uarm: 250, farm: 250, leg2: [40, 40] })),
+  m({ id: 'mob-bosu', label: 'Equilíbrio em bosu', props: [DOME] },
+    standing({ at: [43, 81], torso: -2, uarm: 100, farm: 98 }), standing({ at: [49, 81], torso: 3, uarm: 122, farm: 120 })),
+
+  // ---- yoga e pilates ----
+  m({ id: 'mob-dog', label: 'Cão a olhar para baixo', props: [PAD] },
+    { anchor: 'ankle', at: [22, 90], shin: 26, thigh: 26, torso: 152, hand: [74, 90], elbow: 'up' },
+    { anchor: 'ankle', at: [22, 90], shin: 34, thigh: 34, torso: 146, hand: [74, 90], elbow: 'up' }),
+  m({ id: 'mob-cobra', label: 'Cobra', props: [PAD] },
+    { anchor: 'hip', at: [44, 82], shin: 90, thigh: 90, torso: 84, hand: [74, 86], elbow: 'back' },
+    { anchor: 'hip', at: [44, 82], shin: 90, thigh: 90, torso: 58, bend: -22, hand: [74, 86], elbow: 'back' }),
+  f({ id: 'mob-warrior', label: 'Guerreiro II' },
+    { hipY: 58, leg: [38, 38], ua: [90, 90], fa: [90, 90] }, { hipY: 64, leg: [46, 46], ua: [90, 90], fa: [90, 90] }),
+  m({ id: 'mob-sun', label: 'Saudação ao sol' },
+    standing({ uarm: 70, farm: 40 }), standing({ torso: 118, bend: 28, uarm: 175, farm: 178 })),
+  m({ id: 'mob-hundred', label: 'The hundred', props: [PAD] },
+    lying({ at: [44, 82], shin: 120, thigh: 120, torso: 90, bend: -34, uarm: 258, farm: 258 }),
+    lying({ at: [44, 82], shin: 120, thigh: 120, torso: 90, bend: -34, uarm: 280, farm: 280 })),
+  m({ id: 'mob-rollup', label: 'Roll-up', props: [PAD] },
+    lying({ at: [44, 82], shin: 90, thigh: 90, torso: 88, uarm: 90, farm: 90 }),
+    lying({ at: [44, 82], shin: 90, thigh: 90, torso: -4, bend: -52, uarm: 262, farm: 262 })),
 ];
 
 // ---- Cardio ----

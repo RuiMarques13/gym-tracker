@@ -8,6 +8,7 @@ export function libraryItemToInput(item: LibraryItem): ExerciseInput {
     id: ids.libraryExercise(item.key),
     name: item.name,
     kind: item.kind,
+    category: item.category,
     metricType: item.metricType,
     isUnilateral: item.isUnilateral,
     isIsometric: item.isIsometric,

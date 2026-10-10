@@ -29,7 +29,7 @@ import { ExerciseMotionComponent } from '../../shared/exercise-motion.component'
 import { MuscleMapComponent } from '../../shared/muscle-map.component';
 import { SEED } from '../../core/seed/seed.generated';
 import { ids } from '../../core/util/uuid';
-import { METRIC_LABEL } from '../../data/models/enums';
+import { CATEGORY_LABEL, METRIC_LABEL } from '../../data/models/enums';
 import { ExerciseValidationError } from '../../data/models/exercise';
 import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
 import { fold } from '../../data/repositories/sqlite/sqlite-exercise.repository';
@@ -96,6 +96,7 @@ const PAGE = 60;
                 </ion-label>
                 <div slot="end" class="end">
                   @if (item.isUnilateral) { <ion-badge color="tertiary">Unilateral</ion-badge> }
+                  @if (item.category !== 'STRENGTH') { <ion-badge color="medium">{{ categoryLabel[item.category] }}</ion-badge> }
                   @switch (state(item)) {
                     @case ('added') {
                       <ion-button size="small" fill="clear" disabled>
@@ -157,6 +158,7 @@ export class LibraryPage implements ViewWillEnter {
   readonly busy = signal<string | null>(null);
   readonly openKey = signal<string | null>(null);
   readonly specOf = specOfKeys;
+  readonly categoryLabel = CATEGORY_LABEL;
   motionOf = (item: LibraryItem) => motionFor(item.name, specOfKeys(item.primary), item.kind);
   toggleOpen(key: string): void {
     this.openKey.update((k) => (k === key ? null : key));

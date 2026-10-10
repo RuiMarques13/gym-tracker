@@ -166,7 +166,7 @@ describe('biblioteca', () => {
     const ex = await fresh.save(libraryItemToInput(libItem('90/90 de anca')));
     expect(ex).toMatchObject({ kind: 'MOBILITY', metricType: 'DURATION', isUnilateral: true, equipmentId: null,
       mobilityAreaIds: [ids.mobilityArea('hip')] });
-    expect(LIBRARY.items.filter((i) => i.kind === 'MOBILITY')).toHaveLength(14);
+    expect(LIBRARY.items.filter((i) => i.kind === 'MOBILITY')).toHaveLength(33);
   });
 
   it('peso corporal mede-se por reps, pranchas por duração, búlgaro é unilateral', async () => {

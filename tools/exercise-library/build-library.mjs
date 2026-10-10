@@ -208,7 +208,8 @@ for (const line of source.split('\n')) {
       const { name, variants } = parseItem(raw);
       cardio.push({
         section: 'cardio', name: `${row[1].trim()}: ${name.charAt(0).toLowerCase()}${name.slice(1)}`, variants,
-        equipment: CARDIO_ROWS[equipLabel], region: 'FULL_BODY', kind: 'CARDIO', primary: null, secondary: [],
+        equipment: CARDIO_ROWS[equipLabel], region: 'FULL_BODY', kind: 'CARDIO',
+        category: /hiit|sprint|intervalo|saltar degraus/.test(fold(name)) ? 'HIIT' : 'CARDIO', primary: null, secondary: [],
         move: null, metricType: 'DURATION', isIsometric: false, isUnilateral: false,
       });
     }
@@ -224,10 +225,58 @@ for (const line of source.split('\n')) {
 }
 
 // ---- Mobilidade: os 14 de catalog.json (seeds antigos) passam a viver na biblioteca ----
-const mobility = catalog.mobility.map((m) => ({
-  section: 'mobilidade', name: m.name, variants: null, equipment: m.equipment ?? null, region: null,
-  kind: 'MOBILITY', primary: null, secondary: [], move: null, metricType: m.metricType,
-  isIsometric: false, isUnilateral: !!m.isUnilateral, mobilityAreas: m.areas ?? [],
+/** Categoria dos 14 de catalog.json (o resto da mobilidade vem de MOBILITY_EXTRA). */
+const MOBILITY_CATEGORY = {
+  '90/90 de anca': 'MOBILITY',
+  'Alongamento de flexores da anca (couch stretch)': 'FLEXIBILITY',
+  "World's greatest stretch": 'MOBILITY',
+  'Pombo (pigeon)': 'FLEXIBILITY',
+  'Agachamento profundo (manter)': 'MOBILITY',
+  'Cossack squat': 'MOBILITY',
+  'Mobilidade de tornozelo na parede': 'MOBILITY',
+  'Gato-camelo': 'MINDBODY',
+  'Rotação torácica em quadrupedia': 'MOBILITY',
+  'Rotação torácica deitado (open book)': 'MOBILITY',
+  'Alongamento de peitoral na porta': 'FLEXIBILITY',
+  'Dislocates de ombro com banda': 'MOBILITY',
+  'Posição da criança': 'MINDBODY',
+  'Alongamento de isquiotibiais': 'FLEXIBILITY',
+};
+/**
+ * Divisão por tipo de treino (ACSM, Cleveland Clinic): mobilidade dinâmica, alongamento estático,
+ * equilíbrio/estabilidade e mind-body (yoga/pilates). [nome, categoria, medida, unilateral, áreas, equipamento]
+ */
+const MOBILITY_EXTRA = [
+  ['Círculos de anca (CARs)', 'MOBILITY', 'REPS', true, ['hip'], null],
+  ['Círculos de ombro (CARs)', 'MOBILITY', 'REPS', true, ['shoulder'], null],
+  ['Alongamento de quadríceps em pé', 'FLEXIBILITY', 'DURATION', true, ['knee', 'hip'], null],
+  ['Alongamento de gémeos na parede', 'FLEXIBILITY', 'DURATION', true, ['ankle'], null],
+  ['Alongamento de adutores (borboleta)', 'FLEXIBILITY', 'DURATION', false, ['hip'], null],
+  ['Alongamento de glúteos (figura 4)', 'FLEXIBILITY', 'DURATION', true, ['hip'], null],
+  ['Alongamento de tríceps e ombro', 'FLEXIBILITY', 'DURATION', true, ['shoulder'], null],
+  ['Alongamento de pescoço', 'FLEXIBILITY', 'DURATION', true, ['neck'], null],
+  ['Equilíbrio num pé', 'BALANCE', 'DURATION', true, ['ankle', 'knee'], null],
+  ['Equilíbrio num pé com olhos fechados', 'BALANCE', 'DURATION', true, ['ankle', 'knee'], null],
+  ['Marcha calcanhar-ponta (tandem walk)', 'BALANCE', 'DURATION', false, ['ankle'], null],
+  ['Star excursion (alcance em estrela num pé)', 'BALANCE', 'REPS', true, ['ankle', 'knee', 'hip'], null],
+  ['Equilíbrio em bosu', 'BALANCE', 'DURATION', false, ['ankle'], 'other'],
+  ['Cão a olhar para baixo (yoga)', 'MINDBODY', 'DURATION', false, ['shoulder', 'ankle'], null],
+  ['Cobra (yoga)', 'MINDBODY', 'DURATION', false, ['lumbar', 'thoracic'], null],
+  ['Guerreiro II (yoga)', 'MINDBODY', 'DURATION', true, ['hip', 'knee'], null],
+  ['Saudação ao sol (yoga)', 'MINDBODY', 'REPS', false, ['thoracic', 'hip'], null],
+  ['The hundred (pilates)', 'MINDBODY', 'DURATION', false, ['lumbar'], null],
+  ['Roll-up (pilates)', 'MINDBODY', 'REPS', false, ['lumbar'], null],
+];
+const mobility = [
+  ...catalog.mobility.map((m) => {
+    if (!MOBILITY_CATEGORY[m.name]) throw new Error(`Mobilidade sem categoria: ${m.name}`);
+    return [m.name, MOBILITY_CATEGORY[m.name], m.metricType, !!m.isUnilateral, m.areas ?? [], m.equipment ?? null];
+  }),
+  ...MOBILITY_EXTRA,
+].map(([name, category, metricType, isUnilateral, areas, equipment]) => ({
+  section: 'mobilidade', name, variants: null, equipment, region: null,
+  kind: 'MOBILITY', category, primary: null, secondary: [], move: null, metricType,
+  isIsometric: false, isUnilateral, mobilityAreas: areas,
 }));
 const areaKeys = new Set(catalog.mobilityAreas.map((a) => a.key));
 for (const m of mobility) {
@@ -256,6 +305,9 @@ for (const it of merged.values()) {
   byName.set(n, (byName.get(n) ?? 0) + 1);
 }
 
+/** Explosivos (potência): saltos, pliometria, levantamentos olímpicos, swings, arremessos. */
+const POWER = /\b(salto|saltos|jump|jumps|jumping|clean|snatch|jerk|swing|slam|burpee|burpees|thruster|push press|corda de saltar|arremesso|high pull|bound)\b|pliom/;
+
 const muscleKeys = new Set(catalog.muscles.map((m) => m.key));
 const errors = [];
 const library = [...merged.values()].map((it) => {
@@ -268,6 +320,7 @@ const library = [...merged.values()].map((it) => {
     name: display,
     group: it.section,
     kind: it.kind ?? 'STRENGTH',
+    category: it.category ?? (POWER.test(fold(display)) ? 'POWER' : 'STRENGTH'),
     metricType: it.metricType,
     isUnilateral: it.isUnilateral,
     isIsometric: it.isIsometric,
@@ -309,7 +362,7 @@ const groups = [...Object.keys(SECTIONS), 'mobilidade', 'cardio'].map((k) => ({ 
 const out = `// GERADO por tools/exercise-library/build-library.mjs a partir de catalogo-exercicios.md. Não editar à mão.
 import type { LibraryData } from './library-types';
 
-export const LIBRARY_RAW: LibraryData = ${JSON.stringify({ version: 3, groups, items: library }, null, 2)};
+export const LIBRARY_RAW: LibraryData = ${JSON.stringify({ version: 4, groups, items: library }, null, 2)};
 `;
 writeFileSync(outPath, out);
 
