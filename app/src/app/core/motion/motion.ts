@@ -53,6 +53,8 @@ const BY_NAME: Array<[RegExp, string]> = [
   [/treno|sled|pneu/, 'sled'], [/bear crawl/, 'birddog'], [/^trx|remada invertida/, 'trxrow'],
   // peito
   [/dips|paralelas/, 'dips'],
+  [/chest press.*(de pe|cabos)/, 'chestpress-standing'], [/chest press.*inclinado/, 'chestpress-incline'],
+  [/chest press.*declinado/, 'chestpress-decline'], [/chest press/, 'chestpress'],
   [/(supino|chest press).*inclinado/, 'bench-incline'], [/(supino|chest press).*declinado/, 'bench-decline'],
   [/pullover.*(corda|straight)|straight-arm/, 'straightarm'], [/pullover/, 'pullover'],
   [/peck deck invertido|crucifixo invertido|posterior/, 'rear-raise'],

@@ -30,6 +30,10 @@ describe('animações', () => {
     expect(id('Supino plano (barra)')).toBe('bench');
     expect(id('Supino inclinado (halteres)')).toBe('bench-incline');
     expect(id('Elevações laterais')).toBe('lateral');
+    expect(id('Chest press sentado')).toBe('chestpress');
+    expect(id('Chest press inclinado')).toBe('chestpress-incline');
+    expect(id('Chest press de pé')).toBe('chestpress-standing');
+    expect(id('Chest press com cabos de pé')).toBe('chestpress-standing');
     expect(id('Face pull (cabo)')).toBe('facepull');
     expect(id('Leg curl deitado')).toBe('legcurl-lying');
     expect(id('Hip thrust (barra)')).toBe('hipthrust');
