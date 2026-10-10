@@ -2,7 +2,7 @@
 import { SeedData, SeedExercise } from './seed-types';
 
 export const SEED: SeedData = {
-  "version": 5,
+  "version": 6,
   "equipment": [
     {
       "key": "machine",
@@ -366,7 +366,7 @@ export const LEGACY_EXERCISES: SeedExercise[] = [
     "isUnilateral": false,
     "isIsometric": false,
     "region": "LOWER",
-    "movementType": "PULL",
+    "movementType": "PUSH",
     "equipment": null,
     "defaultRestSeconds": null,
     "primary": [
@@ -382,7 +382,7 @@ export const LEGACY_EXERCISES: SeedExercise[] = [
     "isUnilateral": true,
     "isIsometric": false,
     "region": "LOWER",
-    "movementType": "PULL",
+    "movementType": "PUSH",
     "equipment": null,
     "defaultRestSeconds": null,
     "primary": [

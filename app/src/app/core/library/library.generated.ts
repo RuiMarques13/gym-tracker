@@ -4576,7 +4576,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "dumbbell",
       "primary": [
         "glutes"
@@ -4596,7 +4596,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "dumbbell",
       "primary": [
         "glutes"
@@ -4676,7 +4676,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "dumbbell",
       "primary": [
         "glutes"
@@ -4756,7 +4756,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "barbell",
       "primary": [
         "glutes"
@@ -4776,7 +4776,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "barbell",
       "primary": [
         "glutes"
@@ -4896,7 +4896,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "machine",
       "primary": [
         "glutes"
@@ -4916,7 +4916,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "machine",
       "primary": [
         "glutes"
@@ -4956,7 +4956,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "machine",
       "primary": [
         "glutes"
@@ -4976,7 +4976,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "machine",
       "primary": [
         "glutes"
@@ -5016,7 +5016,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "machine",
       "primary": [
         "glutes"
@@ -5036,7 +5036,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": true,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "cable",
       "primary": [
         "glutes"
@@ -5136,7 +5136,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "band",
       "primary": [
         "glutes"
@@ -5256,7 +5256,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "band",
       "primary": [
         "glutes"
@@ -5336,7 +5336,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "bodyweight",
       "primary": [
         "glutes"
@@ -5356,7 +5356,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "bodyweight",
       "primary": [
         "glutes"
@@ -5416,7 +5416,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": true,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "bodyweight",
       "primary": [
         "glutes"
@@ -5476,7 +5476,7 @@ export const LIBRARY_RAW: LibraryData = {
       "isUnilateral": false,
       "isIsometric": false,
       "region": "LOWER",
-      "movementType": null,
+      "movementType": "PUSH",
       "equipment": "bodyweight",
       "primary": [
         "glutes"

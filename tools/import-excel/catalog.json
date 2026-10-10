@@ -1,6 +1,6 @@
 {
   "_nota": "Lookups (equipamento, músculos, áreas) entram no seed. strength/mobility são os exercícios de origem dos seeds v1–v3: já não são criados; servem para os retirar de bases antigas e para testes. mobility também alimenta a biblioteca.",
-  "version": 5,
+  "version": 6,
   "equipment": [
     {
       "key": "machine",
@@ -285,7 +285,7 @@
         "glutes"
       ],
       "secondary": [],
-      "movementType": "PULL",
+      "movementType": "PUSH",
       "equipment": null
     },
     {
@@ -295,7 +295,7 @@
         "glutes"
       ],
       "secondary": [],
-      "movementType": "PULL",
+      "movementType": "PUSH",
       "equipment": null,
       "isUnilateral": true
     },

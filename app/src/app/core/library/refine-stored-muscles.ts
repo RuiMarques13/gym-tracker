@@ -77,3 +77,12 @@ async function retireUnusedLegacy(db: DbAdapter, legacyIds: string[], deviceId: 
     );
   }
 }
+
+/** Hip thrust e variantes são movimento de empurrar (extensão da anca): corrige as bases onde ficou «puxar». */
+export async function fixStoredMovement(db: DbAdapter, deviceId: string, nowIso: string): Promise<void> {
+  await db.run(
+    `UPDATE exercise SET movement_type = 'PUSH', updated_at = ?, device_id = ?
+      WHERE deleted_at IS NULL AND movement_type = 'PULL' AND lower(name) LIKE '%hip thrust%'`,
+    [nowIso, deviceId],
+  );
+}

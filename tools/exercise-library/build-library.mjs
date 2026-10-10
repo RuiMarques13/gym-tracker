@@ -103,6 +103,7 @@ const SECTIONS = {
       [/abduc|abdutor|clamshell|monster walk|passos laterais|fire hydrant/, 'abductors', ['glutes'], null],
       [/leg curl|nordic|glute-ham|slider|stiff|romeno|rdl|good morning|peso morto|deficit|deadlift|pull-through/,
         'hamstrings', ['glutes'], 'PULL'],
+      [/hip thrust|ponte de gluteos|frog pump|kickback|donkey kick|reverse hyper|hiperextensoes/, 'glutes', ['hamstrings'], 'PUSH'],
       [/bulgaro|lunge|step-up/, 'glutes', ['quadriceps'], 'PUSH'],
       [/swing/, 'glutes', ['hamstrings'], null],
     ],

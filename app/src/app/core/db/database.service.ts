@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { SEED } from '../seed/seed.generated';
 import { loadSeed } from '../seed/seed-loader';
-import { refineStoredMuscles } from '../library/refine-stored-muscles';
+import { refineStoredMuscles, fixStoredMovement } from '../library/refine-stored-muscles';
 import { CLOCK } from '../util/clock';
 import { CapacitorSqliteAdapter } from './adapters/capacitor-adapter';
 import { DbAdapter } from './db-adapter';
@@ -50,6 +50,7 @@ export class DatabaseService {
   /** Converte músculos antigos (costas, ombros) nos finos; chama-se depois de importar ou de receber dados. */
   async refineMuscles(): Promise<void> {
     await refineStoredMuscles(this.db, this.deviceId, this.clock.nowIso());
+    await fixStoredMovement(this.db, this.deviceId, this.clock.nowIso());
   }
 
   async init(): Promise<void> {
@@ -60,6 +61,7 @@ export class DatabaseService {
       const deviceId = await ensureDeviceId(db);
       const seed = await loadSeed(db, SEED, deviceId, () => this.clock.nowIso());
       await refineStoredMuscles(db, deviceId, this.clock.nowIso());
+      await fixStoredMovement(db, deviceId, this.clock.nowIso());
       this.adapter = db;
       this.deviceIdValue = deviceId;
       this.status.set({
