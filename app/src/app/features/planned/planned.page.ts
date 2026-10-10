@@ -1,3 +1,4 @@
+import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import {
   AlertController, IonBadge, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonTitle, IonToolbar, ToastController, ViewWillEnter,
@@ -13,10 +14,11 @@ import { SessionLauncher } from '../session/session-launcher';
 /** Semana de treinos planeados: planear um treino num dia, iniciar, saltar ou tirar. */
 @Component({
   selector: 'app-planned',
-  imports: [IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonBadge],
+  imports: [NavButtonComponent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonBadge],
   template: `
     <ion-header>
       <ion-toolbar>
+        <app-nav-button slot="start" />
         <ion-title>Planeados</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="goToday()" [disabled]="isThisWeek()">Hoje</ion-button>

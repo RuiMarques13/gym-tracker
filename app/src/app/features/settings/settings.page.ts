@@ -1,3 +1,4 @@
+import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { WIDGETS } from '../home/home-widgets.component';
@@ -26,13 +27,13 @@ import { SettingsService } from '../../core/settings/settings.service';
 
 @Component({
   selector: 'app-settings',
-  imports: [
+  imports: [NavButtonComponent, 
     IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonNote,
     IonSegment, IonSegmentButton, IonButton, RouterLink, IonToggle,
   ],
   template: `
     <ion-header>
-      <ion-toolbar><ion-title>Definições</ion-title></ion-toolbar>
+      <ion-toolbar><app-nav-button slot="start" /><ion-title>Definições</ion-title></ion-toolbar>
     </ion-header>
     <ion-content>
       <div class="page">
@@ -55,6 +56,13 @@ import { SettingsService } from '../../core/settings/settings.service';
               <ion-segment-button value="light"><ion-label>Claro</ion-label></ion-segment-button>
               <ion-segment-button value="dark"><ion-label>Escuro</ion-label></ion-segment-button>
             </ion-segment>
+          </ion-item>
+
+          <ion-item button detail routerLink="/definicoes/menu">
+            <ion-label class="ion-text-wrap">
+              <h3>Personalizar menu</h3>
+              <p>Ordem e ecrãs visíveis no menu lateral</p>
+            </ion-label>
           </ion-item>
 
           <ion-list-header><ion-label>Treino</ion-label></ion-list-header>

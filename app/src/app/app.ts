@@ -1,9 +1,9 @@
 import { Component, computed, effect, inject, untracked } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import {
   IonApp,
   IonContent,
+  IonFooter,
   IonIcon,
   IonItem,
   IonLabel,
@@ -14,8 +14,7 @@ import {
   IonNote,
   IonRouterOutlet,
   IonSplitPane,
-  IonTabBar,
-  IonTabButton,
+  MenuController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -24,18 +23,20 @@ import {
   calendarOutline,
   checkmarkCircleOutline,
   clipboardOutline,
-  ellipsisHorizontal,
+  cloudDoneOutline,
   homeOutline,
+  logOutOutline,
+  optionsOutline,
   personOutline,
   settingsOutline,
   statsChartOutline,
   timeOutline,
 } from 'ionicons/icons';
-import { filter, map } from 'rxjs';
+import { filter } from 'rxjs';
 import { AuthService } from './core/cloud/auth.service';
 import { SyncService } from './core/sync/sync.service';
 import { DatabaseService } from './core/db/database.service';
-import { NAV_ITEMS } from './core/navigation/nav-items';
+import { resolveNav } from './core/navigation/nav-items';
 import { EXERCISE_REPOSITORY, SESSION_REPOSITORY, WORKOUT_REPOSITORY } from './data/repositories/providers';
 import { SettingsService } from './core/settings/settings.service';
 import { TimerBubbleComponent } from './shared/timer-bubble.component';
@@ -43,26 +44,23 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
 @Component({
   selector: 'app-root',
   imports: [
-    RouterLink, RouterLinkActive, IonApp, IonSplitPane, IonMenu, IonContent, IonList, IonListHeader,
-    IonMenuToggle, IonItem, IonIcon, IonLabel, IonNote, IonRouterOutlet, IonTabBar, IonTabButton, TimerBubbleComponent,
+    RouterLink, RouterLinkActive, IonApp, IonSplitPane, IonMenu, IonContent, IonList,
+    IonMenuToggle, IonItem, IonIcon, IonLabel, IonNote, IonRouterOutlet, IonFooter, TimerBubbleComponent,
   ],
   template: `
     <ion-app>
       <ion-split-pane contentId="main" [when]="auth.state() === 'signedIn' ? 'lg' : false">
-        <!-- Menu lateral: fixo no PC (≥ 992 px). No telemóvel usa-se a barra de separadores. -->
-        <ion-menu contentId="main" type="overlay" [swipeGesture]="false">
+        <ion-menu menuId="main-menu" contentId="main" type="overlay" [swipeGesture]="auth.state() === 'signedIn'">
           <ion-content>
+            <a class="user" routerLink="/perfil" (click)="closeMenu()">
+              <span class="avatar">{{ initials() }}</span>
+              <span class="who">
+                <strong>{{ displayName() }}</strong>
+                <ion-note>{{ auth.email() ?? '' }}</ion-note>
+              </span>
+            </a>
             <ion-list lines="none" class="nav">
-              <ion-list-header>
-                <div class="brand">
-                  <span class="mark">GT</span>
-                  <div>
-                    <strong>Gym Tracker</strong>
-                    <ion-note>Força e mobilidade</ion-note>
-                  </div>
-                </div>
-              </ion-list-header>
-              @for (item of nav; track item.path) {
+              @for (item of items(); track item.path) {
                 <ion-menu-toggle [autoHide]="false">
                   <ion-item [routerLink]="item.path" routerLinkActive="active" [detail]="false" button>
                     <ion-icon slot="start" [name]="item.icon" aria-hidden="true" />
@@ -70,26 +68,32 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
                   </ion-item>
                 </ion-menu-toggle>
               }
+              <ion-menu-toggle [autoHide]="false">
+                <ion-item routerLink="/definicoes/menu" routerLinkActive="active" [detail]="false" button class="subtle">
+                  <ion-icon slot="start" name="options-outline" aria-hidden="true" />
+                  <ion-label>Personalizar menu</ion-label>
+                </ion-item>
+              </ion-menu-toggle>
             </ion-list>
           </ion-content>
+          <ion-footer>
+            <ion-list lines="none" class="nav foot">
+              <ion-menu-toggle [autoHide]="false">
+                <ion-item routerLink="/conta" routerLinkActive="active" [detail]="false" button>
+                  <ion-icon slot="start" name="cloud-done-outline" aria-hidden="true" />
+                  <ion-label>Conta e sincronização</ion-label>
+                </ion-item>
+              </ion-menu-toggle>
+              <ion-item button [detail]="false" (click)="signOut()">
+                <ion-icon slot="start" name="log-out-outline" aria-hidden="true" />
+                <ion-label>Terminar sessão</ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-footer>
         </ion-menu>
 
         <div class="ion-page shell" id="main">
           <ion-router-outlet />
-          @if (isPhone() && auth.state() === 'signedIn') {
-            <ion-tab-bar [selectedTab]="selectedTab()">
-              @for (item of tabs; track item.path) {
-                <ion-tab-button [tab]="item.path" [routerLink]="item.path">
-                  <ion-icon [name]="item.icon" aria-hidden="true" />
-                  <ion-label>{{ item.label }}</ion-label>
-                </ion-tab-button>
-              }
-              <ion-tab-button tab="/mais" routerLink="/mais">
-                <ion-icon name="ellipsis-horizontal" aria-hidden="true" />
-                <ion-label>Mais</ion-label>
-              </ion-tab-button>
-            </ion-tab-bar>
-          }
         </div>
       </ion-split-pane>
       <app-timer-bubble />
@@ -98,19 +102,24 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
   styles: `
     .shell { display: flex; flex-direction: column; }
     .shell ion-router-outlet { position: relative; flex: 1; }
-    .nav { background: transparent; }
-    .nav ion-list-header { padding: 20px 16px 16px; }
-    .brand { display: flex; gap: 12px; align-items: center; }
-    .brand strong { display: block; font-size: 1.05rem; }
-    .brand ion-note { font-size: 0.8rem; }
-    .mark {
-      display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px;
-      background: var(--ion-color-primary); color: var(--ion-color-primary-contrast);
-      font-weight: 700; font-size: 0.85rem; letter-spacing: 0.02em;
+    .user {
+      display: flex; gap: 12px; align-items: center; padding: 20px 16px 12px; text-decoration: none; color: inherit;
+      padding-top: calc(20px + env(safe-area-inset-top));
     }
+    .avatar {
+      display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%;
+      background: var(--ion-color-primary); color: var(--ion-color-primary-contrast);
+      font-weight: 700; font-size: 1rem; letter-spacing: 0.02em;
+    }
+    .who { display: flex; flex-direction: column; min-width: 0; }
+    .who strong { font-size: 1.02rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .who ion-note { font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav { background: transparent; }
     .nav ion-item { --background: transparent; --border-radius: 10px; margin: 2px 8px; }
     .nav ion-item.active { --background: rgba(var(--ion-color-primary-rgb), 0.12); color: var(--ion-color-primary); }
     .nav ion-item.active ion-icon { color: var(--ion-color-primary); }
+    .subtle { opacity: 0.75; font-size: 0.92rem; }
+    .foot { border-top: 1px solid var(--ion-border-color, rgba(128, 128, 128, 0.25)); padding: 6px 0; }
   `,
 })
 export class App {
@@ -123,23 +132,23 @@ export class App {
   private readonly workouts = inject(WORKOUT_REPOSITORY);
   private readonly sessions = inject(SESSION_REPOSITORY);
 
-  readonly nav = NAV_ITEMS;
-  readonly tabs = NAV_ITEMS.filter((i) => i.tab);
-  readonly isPhone = computed(() => this.settings.formFactor() === 'phone');
-
-  private readonly url = toSignal(
-    this.router.events.pipe(
-      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-      map((e) => e.urlAfterRedirects),
-    ),
-    { initialValue: this.router.url },
-  );
-
-  readonly selectedTab = computed(() => {
-    const url = this.url().startsWith('/sessao') ? '/home' : this.url();
-    const tab = this.tabs.find((t) => url.startsWith(t.path));
-    return tab?.path ?? '/mais';
+  private readonly menu = inject(MenuController);
+  readonly items = computed(() => resolveNav(this.settings.get('navOrder')(), this.settings.get('navHidden')()));
+  readonly displayName = computed(() => this.settings.get('profileName')().trim() || this.auth.email() || 'Gym Tracker');
+  readonly initials = computed(() => {
+    const src = this.settings.get('profileName')().trim() || this.auth.email() || 'GT';
+    const parts = src.split(/[\s@._-]+/).filter(Boolean);
+    return ((parts[0]?.[0] ?? 'G') + (parts.length > 1 ? parts[1][0] : '')).toUpperCase();
   });
+
+  closeMenu(): void {
+    void this.menu.close('main-menu');
+  }
+
+  async signOut(): Promise<void> {
+    await this.menu.close('main-menu');
+    await this.auth.signOut();
+  }
 
   private onboardChecked = false;
 
@@ -154,7 +163,7 @@ export class App {
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => void this.requireLogin());
     addIcons({
       homeOutline, calendarOutline, clipboardOutline, barbellOutline, timeOutline, statsChartOutline,
-      personOutline, settingsOutline, ellipsisHorizontal, checkmarkCircleOutline, alertCircleOutline,
+      personOutline, settingsOutline, cloudDoneOutline, logOutOutline, optionsOutline, checkmarkCircleOutline, alertCircleOutline,
     });
   }
 

@@ -34,7 +34,8 @@ export const routes: Routes = [
   },
   { path: 'definicoes/relogio', loadComponent: () => import('./features/watch/watch-setup.page').then((m) => m.WatchSetupPage) },
   { path: 'bem-vindo', loadComponent: () => import('./features/onboarding/onboarding.page').then((m) => m.OnboardingPage) },
-  { path: 'mais', loadComponent: () => import('./features/more/more.page').then((m) => m.MorePage) },
+  { path: 'mais', redirectTo: 'home' },
+  { path: 'definicoes/menu', loadComponent: () => import('./features/settings/menu-settings.page').then((m) => m.MenuSettingsPage) },
   { path: 'treinos', loadComponent: () => import('./features/workouts/workouts.page').then((m) => m.WorkoutsPage) },
   {
     path: 'treinos/novo',

@@ -1,3 +1,4 @@
+import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import { IonContent, IonHeader, IonSelect, IonSelectOption, IonTitle, IonToolbar, ViewWillEnter } from '@ionic/angular';
 import { CLOCK } from '../../core/util/clock';
@@ -16,9 +17,9 @@ const day = (iso: string) => {
 /** Gráficos: séries de força e minutos de mobilidade por semana, peso corporal e progressão por exercício. */
 @Component({
   selector: 'app-charts',
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonSelect, IonSelectOption, ChartComponent],
+  imports: [NavButtonComponent, IonHeader, IonToolbar, IonTitle, IonContent, IonSelect, IonSelectOption, ChartComponent],
   template: `
-    <ion-header><ion-toolbar><ion-title>Gráficos</ion-title></ion-toolbar></ion-header>
+    <ion-header><ion-toolbar><app-nav-button slot="start" /><ion-title>Gráficos</ion-title></ion-toolbar></ion-header>
     <ion-content>
       <div class="page">
         <section class="card">

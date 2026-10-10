@@ -1,3 +1,4 @@
+import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import {
   IonButton, IonContent, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonListHeader, IonNote, IonSegment, IonSegmentButton,
@@ -15,12 +16,12 @@ import { BODY_METRIC_REPOSITORY } from '../../data/repositories/providers';
 /** Perfil (nome, nascimento, sexo, altura) e medições corporais ao longo do tempo. */
 @Component({
   selector: 'app-profile',
-  imports: [
+  imports: [NavButtonComponent, 
     IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonInput, IonNote, IonSelect,
     IonSelectOption, IonSegment, IonSegmentButton, IonButton, IonIcon,
   ],
   template: `
-    <ion-header><ion-toolbar><ion-title>Perfil</ion-title></ion-toolbar></ion-header>
+    <ion-header><ion-toolbar><app-nav-button slot="start" /><ion-title>Perfil</ion-title></ion-toolbar></ion-header>
     <ion-content>
       <div class="page">
         <ion-list lines="full">

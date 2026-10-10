@@ -1,3 +1,4 @@
+import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, input, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
@@ -45,7 +46,7 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
 /** Os teus exercícios: pesquisa, filtros, ordenação; tocar abre o formulário. */
 @Component({
   selector: 'app-exercises',
-  imports: [
+  imports: [NavButtonComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonSearchbar,
     IonSegment, IonSegmentButton, IonList, IonListHeader, IonItem, IonLabel, IonNote, IonBadge, IonModal,
     IonSelect, IonSelectOption, IonToggle,
@@ -53,6 +54,7 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
   template: `
     <ion-header>
       <ion-toolbar>
+        <app-nav-button slot="start" />
         <ion-title>Exercícios</ion-title>
         <ion-buttons slot="end">
           <ion-button routerLink="/exercicios/biblioteca">

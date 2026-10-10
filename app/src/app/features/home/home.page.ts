@@ -1,3 +1,4 @@
+import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, effect, inject, resource, signal, untracked } from '@angular/core';
 import { SyncService } from '../../core/sync/sync.service';
 import { RouterLink } from '@angular/router';
@@ -29,13 +30,13 @@ import { SessionLauncher } from '../session/session-launcher';
 
 @Component({
   selector: 'app-home',
-  imports: [
+  imports: [NavButtonComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle,
     IonCardSubtitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonIcon, IonButton, HomeWidgetsComponent,
   ],
   template: `
     <ion-header>
-      <ion-toolbar><ion-title>Home</ion-title></ion-toolbar>
+      <ion-toolbar><app-nav-button slot="start" /><ion-title>Home</ion-title></ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
       <div class="page">

@@ -1,3 +1,4 @@
+import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
@@ -29,13 +30,14 @@ import { SessionLauncher } from '../session/session-launcher';
 /** Os teus treinos (templates). Deslizar para copiar ou arquivar; tocar para editar. */
 @Component({
   selector: 'app-workouts',
-  imports: [
+  imports: [NavButtonComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonList, IonItem,
     IonItemSliding, IonItemOptions, IonItemOption, IonLabel, IonNote, IonBadge, IonToggle,
   ],
   template: `
     <ion-header>
       <ion-toolbar>
+        <app-nav-button slot="start" />
         <ion-title>Treinos</ion-title>
         <ion-buttons slot="end">
           <ion-button routerLink="/treinos/novo"><ion-icon slot="start" name="add" /> Novo</ion-button>

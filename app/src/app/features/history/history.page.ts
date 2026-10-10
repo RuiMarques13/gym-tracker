@@ -1,3 +1,4 @@
+import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
@@ -12,9 +13,9 @@ import { formatDay, formatMonth, formatSpan, formatVolume } from './history-form
 /** Sessões terminadas, da mais recente para a mais antiga, agrupadas por mês. */
 @Component({
   selector: 'app-history',
-  imports: [RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonBadge, IonIcon],
+  imports: [NavButtonComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonBadge, IonIcon],
   template: `
-    <ion-header><ion-toolbar><ion-title>Histórico</ion-title></ion-toolbar></ion-header>
+    <ion-header><ion-toolbar><app-nav-button slot="start" /><ion-title>Histórico</ion-title></ion-toolbar></ion-header>
     <ion-content>
       <div class="page">
         @if (!sessions.isLoading() && !sessions.value()?.length) {

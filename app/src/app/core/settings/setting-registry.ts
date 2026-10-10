@@ -97,6 +97,14 @@ export const SETTINGS = {
     key: 'watch.checklist', scope: 'DEVICE', schemaVersion: 1, defaultValue: [],
     validate: isStringArray, label: 'Passos do relógio concluídos',
   }),
+  navOrder: def<string[]>({
+    key: 'nav.order', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: [],
+    validate: isStringArray, label: 'Ordem do menu',
+  }),
+  navHidden: def<string[]>({
+    key: 'nav.hidden', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: [],
+    validate: isStringArray, label: 'Ecrãs escondidos do menu',
+  }),
   homeWidgets: def<string[]>({
     key: 'home.widgets', scope: 'LAYOUT', schemaVersion: 1,
     defaultValue: ['next-workout', 'weekly-sets', 'mobility-minutes'],
