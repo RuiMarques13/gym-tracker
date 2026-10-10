@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import {
@@ -32,6 +32,7 @@ import {
   timeOutline,
 } from 'ionicons/icons';
 import { filter, map } from 'rxjs';
+import { AuthService } from './core/cloud/auth.service';
 import { DatabaseService } from './core/db/database.service';
 import { NAV_ITEMS } from './core/navigation/nav-items';
 import { EXERCISE_REPOSITORY, SESSION_REPOSITORY, WORKOUT_REPOSITORY } from './data/repositories/providers';
@@ -112,6 +113,7 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
   `,
 })
 export class App {
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly settings = inject(SettingsService);
   private readonly database = inject(DatabaseService);
@@ -137,12 +139,26 @@ export class App {
     return tab?.path ?? '/mais';
   });
 
+  private onboardChecked = false;
+
   constructor() {
-    void this.maybeOnboard();
+    void this.start();
+    // A introdução (instalações vazias) só corre depois de entrares ou de escolheres continuar sem conta.
+    effect(() => {
+      if (this.auth.state() === 'signedIn' || this.auth.skipped()) untracked(() => void this.maybeOnboard());
+    });
     addIcons({
       homeOutline, calendarOutline, clipboardOutline, barbellOutline, timeOutline, statsChartOutline,
       personOutline, settingsOutline, ellipsisHorizontal, checkmarkCircleOutline, alertCircleOutline,
     });
+  }
+
+  /** Ao abrir: sem sessão (e sem ter escolhido continuar sem conta), vai direto ao ecrã de login. */
+  private async start(): Promise<void> {
+    await this.auth.init();
+    if (this.auth.state() === 'signedOut' && !this.auth.skipped()) {
+      await this.router.navigateByUrl('/conta?inicio=1', { replaceUrl: true });
+    }
   }
 
   /**
@@ -150,6 +166,8 @@ export class App {
    * «onboarding.done») nunca a vê: marca-se como feita em silêncio.
    */
   private async maybeOnboard(): Promise<void> {
+    if (this.onboardChecked) return;
+    this.onboardChecked = true;
     try {
       if (!this.database.status().ready || this.settings.get('onboardingDone')()) return;
       const empty =
