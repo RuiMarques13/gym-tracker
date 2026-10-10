@@ -4,6 +4,7 @@ import {
   IonButton,
   IonButtons,
   IonCheckbox,
+  IonChip,
   IonContent,
   IonFooter,
   IonHeader,
@@ -12,12 +13,11 @@ import {
   IonList,
   IonNote,
   IonSearchbar,
-  IonSegment,
-  IonSegmentButton,
   IonTitle,
   IonToolbar,
   ModalController,
 } from '@ionic/angular';
+import { buildGroupLookup, groupOfExercise } from '../../core/library/exercise-group';
 import { Kind, KIND_LABEL, METRIC_LABEL } from '../../data/models/enums';
 import type { Exercise } from '../../data/models/exercise';
 import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
@@ -31,8 +31,8 @@ type KindFilter = 'ALL' | Kind;
 @Component({
   selector: 'app-exercise-picker',
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonFooter, IonSearchbar, IonSegment,
-    IonSegmentButton, IonLabel, IonList, IonItem, IonCheckbox, IonNote, IonBadge,
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonFooter, IonSearchbar, IonChip,
+    IonLabel, IonList, IonItem, IonCheckbox, IonNote, IonBadge,
   ],
   template: `
     <ion-header>
@@ -44,18 +44,16 @@ type KindFilter = 'ALL' | Kind;
         <ion-searchbar placeholder="Pesquisar nos teus exercícios" [debounce]="120"
           (ionInput)="query.set($any($event).detail.value ?? '')" />
       </ion-toolbar>
-      <ion-toolbar>
-        <ion-segment [value]="kind()" (ionChange)="kind.set($any($event).detail.value)">
-          <ion-segment-button value="ALL"><ion-label>Todos</ion-label></ion-segment-button>
-          <ion-segment-button value="STRENGTH"><ion-label>Força</ion-label></ion-segment-button>
-          <ion-segment-button value="MOBILITY"><ion-label>Mobilidade</ion-label></ion-segment-button>
-          <ion-segment-button value="CARDIO"><ion-label>Cardio</ion-label></ion-segment-button>
-        </ion-segment>
-      </ion-toolbar>
+      <div class="chip-row">
+        <ion-chip [outline]="group() !== null" (click)="group.set(null)">Todos</ion-chip>
+        @for (g of groups(); track g.key) {
+          <ion-chip [outline]="group() !== g.key" (click)="group.set(g.key)">{{ g.label }}</ion-chip>
+        }
+      </div>
     </ion-header>
     <ion-content>
       <ion-list lines="full">
-        @for (e of exercises.value() ?? []; track e.id) {
+        @for (e of shown(); track e.id) {
           <ion-item>
             <ion-checkbox slot="start" [checked]="isSelected(e.id)" (ionChange)="toggle(e)" />
             <ion-label>
@@ -86,6 +84,10 @@ type KindFilter = 'ALL' | Kind;
   styles: `
     h2 { font-weight: 600; }
     .footer { padding: 4px 12px; }
+    .chip-row { display: flex; gap: 2px; overflow-x: auto; padding: 0 8px 6px; scrollbar-width: none;
+      background: var(--ion-toolbar-background, var(--ion-background-color)); }
+    .chip-row::-webkit-scrollbar { display: none; }
+    ion-chip { flex: 0 0 auto; }
   `,
 })
 export class ExercisePickerComponent implements OnInit {
@@ -99,17 +101,30 @@ export class ExercisePickerComponent implements OnInit {
   readonly kindLabel = KIND_LABEL;
   readonly metricLabel = METRIC_LABEL;
   readonly query = signal('');
-  readonly kind = signal<KindFilter>('ALL');
   readonly selected = signal<Exercise[]>([]);
   private readonly selectedIds = computed(() => new Set(this.selected().map((e) => e.id)));
 
   readonly exercises = resource({
-    params: () => ({ q: this.query(), kind: this.kind() }),
-    loader: ({ params }) => this.repo.list({ q: params.q, kind: params.kind === 'ALL' ? undefined : params.kind }),
+    params: () => ({ q: this.query() }),
+    loader: ({ params }) => this.repo.list({ q: params.q }),
+  });
+
+  /** Grupos da biblioteca (os mesmos da lista de exercícios). */
+  readonly group = signal<string | null>(null);
+  private readonly library = resource({ loader: () => import('../../core/library/library-data').then((m) => m.LIBRARY) });
+  readonly groups = computed(() => this.library.value()?.groups ?? []);
+  readonly shown = computed(() => {
+    const all = this.exercises.value() ?? [];
+    const g = this.group();
+    const lib = this.library.value();
+    if (!g || !lib) return all;
+    const lk = buildGroupLookup(lib);
+    return all.filter((e) => groupOfExercise(e, lk) === g);
   });
 
   ngOnInit(): void {
-    this.kind.set(this.initialKind);
+    if (this.initialKind === 'MOBILITY') this.group.set('mobilidade');
+    else if (this.initialKind === 'CARDIO') this.group.set('cardio');
   }
 
   isSelected(id: string): boolean {

@@ -3,6 +3,7 @@ import { Component, computed, inject, input, linkedSignal, resource, signal } fr
 import { RouterLink } from '@angular/router';
 import {
   IonBadge,
+  IonChip,
   IonButton,
   IonButtons,
   IonContent,
@@ -36,6 +37,7 @@ import {
   REGION_LABEL,
 } from '../../data/models/enums';
 import { Exercise, ExerciseFilter } from '../../data/models/exercise';
+import { buildGroupLookup, groupOfExercise } from '../../core/library/exercise-group';
 import { EXERCISE_REPOSITORY, LOOKUP_REPOSITORY } from '../../data/repositories/providers';
 
 type KindFilter = 'ALL' | Kind;
@@ -48,7 +50,7 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
   selector: 'app-exercises',
   imports: [NavButtonComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonSearchbar,
-    IonSegment, IonSegmentButton, IonList, IonListHeader, IonItem, IonLabel, IonNote, IonBadge, IonModal,
+    IonSegment, IonSegmentButton, IonChip, IonList, IonListHeader, IonItem, IonLabel, IonNote, IonBadge, IonModal,
     IonSelect, IonSelectOption, IonToggle,
   ],
   template: `
@@ -75,14 +77,20 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
-      <ion-toolbar>
-        <ion-segment [value]="kindFilter()" (ionChange)="kindFilter.set($any($event).detail.value)" [scrollable]="true">
-          <ion-segment-button value="ALL"><ion-label>Todos</ion-label></ion-segment-button>
-          <ion-segment-button value="STRENGTH"><ion-label>Força</ion-label></ion-segment-button>
-          <ion-segment-button value="MOBILITY"><ion-label>Mobilidade</ion-label></ion-segment-button>
-          <ion-segment-button value="CARDIO"><ion-label>Cardio</ion-label></ion-segment-button>
-        </ion-segment>
-      </ion-toolbar>
+      <div class="filters">
+        <div class="chip-row">
+          <ion-chip [outline]="group() !== null" (click)="group.set(null)">Todos</ion-chip>
+          @for (g of groups(); track g.key) {
+            <ion-chip [outline]="group() !== g.key" (click)="group.set(g.key)">{{ g.label }}</ion-chip>
+          }
+        </div>
+        <div class="chip-row">
+          <ion-chip class="small" [outline]="equipmentIds().length > 0" (click)="equipmentIds.set([])">Qualquer equipamento</ion-chip>
+          @for (e of lookups.value()?.equipment ?? []; track e.id) {
+            <ion-chip class="small" [outline]="equipmentIds()[0] !== e.id" (click)="equipmentIds.set([e.id])">{{ e.name }}</ion-chip>
+          }
+        </div>
+      </div>
     </ion-header>
 
     <ion-content>
@@ -92,7 +100,7 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
           @if (activeFilters() > 0) { · <a (click)="clearFilters()">limpar filtros</a> }
         </p>
         <ion-list lines="full">
-          @for (e of exercises.value() ?? []; track e.id) {
+          @for (e of shown(); track e.id) {
             <ion-item [routerLink]="['/exercicios', e.id]" [detail]="false" button>
               <ion-label>
                 <h2>{{ e.name }}</h2>
@@ -146,14 +154,6 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
                 </ion-select>
               </ion-item>
               <ion-item>
-                <ion-select label="Equipamento" [multiple]="true" placeholder="Todos" [value]="equipmentIds()"
-                  (ionChange)="equipmentIds.set($any($event).detail.value ?? [])" cancelText="Cancelar" okText="OK">
-                  @for (e of lookups.value()?.equipment ?? []; track e.id) {
-                    <ion-select-option [value]="e.id">{{ e.name }}</ion-select-option>
-                  }
-                </ion-select>
-              </ion-item>
-              <ion-item>
                 <ion-select label="Área de mobilidade" [multiple]="true" placeholder="Todas" [value]="areaIds()"
                   (ionChange)="areaIds.set($any($event).detail.value ?? [])" cancelText="Cancelar" okText="OK">
                   @for (a of lookups.value()?.areas ?? []; track a.id) {
@@ -203,6 +203,11 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
     .page { max-width: 860px; margin: 0 auto; }
     .count { margin: 12px 16px 4px; font-size: 0.85rem; color: var(--ion-color-medium); }
     .count a { cursor: pointer; color: var(--ion-color-primary); }
+    .filters { background: var(--ion-toolbar-background, var(--ion-background-color)); padding: 0 0 6px; }
+    .chip-row { display: flex; gap: 2px; overflow-x: auto; padding: 0 8px; scrollbar-width: none; }
+    .chip-row::-webkit-scrollbar { display: none; }
+    ion-chip { flex: 0 0 auto; }
+    ion-chip.small { height: 28px; font-size: 0.8rem; }
     .badges { display: flex; gap: 6px; }
     ion-badge { font-weight: 500; }
     h2 { font-weight: 600; }
@@ -220,9 +225,16 @@ export class ExercisesPage implements ViewWillEnter {
 
   /** ?kind=STRENGTH|MOBILITY|CARDIO vindo da Home. */
   readonly kind = input<string | undefined>();
-  readonly kindFilter = linkedSignal<KindFilter>(() => {
+  /** Grupo da biblioteca escolhido nos chips; ?kind=MOBILITY|CARDIO (da Home) escolhe o grupo respetivo. */
+  readonly group = linkedSignal<string | null>(() => {
     const k = this.kind();
-    return k === 'STRENGTH' || k === 'MOBILITY' || k === 'CARDIO' ? k : 'ALL';
+    return k === 'MOBILITY' ? 'mobilidade' : k === 'CARDIO' ? 'cardio' : null;
+  });
+  readonly groups = computed(() => this.library.value()?.groups ?? []);
+  private readonly library = resource({ loader: () => import('../../core/library/library-data').then((m) => m.LIBRARY) });
+  private readonly groupLookup = computed(() => {
+    const lib = this.library.value();
+    return lib ? buildGroupLookup(lib) : null;
   });
   readonly query = signal('');
   readonly filtersOpen = signal(false);
@@ -247,7 +259,6 @@ export class ExercisesPage implements ViewWillEnter {
 
   private readonly filter = computed<ExerciseFilter>(() => ({
     q: this.query(),
-    kind: this.kindFilter() === 'ALL' ? undefined : (this.kindFilter() as Kind),
     muscleGroupIds: this.muscleIds(),
     equipmentIds: this.equipmentIds(),
     mobilityAreaIds: this.areaIds(),
@@ -261,6 +272,14 @@ export class ExercisesPage implements ViewWillEnter {
 
   readonly exercises = resource({ params: () => this.filter(), loader: ({ params }) => this.repo.list(params) });
 
+  /** Lista pelos chips: sem grupo escolhido mostra tudo; enquanto a biblioteca carrega, também. */
+  readonly shown = computed(() => {
+    const all = this.exercises.value() ?? [];
+    const g = this.group();
+    const lk = this.groupLookup();
+    return g && lk ? all.filter((e) => groupOfExercise(e, lk) === g) : all;
+  });
+
   readonly lookups = resource({
     loader: async () => ({
       muscles: await this.lookupRepo.muscles(),
@@ -270,7 +289,7 @@ export class ExercisesPage implements ViewWillEnter {
   });
 
   readonly countLabel = computed(() => {
-    const n = this.exercises.value()?.length ?? 0;
+    const n = this.shown().length;
     return n === 1 ? '1 exercício' : `${n} exercícios`;
   });
 
