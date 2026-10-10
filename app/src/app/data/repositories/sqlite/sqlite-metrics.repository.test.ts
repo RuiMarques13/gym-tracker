@@ -122,3 +122,38 @@ describe('mobilidade', () => {
     expect(await metrics.mobilityStreak('2026-10-12')).toBe(0);
   });
 });
+
+describe('séries por semana (gráficos)', () => {
+  it('força: uma série conta uma vez, só trabalho, e as semanas vazias vêm a zero', async () => {
+    await session('2026-10-05T10:00:00.000Z', async (id) => {
+      const a = await sessions.addExercise(id, bench);
+      await work(a.id, 3);
+      await sessions.saveSet({ sessionExerciseId: a.id, type: 'WARMUP', entries: [{ side: 'BOTH', weightKg: 20, reps: 10 }] });
+    });
+    await session('2026-10-20T10:00:00.000Z', async (id) => {
+      const a = await sessions.addExercise(id, fly);
+      await work(a.id, 2);
+    });
+    const w = await metrics.weeklyStrengthSets('2026-09-28', 4);
+    expect(w).toEqual([
+      { weekStart: '2026-09-28', value: 0 },
+      { weekStart: '2026-10-05', value: 3 },
+      { weekStart: '2026-10-12', value: 0 },
+      { weekStart: '2026-10-19', value: 2 },
+    ]);
+  });
+
+  it('mobilidade: soma os minutos (os dois lados somam) por semana', async () => {
+    await session('2026-10-06T10:00:00.000Z', async (id) => {
+      const a = await sessions.addExercise(id, hip);
+      await sessions.saveSet({ sessionExerciseId: a.id, entries: [{ side: 'LEFT', durationSeconds: 90 }, { side: 'RIGHT', durationSeconds: 90 }] });
+      const b = await sessions.addExercise(id, plank);
+      await sessions.saveSet({ sessionExerciseId: b.id, entries: [{ side: 'BOTH', durationSeconds: 60 }] });
+    });
+    const w = await metrics.weeklyMobilityMinutes('2026-10-05', 2);
+    expect(w).toEqual([
+      { weekStart: '2026-10-05', value: 4 },
+      { weekStart: '2026-10-12', value: 0 },
+    ]);
+  });
+});

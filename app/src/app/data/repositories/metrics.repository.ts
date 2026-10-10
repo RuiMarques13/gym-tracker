@@ -23,6 +23,16 @@ export interface MetricsRepository {
   mobilityWeek(weekStart: string): Promise<MobilityWeek>;
   /** Dias seguidos com mobilidade até hoje (se hoje ainda não fizeste, conta até ontem). */
   mobilityStreak(today: string): Promise<number>;
+  /** Séries de trabalho de força (cada série conta uma vez) por semana, desde `fromWeek` (segunda) durante `weeks` semanas, com zeros nas semanas vazias. */
+  weeklyStrengthSets(fromWeek: string, weeks: number): Promise<WeekValue[]>;
+  /** Minutos de mobilidade por semana, no mesmo formato. */
+  weeklyMobilityMinutes(fromWeek: string, weeks: number): Promise<WeekValue[]>;
+}
+
+export interface WeekValue {
+  /** Segunda-feira da semana, «YYYY-MM-DD». */
+  weekStart: string;
+  value: number;
 }
 
 const WEEK_OF = `date(s.started_at, 'localtime', 'weekday 0', '-6 days')`;
@@ -69,6 +79,39 @@ export class SqliteMetricsRepository implements MetricsRepository {
     return { minutes: Math.round(((r.seconds ?? 0) / 60) * 10) / 10, sessions: r.sessions, activeDays: r.days };
   }
 
+  async weeklyStrengthSets(fromWeek: string, weeks: number): Promise<WeekValue[]> {
+    const rows = await this.db.query<{ week: string; n: number }>(
+      `WITH series AS (
+         SELECT DISTINCT sl.session_exercise_id, sl.position
+         FROM set_log sl
+         WHERE sl.type = 'WORKING' AND sl.completed_at IS NOT NULL AND sl.deleted_at IS NULL
+       )
+       SELECT ${WEEK_OF} AS week, COUNT(*) AS n
+       FROM series x
+       JOIN session_exercise se ON se.id = x.session_exercise_id AND se.deleted_at IS NULL
+       JOIN session s ON s.id = se.session_id AND s.deleted_at IS NULL
+       JOIN exercise e ON e.id = se.exercise_id AND e.kind = 'STRENGTH'
+       WHERE ${WEEK_OF} >= ?
+       GROUP BY week`,
+      [fromWeek],
+    );
+    return fillWeeks(fromWeek, weeks, new Map(rows.map((r) => [r.week, r.n])));
+  }
+
+  async weeklyMobilityMinutes(fromWeek: string, weeks: number): Promise<WeekValue[]> {
+    const rows = await this.db.query<{ week: string; seconds: number | null }>(
+      `SELECT ${WEEK_OF} AS week, SUM(sl.duration_seconds) AS seconds
+       FROM set_log sl
+       JOIN session_exercise se ON se.id = sl.session_exercise_id AND se.deleted_at IS NULL
+       JOIN session s ON s.id = se.session_id AND s.deleted_at IS NULL
+       JOIN exercise e ON e.id = se.exercise_id AND e.kind = 'MOBILITY'
+       WHERE sl.deleted_at IS NULL AND sl.completed_at IS NOT NULL AND ${WEEK_OF} >= ?
+       GROUP BY week`,
+      [fromWeek],
+    );
+    return fillWeeks(fromWeek, weeks, new Map(rows.map((r) => [r.week, Math.round(((r.seconds ?? 0) / 60) * 10) / 10])));
+  }
+
   async mobilityStreak(today: string): Promise<number> {
     const rows = await this.db.query<{ d: string }>(
       `SELECT DISTINCT date(s.started_at, 'localtime') AS d
@@ -88,4 +131,11 @@ export class SqliteMetricsRepository implements MetricsRepository {
     }
     return n;
   }
+}
+
+function fillWeeks(fromWeek: string, weeks: number, byWeek: Map<string, number>): WeekValue[] {
+  return Array.from({ length: weeks }, (_, i) => {
+    const weekStart = addDays(fromWeek, i * 7);
+    return { weekStart, value: byWeek.get(weekStart) ?? 0 };
+  });
 }
