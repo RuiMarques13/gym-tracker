@@ -1,3 +1,4 @@
+import { PhotoRepository, SqlitePhotoRepository } from './photo.repository';
 import { inject, InjectionToken } from '@angular/core';
 import { DatabaseService } from '../../core/db/database.service';
 import { CLOCK } from '../../core/util/clock';
@@ -63,5 +64,13 @@ export const BODY_METRIC_REPOSITORY = new InjectionToken<BodyMetricRepository>('
   factory: () => {
     const database = inject(DatabaseService);
     return new SqliteBodyMetricRepository(database.db, inject(CLOCK), database.deviceId);
+  },
+});
+
+export const PHOTO_REPOSITORY = new InjectionToken<PhotoRepository>('PhotoRepository', {
+  providedIn: 'root',
+  factory: () => {
+    const database = inject(DatabaseService);
+    return new SqlitePhotoRepository(database.db, inject(CLOCK), database.deviceId);
   },
 });

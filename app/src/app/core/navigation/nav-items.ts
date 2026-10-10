@@ -14,6 +14,7 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/historico', label: 'Histórico', icon: 'time-outline' },
   { path: '/planeados', label: 'Planeados', icon: 'calendar-outline' },
   { path: '/volume', label: 'Volume semanal', icon: 'body-outline' },
+  { path: '/fotos', label: 'Fotos', icon: 'camera-outline' },
   { path: '/graficos', label: 'Gráficos', icon: 'stats-chart-outline' },
   { path: '/definicoes', label: 'Definições', icon: 'settings-outline', locked: true },
 ];

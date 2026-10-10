@@ -1,5 +1,6 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { SqlitePhotoRepository } from '../../data/repositories/photo.repository';
 import { SqliteSessionRepository } from '../../data/repositories/sqlite/sqlite-session.repository';
 import { SqliteWorkoutRepository } from '../../data/repositories/sqlite/sqlite-workout.repository';
 import { getMeta } from '../db/local-meta';
@@ -85,6 +86,26 @@ describe('motor de sync contra Postgres real', () => {
     for (const t of ['workout_template', 'planned_exercise', 'session', 'session_exercise', 'set_log']) {
       expect(await all(b, t), t).toEqual(await all(a, t));
     }
+  });
+
+  it('fotos de progresso sincronizam (várias páginas e lotes por tamanho) e o apagar chega ao outro', async () => {
+    const a = await device();
+    const b = await device();
+    const photos = new SqlitePhotoRepository(a.db, a.clock, a.deviceId);
+    const big = 'data:image/jpeg;base64,' + 'A'.repeat(700_000);
+    const ids3: string[] = [];
+    for (let i = 0; i < 3; i++) ids3.push((await photos.add({ date: `2026-10-0${i + 1}`, pose: 'FRONT', image: big })).id);
+    const tr = new PgTransport(pg);
+    await a.sync(tr);
+    expect(tr.pushes).toBeGreaterThan(1); // 3 × 0,7 MB não cabem num só pedido
+    await b.sync(tr, { pullPage: 2 });
+    expect(await all(b, 'progress_photo')).toEqual(await all(a, 'progress_photo'));
+    a.clock.advance(60_000);
+    await photos.remove(ids3[0]);
+    await a.sync(tr);
+    await b.sync(tr);
+    const left = await new SqlitePhotoRepository(b.db, b.clock, b.deviceId).list();
+    expect(left.map((p) => p.id).sort()).toEqual(ids3.slice(1).sort());
   });
 
   it('depois de sincronizado não há nada por enviar nem por trazer; repetir não faz nada', async () => {

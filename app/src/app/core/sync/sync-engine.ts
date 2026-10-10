@@ -12,7 +12,8 @@ import {
 
 /** Linhas por pedido de envio. As tabelas vão por ordem de dependência, por isso um lote nunca traz filhos antes dos pais. */
 const PUSH_BATCH = 1500;
-const PULL_PAGE = 1000;
+const PULL_PAGE = 100; // as fotos pesam: páginas pequenas mantêm cada resposta abaixo de alguns MB
+const PUSH_MAX_BYTES = 1_500_000;
 const MAX_PAGES = 500;
 
 const META_CURSOR = 'sync.cursor';
@@ -81,6 +82,7 @@ async function pushDirty(db: DbAdapter, transport: SyncTransport, opts: SyncOpti
   let total = 0;
   let batch: SyncTables = {};
   let inBatch = 0;
+  let bytes = 0;
   const sent: Array<{ table: MergeTable; id: string; updated_at: string; device_id: string }> = [];
 
   const flush = async () => {
@@ -101,14 +103,18 @@ async function pushDirty(db: DbAdapter, transport: SyncTransport, opts: SyncOpti
     total += inBatch;
     batch = {};
     inBatch = 0;
+    bytes = 0;
     sent.length = 0;
   };
 
   for (const table of MERGE_TABLES) {
     const rows = await db.query<SyncRow>(`SELECT t.* ${DIRTY_FROM(table)}`);
     for (const row of rows) {
+      const weight = typeof row['image'] === 'string' ? (row['image'] as string).length : 300;
+      if (inBatch > 0 && bytes + weight > PUSH_MAX_BYTES) await flush();
       (batch[table] ??= []).push(row);
       sent.push({ table, id: String(row['id']), updated_at: String(row['updated_at']), device_id: String(row['device_id']) });
+      bytes += weight;
       if (++inBatch >= PUSH_BATCH) await flush();
     }
   }

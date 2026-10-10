@@ -116,6 +116,7 @@ Aplicar o esquema, uma vez, no SQL Editor do Supabase e por esta ordem:
 1. `supabase/migrations/20261010000001_schema.sql`
 2. `supabase/migrations/20261010000002_sync.sql`
 3. `supabase/migrations/20261010000003_rir.sql` (coluna `rir` das séries; obrigatório antes de usar a versão com RIR)
+4. `supabase/migrations/20261010000004_photos.sql` (tabela das fotos de progresso)
 
 Em Authentication → Providers → Email, para uso pessoal convém desligar «Confirm email»
 (ou definir o Site URL em Authentication → URL Configuration) e, depois de criares a conta,
