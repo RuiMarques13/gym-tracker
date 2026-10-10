@@ -1,7 +1,7 @@
 // GERADO por tools/exercise-library/build-library.mjs a partir de catalogo-exercicios.md. Não editar à mão.
 import type { LibraryData } from './library-types';
 
-export const LIBRARY: LibraryData = {
+export const LIBRARY_RAW: LibraryData = {
   "version": 3,
   "groups": [
     {

@@ -60,6 +60,7 @@ interface SetRow {
   calories_kcal: number | null;
   rpe: number | null;
   rom_score: number | null;
+  rir: number | null;
   rest_seconds_actual: number | null;
   completed_at: string | null;
 }
@@ -231,19 +232,19 @@ export class SqliteSessionRepository implements SessionRepository {
         const row = rowsHere.find((r) => r.side === e.side);
         const values: SqlValue[] = [
           type, e.weightKg ?? null, e.reps ?? null, e.durationSeconds ?? null, e.distanceM ?? null,
-          e.caloriesKcal ?? null, e.rpe ?? null, e.romScore ?? null,
+          e.caloriesKcal ?? null, e.rpe ?? null, e.rir ?? null, e.romScore ?? null,
         ];
         if (row) {
           await tx.run(
             `UPDATE set_log SET type = ?, weight_kg = ?, reps = ?, duration_seconds = ?, distance_m = ?,
-               calories_kcal = ?, rpe = ?, rom_score = ?, updated_at = ?, device_id = ? WHERE id = ?`,
+               calories_kcal = ?, rpe = ?, rir = ?, rom_score = ?, updated_at = ?, device_id = ? WHERE id = ?`,
             [...values, now, this.deviceId, row.id],
           );
         } else {
           await tx.run(
             `INSERT INTO set_log (id, session_exercise_id, position, side, type, weight_kg, reps, duration_seconds,
-               distance_m, calories_kcal, rpe, rom_score, completed_at, updated_at, deleted_at, device_id)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
+               distance_m, calories_kcal, rpe, rir, rom_score, completed_at, updated_at, deleted_at, device_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
             [newId(), input.sessionExerciseId, position, e.side, ...values, completedAt, now, this.deviceId],
           );
         }
@@ -403,6 +404,7 @@ export class SqliteSessionRepository implements SessionRepository {
         distanceM: kind === 'CARDIO' ? clampNum(e.distanceM, 0, 1_000_000, 10) : null,
         caloriesKcal: kind === 'CARDIO' ? clampNum(e.caloriesKcal, 0, 100_000, 10) : null,
         rpe: clampNum(e.rpe, 0, 10, 2),
+        rir: kind === 'STRENGTH' ? clampNum(e.rir, 0, 4, 1) : null,
         romScore: kind === 'MOBILITY' ? clampNum(e.romScore, 1, 5, 1) : null,
       };
     });
@@ -457,7 +459,7 @@ export class SqliteSessionRepository implements SessionRepository {
       list.push({
         id: r.id, position: r.position, type: r.type, side: r.side, weightKg: r.weight_kg, reps: r.reps,
         durationSeconds: r.duration_seconds, distanceM: r.distance_m, caloriesKcal: r.calories_kcal, rpe: r.rpe,
-        romScore: r.rom_score, restSecondsActual: r.rest_seconds_actual, completedAt: r.completed_at,
+        rir: r.rir, romScore: r.rom_score, restSecondsActual: r.rest_seconds_actual, completedAt: r.completed_at,
       });
       out.set(r.session_exercise_id, list);
     }

@@ -49,6 +49,7 @@ export const routes: Routes = [
   { path: 'planeados', loadComponent: () => import('./features/planned/planned.page').then((m) => m.PlannedPage) },
   { path: 'historico', loadComponent: () => import('./features/history/history.page').then((m) => m.HistoryPage) },
   { path: 'historico/:id', loadComponent: () => import('./features/session/session.page').then((m) => m.SessionPage) },
+  { path: 'volume', loadComponent: () => import('./features/volume/volume.page').then((m) => m.VolumePage) },
   { path: 'graficos', loadComponent: () => import('./features/charts/charts.page').then((m) => m.ChartsPage) },
   { path: 'conta', loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage) },
   { path: 'perfil', loadComponent: () => import('./features/profile/profile.page').then((m) => m.ProfilePage) },

@@ -157,3 +157,21 @@ describe('séries por semana (gráficos)', () => {
     ]);
   });
 });
+
+describe('metricData (para o volume por músculo do spec)', () => {
+  it('devolve séries com RIR e músculos do spec; lado esquerdo/direito conta uma vez', async () => {
+    const unil = (await exercises.save({ name: 'T Uni2', kind: 'STRENGTH', metricType: 'WEIGHT_REPS', isUnilateral: true, primaryMuscleIds: [await muscle('Peito')] })).id;
+    await session('2026-10-05T10:00:00.000Z', async (id) => {
+      const a = await sessions.addExercise(id, bench);
+      await sessions.saveSet({ sessionExerciseId: a.id, entries: [{ side: 'BOTH', weightKg: 50, reps: 8, rir: 2 }] });
+      await sessions.saveSet({ sessionExerciseId: a.id, type: 'WARMUP', entries: [{ side: 'BOTH', weightKg: 20, reps: 10 }] });
+      const u = await sessions.addExercise(id, unil);
+      await sessions.saveSet({ sessionExerciseId: u.id, entries: [{ side: 'LEFT', weightKg: 10, reps: 8 }, { side: 'RIGHT', weightKg: 10, reps: 9 }] });
+    });
+    const d = await metrics.metricData(new Date('2026-10-01T00:00:00Z'), new Date('2026-10-31T00:00:00Z'));
+    expect(d.sets).toHaveLength(3);
+    expect(d.sets.filter((s) => s.type === 'working' && s.exerciseId === bench)[0]).toMatchObject({ rir: 2, weightKg: 50, reps: 8 });
+    expect(d.exercises.get(bench)).toEqual({ id: bench, primaryMuscles: ['peito'], secondaryMuscles: ['triceps'] }); // «Ombros» antigo não tem correspondência
+    expect(d.withoutPrimary).toEqual([]);
+  });
+});

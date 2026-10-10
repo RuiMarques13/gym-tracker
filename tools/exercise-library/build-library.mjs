@@ -308,7 +308,7 @@ const groups = [...Object.keys(SECTIONS), 'mobilidade', 'cardio'].map((k) => ({ 
 const out = `// GERADO por tools/exercise-library/build-library.mjs a partir de catalogo-exercicios.md. Não editar à mão.
 import type { LibraryData } from './library-types';
 
-export const LIBRARY: LibraryData = ${JSON.stringify({ version: 3, groups, items: library }, null, 2)};
+export const LIBRARY_RAW: LibraryData = ${JSON.stringify({ version: 3, groups, items: library }, null, 2)};
 `;
 writeFileSync(outPath, out);
 

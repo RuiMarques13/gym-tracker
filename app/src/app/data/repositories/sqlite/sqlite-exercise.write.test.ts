@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { LIBRARY } from '../../../core/library/library.generated';
+import { LIBRARY } from '../../../core/library/library-data';
 import { libraryItemToInput } from '../../../core/library/library';
 import { SEED } from '../../../core/seed/seed.generated';
 import { loadSeed } from '../../../core/seed/seed-loader';
@@ -153,7 +153,7 @@ describe('biblioteca', () => {
     expect(ex.id).toBe(ids.libraryExercise(item.key));
     expect(ex).toMatchObject({
       name: 'Puxada à frente', equipmentName: 'Cabo', metricType: 'WEIGHT_REPS',
-      primaryMuscleIds: [ids.muscle('back')], secondaryMuscleIds: [ids.muscle('biceps')],
+      primaryMuscleIds: [ids.muscle('lats')], secondaryMuscleIds: [ids.muscle('biceps')],
       notes: 'Variações: pega larga, fechada, neutra, supinada',
     });
   });

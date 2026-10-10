@@ -46,6 +46,7 @@ export class BackupService {
   /** Aplica o merge e recarrega as definições em memória (podem ter mudado). */
   async apply(file: ExportFile): Promise<MergeReport> {
     const report = await mergeData(this.database.db, file);
+    await this.database.refineMuscles();
     await this.database.db.flush();
     await this.settings.init();
     return report;

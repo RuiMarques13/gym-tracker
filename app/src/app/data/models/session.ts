@@ -12,6 +12,8 @@ export interface SessionSet {
   distanceM: number | null;
   caloriesKcal: number | null;
   rpe: number | null;
+  /** Repetições em reserva, 0–4 (4 = «4 ou mais»); null = não registado. */
+  rir: number | null;
   romScore: number | null;
   restSecondsActual: number | null;
   completedAt: string | null;
@@ -95,6 +97,7 @@ export interface SideEntry {
   distanceM?: number | null;
   caloriesKcal?: number | null;
   rpe?: number | null;
+  rir?: number | null;
   romScore?: number | null;
 }
 

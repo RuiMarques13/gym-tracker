@@ -147,7 +147,7 @@ export class LibraryPage implements ViewWillEnter {
 
   /** Carregada à parte (chunk próprio) para não pesar no arranque. */
   readonly library = resource({
-    loader: () => import('../../core/library/library.generated').then((m) => m.LIBRARY),
+    loader: () => import('../../core/library/library-data').then((m) => m.LIBRARY),
   });
 
   /** Estado de cada exercício teu (inclui arquivados) para mostrar «Adicionado»/«Restaurar». */

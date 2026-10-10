@@ -49,6 +49,29 @@ import { BODY_METRIC_REPOSITORY } from '../../data/repositories/providers';
         </ion-list>
 
         <ion-list lines="full">
+          <ion-list-header><ion-label>Treino</ion-label></ion-list-header>
+          <ion-item>
+            <ion-select label="Objetivo" labelPlacement="stacked" [value]="goal()" interface="popover"
+              (ionChange)="saveGoal($any($event).detail.value)">
+              <ion-select-option value="hypertrophy">Ganhar massa (hipertrofia)</ion-select-option>
+              <ion-select-option value="maintenance">Manutenção</ion-select-option>
+              <ion-select-option value="cut">Definição (perder gordura)</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-select label="Nível" labelPlacement="stacked" [value]="level()" interface="popover"
+              (ionChange)="settings.set('profileLevel', $any($event).detail.value)">
+              <ion-select-option value="beginner">Iniciante (menos de 1 ano)</ion-select-option>
+              <ion-select-option value="intermediate">Intermédio (1 a 3 anos)</ion-select-option>
+              <ion-select-option value="advanced">Avançado (mais de 3 anos)</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-note class="ion-text-wrap">Anos de treino consistente. Define as faixas de séries por semana de cada músculo.</ion-note>
+          </ion-item>
+        </ion-list>
+
+        <ion-list lines="full">
           <ion-list-header><ion-label>Medições</ion-label></ion-list-header>
           <ion-item lines="none">
             <ion-segment [value]="type()" (ionChange)="type.set($any($event).detail.value)">
@@ -101,7 +124,7 @@ import { BODY_METRIC_REPOSITORY } from '../../data/repositories/providers';
   `,
 })
 export class ProfilePage {
-  private readonly settings = inject(SettingsService);
+  protected readonly settings = inject(SettingsService);
   private readonly bodyRepo = inject(BODY_METRIC_REPOSITORY);
   private readonly toasts = inject(ToastController);
   private readonly clock = inject(CLOCK);
@@ -111,6 +134,8 @@ export class ProfilePage {
   readonly birth = this.settings.get('profileBirthDate');
   readonly sex = this.settings.get('profileSex');
   readonly height = this.settings.get('profileHeightCm');
+  readonly goal = this.settings.get('profileGoal');
+  readonly level = this.settings.get('profileLevel');
 
   readonly type = signal<string>('WEIGHT_KG');
   readonly value = signal('');
@@ -132,6 +157,12 @@ export class ProfilePage {
 
   constructor() {
     addIcons({ trashOutline });
+  }
+
+  async saveGoal(v: 'hypertrophy' | 'maintenance' | 'cut'): Promise<void> {
+    if (v === this.goal()) return;
+    await this.settings.set('profileGoal', v);
+    await this.settings.set('profileGoalChangedAt', this.clock.nowIso());
   }
 
   fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 2 });

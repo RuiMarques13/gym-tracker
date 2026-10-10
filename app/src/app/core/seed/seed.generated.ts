@@ -2,7 +2,7 @@
 import { SeedData, SeedExercise } from './seed-types';
 
 export const SEED: SeedData = {
-  "version": 4,
+  "version": 5,
   "equipment": [
     {
       "key": "machine",
@@ -146,6 +146,31 @@ export const SEED: SeedData = {
       "key": "obliques",
       "name": "Oblíquos",
       "region": "CORE"
+    },
+    {
+      "key": "lats",
+      "name": "Dorsais",
+      "region": "UPPER"
+    },
+    {
+      "key": "upper_back",
+      "name": "Costas superiores",
+      "region": "UPPER"
+    },
+    {
+      "key": "front_delt",
+      "name": "Deltoide anterior",
+      "region": "UPPER"
+    },
+    {
+      "key": "side_delt",
+      "name": "Deltoide lateral",
+      "region": "UPPER"
+    },
+    {
+      "key": "rear_delt",
+      "name": "Deltoide posterior",
+      "region": "UPPER"
     }
   ],
   "mobilityAreas": [

@@ -4,7 +4,7 @@ import { formatSetGroup } from './session-format';
 
 const set = (p: Partial<SessionSet>): SessionSet => ({
   id: 'x', position: 1, type: 'WORKING', side: 'BOTH', weightKg: null, reps: null, durationSeconds: null,
-  distanceM: null, caloriesKcal: null, rpe: null, romScore: null, restSecondsActual: null, completedAt: null, ...p,
+  distanceM: null, caloriesKcal: null, rpe: null, rir: null, romScore: null, restSecondsActual: null, completedAt: null, ...p,
 });
 
 describe('formatSetGroup', () => {

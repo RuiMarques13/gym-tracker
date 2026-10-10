@@ -1,5 +1,8 @@
 import type { DbAdapter } from '../../core/db/db-adapter';
 import { addDays } from '../../core/util/week';
+import { SPEC_MUSCLE_OF_KEY } from '../../core/metrics/muscles';
+import type { MetricExercise, MetricSet } from '../../core/metrics/volume';
+import { ids } from '../../core/util/uuid';
 import type { Region } from '../models/enums';
 
 export interface MuscleSets {
@@ -27,6 +30,15 @@ export interface MetricsRepository {
   weeklyStrengthSets(fromWeek: string, weeks: number): Promise<WeekValue[]>;
   /** Minutos de mobilidade por semana, no mesmo formato. */
   weeklyMobilityMinutes(fromWeek: string, weeks: number): Promise<WeekValue[]>;
+  /** Séries de força feitas em [from, to) e os músculos (ids do spec) dos exercícios usados. */
+  metricData(from: Date, to: Date): Promise<MetricData>;
+}
+
+export interface MetricData {
+  sets: MetricSet[];
+  exercises: Map<string, MetricExercise>;
+  /** Exercícios de força usados sem músculos primários (não contam para o volume). */
+  withoutPrimary: string[];
 }
 
 export interface WeekValue {
@@ -39,6 +51,55 @@ const WEEK_OF = `date(s.started_at, 'localtime', 'weekday 0', '-6 days')`;
 
 export class SqliteMetricsRepository implements MetricsRepository {
   constructor(private readonly db: DbAdapter) {}
+
+  async metricData(from: Date, to: Date): Promise<MetricData> {
+    // LEFT e RIGHT da mesma série partilham a posição e contam como uma série: fica a linha com mais repetições.
+    const rows = await this.db.query<{
+      exercise_id: string; session_id: string; type: string; weight_kg: number | null; reps: number | null;
+      rir: number | null; at: string;
+    }>(
+      `SELECT se.exercise_id, se.session_id, sl.type, sl.weight_kg, sl.reps, sl.rir, sl.completed_at AS at
+         FROM set_log sl
+         JOIN session_exercise se ON se.id = sl.session_exercise_id AND se.deleted_at IS NULL
+         JOIN session s ON s.id = se.session_id AND s.deleted_at IS NULL
+         JOIN exercise e ON e.id = se.exercise_id
+        WHERE sl.deleted_at IS NULL AND sl.completed_at IS NOT NULL AND e.kind = 'STRENGTH'
+          AND sl.reps IS NOT NULL AND sl.completed_at >= ? AND sl.completed_at < ?
+          AND sl.id = (SELECT x.id FROM set_log x WHERE x.session_exercise_id = sl.session_exercise_id
+                         AND x.position = sl.position AND x.deleted_at IS NULL
+                       ORDER BY COALESCE(x.reps, 0) DESC, x.side LIMIT 1)
+        ORDER BY sl.completed_at`,
+      [from.toISOString(), to.toISOString()],
+    );
+    const sets: MetricSet[] = rows.map((r) => ({
+      exerciseId: r.exercise_id, sessionId: r.session_id, weightKg: r.weight_kg ?? 0, reps: r.reps ?? 0, rir: r.rir,
+      type: r.type === 'WARMUP' ? 'warmup' : 'working', performedAt: new Date(r.at),
+    }));
+
+    const specOfMuscleId = new Map<string, string>();
+    for (const [key, spec] of Object.entries(SPEC_MUSCLE_OF_KEY)) specOfMuscleId.set(ids.muscle(key), spec);
+    const exIds = [...new Set(sets.map((x) => x.exerciseId))];
+    const exercises = new Map<string, MetricExercise>();
+    for (const id of exIds) exercises.set(id, { id, primaryMuscles: [], secondaryMuscles: [] });
+    if (exIds.length) {
+      const marks = exIds.map(() => '?').join(',');
+      const mus = await this.db.query<{ exercise_id: string; muscle_group_id: string; is_primary: number }>(
+        `SELECT exercise_id, muscle_group_id, is_primary FROM exercise_muscle
+          WHERE deleted_at IS NULL AND exercise_id IN (${marks})`,
+        exIds,
+      );
+      for (const m of mus) {
+        const spec = specOfMuscleId.get(m.muscle_group_id);
+        if (!spec) continue;
+        const ex = exercises.get(m.exercise_id)!;
+        const list = m.is_primary ? ex.primaryMuscles : ex.secondaryMuscles;
+        if (!list.includes(spec)) list.push(spec);
+      }
+      for (const ex of exercises.values()) ex.secondaryMuscles = ex.secondaryMuscles.filter((k) => !ex.primaryMuscles.includes(k));
+    }
+    const withoutPrimary = [...exercises.values()].filter((e) => !e.primaryMuscles.length).map((e) => e.id);
+    return { sets, exercises, withoutPrimary };
+  }
 
   async weeklySetsByMuscle(weekStart: string, secondaryWeight: number): Promise<MuscleSets[]> {
     const rows = await this.db.query<{ muscle_group_id: string; name: string; region: Region | null; series: number }>(

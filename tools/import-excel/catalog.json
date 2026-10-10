@@ -1,6 +1,6 @@
 {
   "_nota": "Lookups (equipamento, músculos, áreas) entram no seed. strength/mobility são os exercícios de origem dos seeds v1–v3: já não são criados; servem para os retirar de bases antigas e para testes. mobility também alimenta a biblioteca.",
-  "version": 4,
+  "version": 5,
   "equipment": [
     {
       "key": "machine",
@@ -144,6 +144,31 @@
       "key": "obliques",
       "name": "Oblíquos",
       "region": "CORE"
+    },
+    {
+      "key": "lats",
+      "name": "Dorsais",
+      "region": "UPPER"
+    },
+    {
+      "key": "upper_back",
+      "name": "Costas superiores",
+      "region": "UPPER"
+    },
+    {
+      "key": "front_delt",
+      "name": "Deltoide anterior",
+      "region": "UPPER"
+    },
+    {
+      "key": "side_delt",
+      "name": "Deltoide lateral",
+      "region": "UPPER"
+    },
+    {
+      "key": "rear_delt",
+      "name": "Deltoide posterior",
+      "region": "UPPER"
     }
   ],
   "mobilityAreas": [

@@ -51,6 +51,7 @@ interface SideForm {
   distance: string;
   calories: string;
   rom: number | null;
+  rir: number | null;
 }
 interface SheetState {
   exerciseId: string;
@@ -59,7 +60,7 @@ interface SheetState {
   sides: Partial<Record<Side, SideForm>>;
 }
 
-const EMPTY: SideForm = { weight: '', reps: '', duration: '', distance: '', calories: '', rom: null };
+const EMPTY: SideForm = { weight: '', reps: '', duration: '', distance: '', calories: '', rom: null, rir: null };
 const toNum = (v: string | null | undefined): number | null => {
   if (v === null || v === undefined || v.trim() === '') return null;
   const n = Number(v.replace(',', '.'));
@@ -214,6 +215,14 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
                           [value]="field(side, 'distance')" (ionInput)="setField(side, 'distance', $any($event).detail.value)" />
                         <ion-input label="Calorias" labelPlacement="stacked" fill="outline" type="number" inputmode="numeric"
                           [value]="field(side, 'calories')" (ionInput)="setField(side, 'calories', $any($event).detail.value)" />
+                      </div>
+                    }
+                    @if (ex.kind === 'STRENGTH' && sh.type === 'WORKING') {
+                      <div class="rom">
+                        <span>RIR</span>
+                        @for (n of [0, 1, 2, 3, 4]; track n) {
+                          <button type="button" class="chip" [class.on]="sheetRir(side) === n" (click)="toggleRir(side, n)">{{ n === 4 ? '4+' : n }}</button>
+                        }
                       </div>
                     }
                     @if (ex.kind === 'MOBILITY' && showRom()) {
@@ -473,12 +482,20 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   sheetRom(side: Side): number | null {
     return this.sheet()?.sides[side]?.rom ?? null;
   }
-  setField(side: Side, key: Exclude<keyof SideForm, 'rom'>, value: string | null | undefined): void {
+  setField(side: Side, key: Exclude<keyof SideForm, 'rom' | 'rir'>, value: string | null | undefined): void {
     this.sheet.update((s) => (s ? { ...s, sides: { ...s.sides, [side]: { ...(s.sides[side] ?? EMPTY), [key]: value ?? '' } } } : s));
   }
   toggleRom(side: Side, n: number): void {
     this.sheet.update((s) =>
       s ? { ...s, sides: { ...s.sides, [side]: { ...(s.sides[side] ?? EMPTY), rom: s.sides[side]?.rom === n ? null : n } } } : s,
+    );
+  }
+  sheetRir(side: Side): number | null {
+    return this.sheet()?.sides[side]?.rir ?? null;
+  }
+  toggleRir(side: Side, n: number): void {
+    this.sheet.update((s) =>
+      s ? { ...s, sides: { ...s.sides, [side]: { ...(s.sides[side] ?? EMPTY), rir: s.sides[side]?.rir === n ? null : n } } } : s,
     );
   }
   copySide(): void {
@@ -523,6 +540,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
         distanceM: toNum(f.distance) === null ? null : Math.round(toNum(f.distance)! * 1000),
         caloriesKcal: toNum(f.calories),
         romScore: f.rom,
+        rir: ex.kind === 'STRENGTH' && sh.type === 'WORKING' ? f.rir : null,
       });
     }
     try {
@@ -620,7 +638,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     return {
       weight: str(s.weightKg), reps: str(s.reps, 0),
       duration: ex.kind === 'CARDIO' ? str(s.durationSeconds === null ? null : s.durationSeconds / 60) : str(s.durationSeconds, 0),
-      distance: str(s.distanceM === null ? null : s.distanceM / 1000), calories: str(s.caloriesKcal, 0), rom: s.romScore,
+      distance: str(s.distanceM === null ? null : s.distanceM / 1000), calories: str(s.caloriesKcal, 0), rom: s.romScore, rir: s.rir,
     };
   }
 
@@ -628,7 +646,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     return {
       weight: str(ex.targetWeightKg), reps: str(ex.targetReps, 0),
       duration: ex.kind === 'CARDIO' ? str(ex.targetDurationSeconds === null ? null : ex.targetDurationSeconds / 60) : str(ex.targetDurationSeconds, 0),
-      distance: str(ex.targetDistanceM === null ? null : ex.targetDistanceM / 1000), calories: '', rom: null,
+      distance: str(ex.targetDistanceM === null ? null : ex.targetDistanceM / 1000), calories: '', rom: null, rir: null,
     };
   }
 

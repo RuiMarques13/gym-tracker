@@ -1,6 +1,7 @@
 import { MIGRATION_001 } from './001-init';
 import { MIGRATION_002 } from './002-cardio';
 import { MIGRATION_003 } from './003-sync-state';
+import { MIGRATION_004 } from './004-rir';
 
 export interface Migration {
   version: number;
@@ -22,4 +23,5 @@ export const MIGRATIONS: Migration[] = [
   { version: 1, name: '001-init', sql: MIGRATION_001 },
   { version: 2, name: '002-cardio', sql: MIGRATION_002, disableForeignKeys: true },
   { version: 3, name: '003-sync-state', sql: MIGRATION_003 },
+  { version: 4, name: '004-rir', sql: MIGRATION_004 },
 ];

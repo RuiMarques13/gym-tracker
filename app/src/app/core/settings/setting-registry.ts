@@ -89,6 +89,18 @@ export const SETTINGS = {
     key: 'profile.heightCm', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: null,
     validate: (v): v is number | null => v === null || isNumberInRange(50, 260)(v), label: 'Altura (cm)',
   }),
+  profileGoal: def<'hypertrophy' | 'maintenance' | 'cut'>({
+    key: 'profile.goal', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 'hypertrophy',
+    validate: isOneOf('hypertrophy', 'maintenance', 'cut'), label: 'Objetivo',
+  }),
+  profileLevel: def<'beginner' | 'intermediate' | 'advanced'>({
+    key: 'profile.level', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 'intermediate',
+    validate: isOneOf('beginner', 'intermediate', 'advanced'), label: 'Nível',
+  }),
+  profileGoalChangedAt: def<string | null>({
+    key: 'profile.goalChangedAt', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: null,
+    validate: isIsoOrNull, label: 'Objetivo alterado em',
+  }),
   onboardingDone: def<boolean>({
     key: 'onboarding.done', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: false,
     validate: isBool, label: 'Introdução concluída',

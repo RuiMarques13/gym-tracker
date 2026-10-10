@@ -126,6 +126,7 @@ export class SyncService {
             deviceId: this.database.deviceId, userId, schemaVersion: SCHEMA, nowIso: () => this.clock.nowIso(),
           });
           if (report.changed > 0) {
+            await this.database.refineMuscles();
             await this.settings.init(); // as definições da conta podem ter chegado de outro dispositivo
             this.dataVersion.update((n) => n + 1);
           }
