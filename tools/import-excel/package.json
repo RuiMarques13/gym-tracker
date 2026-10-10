@@ -1,0 +1,12 @@
+{
+  "name": "gym-tracker-import-excel",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "import": "node import-excel.mjs",
+    "build-seed": "node build-seed.mjs"
+  },
+  "dependencies": {
+    "xlsx": "0.18.5"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "gym-tracker",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "test:core": "vitest run --config vitest.core.config.ts",
+    "seed": "node ../tools/import-excel/build-seed.mjs",
+    "build:android": "ng build && npx cap sync android",
+    "postinstall": "node scripts/copy-wasm.mjs"
+  },
+  "private": true,
+  "packageManager": "npm@10.9.4",
+  "dependencies": {
+    "@angular/common": "~21.2.0",
+    "@angular/compiler": "~21.2.0",
+    "@angular/core": "~21.2.0",
+    "@angular/forms": "~21.2.0",
+    "@angular/platform-browser": "~21.2.0",
+    "@angular/router": "~21.2.0",
+    "@capacitor-community/sqlite": "~8.1.1",
+    "@capacitor/android": "~8.5.3",
+    "@capacitor/core": "~8.5.3",
+    "@capacitor/preferences": "^8.0.1",
+    "@ionic/angular": "~9.0.7",
+    "ionicons": "^8.1.0",
+    "jeep-sqlite": "~2.8.0",
+    "rxjs": "~7.8.0",
+    "sql.js": "1.11.0",
+    "tslib": "^2.3.0",
+    "uuid": "^14.0.2"
+  },
+  "devDependencies": {
+    "@angular/build": "~21.2.26",
+    "@angular/cli": "~21.2.26",
+    "@angular/compiler-cli": "~21.2.0",
+    "@capacitor/cli": "~8.5.3",
+    "@types/sql.js": "^1.4.11",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2",
+    "vitest": "~4.1.0"
+  }
+}
