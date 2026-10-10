@@ -10,15 +10,15 @@ export const UPPER_MOTIONS: Motion[] = [
   // vertical e a carga toca a parte baixa do peito (para o lado dos pés); em cima o braço fica esticado sobre os OMBROS (trajetória em J, segundo a literatura). O banco acompanha o
   // tronco: horizontal (0°), inclinado (~35° acima da horizontal) e declinado (~15° abaixo).
   ...[
-    { id: 'bench', label: 'Supino', pose: lying({ at: [30, 72] }), lock: [0, -27.3] as [number, number], touch: [-10, -7] as [number, number], elbow: 'down' as const },
-    { id: 'bench-incline', label: 'Supino inclinado', pose: { anchor: 'hip', at: [46, 71], shin: 0, thigh: -90, torso: -55 } as Pose, lock: [0, -27.3] as [number, number], touch: [10, -2] as [number, number], elbow: 'down' as const },
-    { id: 'bench-decline', label: 'Supino declinado', pose: lying({ at: [26, 64], torso: 105 }), lock: [0, -27.3] as [number, number], touch: [-10, -7] as [number, number], elbow: 'down' as const },
+    { id: 'bench', label: 'Supino', pose: lying({ at: [30, 72] }), lock: [0, -27.3] as [number, number], touch: [-8, -7] as [number, number], elbow: 'down' as const },
+    { id: 'bench-incline', label: 'Supino inclinado', pose: { anchor: 'hip', at: [46, 71], shin: 0, thigh: -90, torso: -55 } as Pose, lock: [1, -27.3] as [number, number], touch: [6, -3] as [number, number], elbow: 'down' as const },
+    { id: 'bench-decline', label: 'Supino declinado', pose: lying({ at: [26, 64], torso: 105 }), lock: [0, -27.3] as [number, number], touch: [-8, -7] as [number, number], elbow: 'down' as const },
   ].map((b) => m({ id: b.id, label: b.label, props: benchAlong(b.pose) },
     { ...b.pose, reach: b.lock, elbow: b.elbow }, { ...b.pose, reach: b.touch, elbow: b.elbow }, true)),
   // Chest press (máquina): costas encostadas, as mãos empurram em linha recta à frente do peito (perpendicular ao encosto).
   ...[
     { id: 'chestpress', label: 'Chest press', torso: -3, from: [10, 10], to: [26, 9] },
-    { id: 'chestpress-incline', label: 'Chest press inclinado', torso: -24, from: [10, 7], to: [26, 0] },
+    { id: 'chestpress-incline', label: 'Chest press inclinado', torso: -35, from: [12, 3], to: [26, -7] },
     { id: 'chestpress-decline', label: 'Chest press declinado', torso: -3, from: [10, 6], to: [24, 14] },
   ].map((c) => {
     const base: Pose = { anchor: 'hip', at: [36, 70], shin: 2, thigh: -90, torso: c.torso };
