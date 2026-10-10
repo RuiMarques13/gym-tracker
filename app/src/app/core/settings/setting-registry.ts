@@ -119,7 +119,7 @@ export const SETTINGS = {
   }),
   homeWidgets: def<string[]>({
     key: 'home.widgets', scope: 'LAYOUT', schemaVersion: 1,
-    defaultValue: ['next-workout', 'week-summary', 'volume-week', 'recovery', 'mobility-minutes', 'exercise-counts'],
+    defaultValue: ['next-workout', 'week-summary', 'volume-week', 'recovery', 'category-week', 'mobility-minutes', 'exercise-counts'],
     validate: isStringArray, label: 'Widgets da Home',
   }),
 } as const;

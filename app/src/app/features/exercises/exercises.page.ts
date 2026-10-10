@@ -30,6 +30,7 @@ import { add, libraryOutline, optionsOutline } from 'ionicons/icons';
 import {
   Category,
   CATEGORIES,
+  isCategory,
   CATEGORY_LABEL,
   Kind,
   KIND_LABEL,
@@ -230,7 +231,12 @@ export class ExercisesPage implements ViewWillEnter {
   readonly kindLabel = KIND_LABEL;
   readonly categoryLabel = CATEGORY_LABEL;
   readonly categories = CATEGORIES;
-  readonly category = signal<Category | null>(null);
+  /** ?category=POWER|HIIT|… vindo da Home. */
+  readonly categoryParam = input<string | undefined>(undefined, { alias: 'category' });
+  readonly category = linkedSignal<Category | null>(() => {
+    const c = this.categoryParam();
+    return isCategory(c) ? c : null;
+  });
   readonly kindColor = KIND_COLOR;
   readonly regionLabel = REGION_LABEL;
   readonly regions: Region[] = ['UPPER', 'LOWER', 'CORE', 'FULL_BODY'];

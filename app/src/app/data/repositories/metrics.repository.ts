@@ -3,7 +3,7 @@ import { addDays } from '../../core/util/week';
 import { SPEC_MUSCLE_OF_KEY } from '../../core/metrics/muscles';
 import type { MetricExercise, MetricSet } from '../../core/metrics/volume';
 import { ids } from '../../core/util/uuid';
-import type { Region } from '../models/enums';
+import { CATEGORIES, resolveCategory, type Category, type Kind, type Region } from '../models/enums';
 
 export interface MuscleSets {
   muscleId: string;
@@ -20,7 +20,31 @@ export interface MobilityWeek {
   activeDays: number;
 }
 
+/** Totais de uma categoria de exercício (força, potência, cardio, HIIT, mobilidade, alongamento, equilíbrio, yoga/pilates). */
+export interface CategoryTotals {
+  category: Category;
+  /** Sessões com pelo menos uma série desta categoria. */
+  sessions: number;
+  /** Exercícios distintos. */
+  exercises: number;
+  /** Séries de trabalho (LEFT/RIGHT contam uma vez). */
+  sets: number;
+  /** Repetições de trabalho. */
+  reps: number;
+  /** Carga × repetições das séries de trabalho (kg). */
+  volumeKg: number;
+  minutes: number;
+  distanceKm: number;
+}
+
+/** O que se pode somar por categoria e por semana (todas aditivas entre categorias). */
+export type CategoryMetric = 'sets' | 'reps' | 'volumeKg' | 'minutes' | 'distanceKm';
+
 export interface MetricsRepository {
+  /** Totais da semana (segunda a domingo) para cada uma das categorias, por ordem fixa, com zeros nas sem atividade. */
+  categoryWeek(weekStart: string): Promise<CategoryTotals[]>;
+  /** Uma medida por semana, de uma categoria (ou de todas, se `category` for null), com zeros nas semanas vazias. */
+  weeklyCategory(fromWeek: string, weeks: number, category: Category | null, metric: CategoryMetric): Promise<WeekValue[]>;
   /** Semana de segunda a domingo (hora local); weekStart = «YYYY-MM-DD» da segunda. Mais séries primeiro. */
   weeklySetsByMuscle(weekStart: string, secondaryWeight: number): Promise<MuscleSets[]>;
   mobilityWeek(weekStart: string): Promise<MobilityWeek>;
@@ -132,6 +156,62 @@ export class SqliteMetricsRepository implements MetricsRepository {
       [secondaryWeight, weekStart],
     );
     return rows.map((r) => ({ muscleId: r.muscle_group_id, muscle: r.name, region: r.region, series: r.series }));
+  }
+
+  private async categoryRows(where: string, params: unknown[]): Promise<Array<CategoryTotals & { week: string }>> {
+    const rows = await this.db.query<{
+      week: string; kind: Kind; category: string | null; sessions: number; exercises: number; sets: number;
+      reps: number; volume: number; seconds: number; dist: number;
+    }>(
+      `SELECT ${WEEK_OF} AS week, e.kind AS kind, e.category AS category,
+              COUNT(DISTINCT s.id) AS sessions, COUNT(DISTINCT se.exercise_id) AS exercises,
+              COUNT(DISTINCT CASE WHEN sl.type = 'WORKING' THEN se.id || '#' || sl.position END) AS sets,
+              SUM(CASE WHEN sl.type = 'WORKING' THEN COALESCE(sl.reps, 0) ELSE 0 END) AS reps,
+              SUM(CASE WHEN sl.type = 'WORKING' THEN COALESCE(sl.weight_kg, 0) * COALESCE(sl.reps, 0) ELSE 0 END) AS volume,
+              SUM(COALESCE(sl.duration_seconds, 0)) AS seconds,
+              SUM(COALESCE(sl.distance_m, 0)) AS dist
+         FROM set_log sl
+         JOIN session_exercise se ON se.id = sl.session_exercise_id AND se.deleted_at IS NULL
+         JOIN session s ON s.id = se.session_id AND s.deleted_at IS NULL
+         JOIN exercise e ON e.id = se.exercise_id
+        WHERE sl.deleted_at IS NULL AND sl.completed_at IS NOT NULL AND ${where}
+        GROUP BY week, e.kind, e.category`,
+      params as (string | number)[],
+    );
+    // category NULL (linhas antigas) soma-se à categoria por omissão do tipo
+    const merged = new Map<string, CategoryTotals & { week: string }>();
+    for (const r of rows) {
+      const category = resolveCategory(r.kind, r.category);
+      const key = `${r.week}|${category}`;
+      const t = merged.get(key) ?? { week: r.week, category, sessions: 0, exercises: 0, sets: 0, reps: 0, volumeKg: 0, minutes: 0, distanceKm: 0 };
+      t.sessions += r.sessions; t.exercises += r.exercises; t.sets += r.sets; t.reps += r.reps;
+      t.volumeKg += r.volume; t.minutes += r.seconds / 60; t.distanceKm += r.dist / 1000;
+      merged.set(key, t);
+    }
+    return [...merged.values()].map((t) => ({
+      ...t, volumeKg: Math.round(t.volumeKg), minutes: Math.round(t.minutes * 10) / 10, distanceKm: Math.round(t.distanceKm * 100) / 100,
+    }));
+  }
+
+  async categoryWeek(weekStart: string): Promise<CategoryTotals[]> {
+    const rows = await this.categoryRows(`${WEEK_OF} = ?`, [weekStart]);
+    return CATEGORIES.map((category) => {
+      const r = rows.find((x) => x.category === category);
+      return r
+        ? { category, sessions: r.sessions, exercises: r.exercises, sets: r.sets, reps: r.reps, volumeKg: r.volumeKg, minutes: r.minutes, distanceKm: r.distanceKm }
+        : { category, sessions: 0, exercises: 0, sets: 0, reps: 0, volumeKg: 0, minutes: 0, distanceKm: 0 };
+    });
+  }
+
+  async weeklyCategory(fromWeek: string, weeks: number, category: Category | null, metric: CategoryMetric): Promise<WeekValue[]> {
+    const rows = await this.categoryRows(`${WEEK_OF} >= ?`, [fromWeek]);
+    const byWeek = new Map<string, number>();
+    for (const r of rows) {
+      if (category && r.category !== category) continue;
+      byWeek.set(r.week, (byWeek.get(r.week) ?? 0) + r[metric]);
+    }
+    for (const [w, v] of byWeek) byWeek.set(w, Math.round(v * 100) / 100);
+    return fillWeeks(fromWeek, weeks, byWeek);
   }
 
   async mobilityWeek(weekStart: string): Promise<MobilityWeek> {

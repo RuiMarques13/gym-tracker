@@ -4,6 +4,8 @@ import { IonContent, IonHeader, IonSelect, IonSelectOption, IonTitle, IonToolbar
 import { CLOCK } from '../../core/util/clock';
 import { addDays, fromLocalDate, toLocalDate, weekStartOf } from '../../core/util/week';
 import { BODY_METRIC_REPOSITORY, EXERCISE_REPOSITORY, METRICS_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { Category, CATEGORIES, CATEGORY_LABEL } from '../../data/models/enums';
+import type { CategoryMetric } from '../../data/repositories/metrics.repository';
 import { epley } from '../history/history-format';
 import { ChartComponent, ChartPoint } from '../../shared/chart.component';
 
@@ -14,7 +16,15 @@ const day = (iso: string) => {
   return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
 };
 
-/** Gráficos: séries de força e minutos de mobilidade por semana, peso corporal e progressão por exercício. */
+const METRIC_OPTIONS: Array<{ id: CategoryMetric; label: string; unit: string }> = [
+  { id: 'sets', label: 'Séries', unit: ' séries' },
+  { id: 'reps', label: 'Repetições', unit: ' reps' },
+  { id: 'volumeKg', label: 'Volume (carga × reps)', unit: ' kg' },
+  { id: 'minutes', label: 'Tempo', unit: ' min' },
+  { id: 'distanceKm', label: 'Distância', unit: ' km' },
+];
+
+/** Gráficos: atividade por categoria (séries, reps, carga, tempo, distância), peso corporal e progressão por exercício. */
 @Component({
   selector: 'app-charts',
   imports: [NavButtonComponent, IonHeader, IonToolbar, IonTitle, IonContent, IonSelect, IonSelectOption, ChartComponent],
@@ -23,9 +33,25 @@ const day = (iso: string) => {
     <ion-content>
       <div class="page">
         <section class="card">
-          <h2>Séries de força por semana</h2>
-          <p class="sub">Séries de trabalho concluídas, últimas {{ weeks }} semanas.</p>
-          <app-chart [points]="strengthPoints()" unit=" séries" label="Séries de força por semana" empty="Ainda sem séries de força." />
+          <h2>Atividade por categoria</h2>
+          <p class="sub">Por semana, últimas {{ weeks }} semanas. Escolhe a categoria e a medida.</p>
+          <div class="pair">
+            <ion-select label="Categoria" labelPlacement="stacked" interface="popover" [value]="category()"
+              (ionChange)="category.set($any($event).detail.value)">
+              <ion-select-option [value]="null">Todas</ion-select-option>
+              @for (c of categories; track c) {
+                <ion-select-option [value]="c">{{ categoryLabel[c] }}</ion-select-option>
+              }
+            </ion-select>
+            <ion-select label="Medida" labelPlacement="stacked" interface="popover" [value]="metric()"
+              (ionChange)="metric.set($any($event).detail.value)">
+              @for (m of metrics_; track m.id) {
+                <ion-select-option [value]="m.id">{{ m.label }}</ion-select-option>
+              }
+            </ion-select>
+          </div>
+          <app-chart [points]="categoryPoints()" [unit]="metricInfo().unit" [label]="metricInfo().label + ' por semana'"
+            empty="Sem dados desta categoria e medida." />
         </section>
 
         <section class="card">
@@ -47,11 +73,6 @@ const day = (iso: string) => {
           <app-chart kind="line" [points]="weightPoints()" unit=" kg" label="Peso corporal" empty="Ainda sem medições de peso. Regista no Perfil." />
         </section>
 
-        <section class="card">
-          <h2>Mobilidade por semana</h2>
-          <p class="sub">Minutos, últimas {{ weeks }} semanas.</p>
-          <app-chart [points]="mobilityPoints()" unit=" min" label="Minutos de mobilidade por semana" empty="Ainda sem mobilidade registada." />
-        </section>
       </div>
     </ion-content>
   `,
@@ -61,6 +82,7 @@ const day = (iso: string) => {
     h2 { margin: 0 0 2px; font-size: 1.05rem; }
     .sub { margin: 0 0 8px; color: var(--ion-color-medium); font-size: 0.85rem; }
     ion-select { margin-bottom: 8px; }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   `,
 })
 export class ChartsPage implements ViewWillEnter {
@@ -80,13 +102,15 @@ export class ChartsPage implements ViewWillEnter {
   private weekPoints = (rows: Array<{ weekStart: string; value: number }>): ChartPoint[] =>
     rows.map((r) => ({ label: day(r.weekStart), full: `Semana de ${day(r.weekStart)}`, value: r.value }));
 
-  private readonly strength = resource({
-    params: () => this.refresh(),
-    loader: () => this.metrics.weeklyStrengthSets(this.fromWeek(), WEEKS),
-  });
-  private readonly mobility = resource({
-    params: () => this.refresh(),
-    loader: () => this.metrics.weeklyMobilityMinutes(this.fromWeek(), WEEKS),
+  readonly categories = CATEGORIES;
+  readonly categoryLabel = CATEGORY_LABEL;
+  readonly metrics_ = METRIC_OPTIONS;
+  readonly category = signal<Category | null>(null);
+  readonly metric = signal<CategoryMetric>('sets');
+  readonly metricInfo = computed(() => METRIC_OPTIONS.find((m) => m.id === this.metric())!);
+  private readonly byCategory = resource({
+    params: () => ({ n: this.refresh(), c: this.category(), m: this.metric() }),
+    loader: ({ params }) => this.metrics.weeklyCategory(this.fromWeek(), WEEKS, params.c, params.m),
   });
   private readonly weight = resource({
     params: () => this.refresh(),
@@ -102,8 +126,7 @@ export class ChartsPage implements ViewWillEnter {
   });
 
   /** Com menos de duas semanas de dados, o gráfico de barras não diz nada: mostra a mensagem. */
-  readonly strengthPoints = computed(() => this.nonEmpty(this.weekPoints(this.strength.value() ?? [])));
-  readonly mobilityPoints = computed(() => this.nonEmpty(this.weekPoints(this.mobility.value() ?? [])));
+  readonly categoryPoints = computed(() => this.nonEmpty(this.weekPoints(this.byCategory.value() ?? [])));
   private nonEmpty(p: ChartPoint[]): ChartPoint[] {
     return p.some((x) => x.value > 0) ? p : [];
   }

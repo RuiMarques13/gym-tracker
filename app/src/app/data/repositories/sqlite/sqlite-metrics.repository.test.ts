@@ -158,6 +158,43 @@ describe('séries por semana (gráficos)', () => {
   });
 });
 
+describe('métricas por categoria', () => {
+  it('soma séries, carga, tempo e distância por categoria e por semana', async () => {
+    const jump = (await exercises.save({ name: 'T Salto', kind: 'STRENGTH', category: 'POWER', metricType: 'REPS' })).id;
+    const sprint = (await exercises.save({ name: 'T Tiros', kind: 'CARDIO', category: 'HIIT', metricType: 'DURATION' })).id;
+    const run = (await exercises.save({ name: 'T Corrida', kind: 'CARDIO', metricType: 'DURATION' })).id;
+    const yoga = (await exercises.save({ name: 'T Yoga', kind: 'MOBILITY', category: 'MINDBODY', metricType: 'DURATION' })).id;
+    await session('2026-10-06T10:00:00.000Z', async (id) => {
+      const a = await sessions.addExercise(id, bench);
+      await sessions.saveSet({ sessionExerciseId: a.id, entries: [{ side: 'BOTH', weightKg: 50, reps: 10 }] });
+      await sessions.saveSet({ sessionExerciseId: a.id, type: 'WARMUP', entries: [{ side: 'BOTH', weightKg: 20, reps: 10 }] });
+      const j = await sessions.addExercise(id, jump);
+      await sessions.saveSet({ sessionExerciseId: j.id, entries: [{ side: 'BOTH', reps: 12 }] });
+      const t = await sessions.addExercise(id, sprint);
+      await sessions.saveSet({ sessionExerciseId: t.id, entries: [{ side: 'BOTH', durationSeconds: 300, distanceM: 1000 }] });
+      const r = await sessions.addExercise(id, run);
+      await sessions.saveSet({ sessionExerciseId: r.id, entries: [{ side: 'BOTH', durationSeconds: 1200, distanceM: 4000 }] });
+      const y = await sessions.addExercise(id, yoga);
+      await sessions.saveSet({ sessionExerciseId: y.id, entries: [{ side: 'BOTH', durationSeconds: 600 }] });
+    });
+    const week = await metrics.categoryWeek('2026-10-05');
+    expect(week.map((w) => w.category)).toEqual(['STRENGTH', 'POWER', 'CARDIO', 'HIIT', 'MOBILITY', 'FLEXIBILITY', 'BALANCE', 'MINDBODY']);
+    const by = Object.fromEntries(week.map((w) => [w.category, w]));
+    expect(by['STRENGTH']).toMatchObject({ sessions: 1, exercises: 1, sets: 1, reps: 10, volumeKg: 500 }); // o aquecimento não conta
+    expect(by['POWER']).toMatchObject({ sets: 1, reps: 12, volumeKg: 0 });
+    expect(by['HIIT']).toMatchObject({ sets: 1, minutes: 5, distanceKm: 1 });
+    expect(by['CARDIO']).toMatchObject({ minutes: 20, distanceKm: 4 });
+    expect(by['MINDBODY']).toMatchObject({ minutes: 10 });
+    expect(by['BALANCE']).toMatchObject({ sessions: 0, sets: 0, minutes: 0 });
+
+    const sets = await metrics.weeklyCategory('2026-10-05', 2, null, 'sets');
+    expect(sets).toEqual([{ weekStart: '2026-10-05', value: 5 }, { weekStart: '2026-10-12', value: 0 }]);
+    expect((await metrics.weeklyCategory('2026-10-05', 1, 'HIIT', 'distanceKm'))[0].value).toBe(1);
+    expect((await metrics.weeklyCategory('2026-10-05', 1, 'POWER', 'sets'))[0].value).toBe(1);
+    expect((await metrics.weeklyCategory('2026-10-05', 1, null, 'minutes'))[0].value).toBe(35);
+  });
+});
+
 describe('metricData (para o volume por músculo do spec)', () => {
   it('devolve séries com RIR e músculos do spec; lado esquerdo/direito conta uma vez', async () => {
     const unil = (await exercises.save({ name: 'T Uni2', kind: 'STRENGTH', metricType: 'WEIGHT_REPS', isUnilateral: true, primaryMuscleIds: [await muscle('Peito')] })).id;

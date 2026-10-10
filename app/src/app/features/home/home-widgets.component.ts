@@ -1,6 +1,8 @@
 import { Component, computed, inject, input, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonButton } from '@ionic/angular';
+import { Category, CATEGORIES, CATEGORY_LABEL } from '../../data/models/enums';
+import type { CategoryTotals } from '../../data/repositories/metrics.repository';
 import { VolumeService } from '../../core/metrics/volume.service';
 import { MuscleBarsComponent } from '../../shared/muscle-bars.component';
 import { RecoveryCardComponent } from '../../shared/recovery-card.component';
@@ -82,17 +84,34 @@ import { normalizeWidgets } from './widget-list';
         @case ('exercise-counts') {
           <section class="widget">
             <h3>Os teus exercícios</h3>
-            <div class="trio">
-              <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'STRENGTH' }">
-                <span class="value">{{ data.value()?.counts?.strength ?? '–' }}</span><span class="label">de força</span>
-              </a>
-              <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'MOBILITY' }">
-                <span class="value">{{ data.value()?.counts?.mobility ?? '–' }}</span><span class="label">de mobilidade</span>
-              </a>
-              <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'CARDIO' }">
-                <span class="value">{{ data.value()?.counts?.cardio ?? '–' }}</span><span class="label">de cardio</span>
-              </a>
+            <div class="grid4">
+              @for (c of categories; track c) {
+                <a class="stat" routerLink="/exercicios" [queryParams]="{ category: c }">
+                  <span class="value">{{ data.value()?.counts?.[c] ?? '–' }}</span><span class="label">{{ categoryLabel[c] }}</span>
+                </a>
+              }
             </div>
+          </section>
+        }
+        @case ('category-week') {
+          <section class="widget">
+            <h3>Esta semana por categoria</h3>
+            @if (data.value()?.byCategory; as rows) {
+              @if (rows.length) {
+                <ul class="cats">
+                  @for (r of rows; track r.category) {
+                    <li>
+                      <strong>{{ categoryLabel[r.category] }}</strong>
+                      <span>{{ categorySummary(r) }}</span>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="muted">Ainda sem séries concluídas esta semana.</p>
+              }
+            } @else {
+              <p class="muted">A calcular…</p>
+            }
           </section>
         }
         @case ('mobility-minutes') {
@@ -133,6 +152,12 @@ import { normalizeWidgets } from './widget-list';
     .prog { height: 12px; border-radius: 6px; background: var(--ion-color-step-150, rgba(127,127,127,0.2)); overflow: hidden; }
     .prog-fill { height: 100%; border-radius: 6px; background: var(--ion-color-primary); }
     a.stat { text-decoration: none; color: inherit; display: flex; flex-direction: column; }
+    .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 8px; }
+    .grid4 .value { font-size: 1.35rem; }
+    .grid4 .label { font-size: 0.72rem; }
+    .cats { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .cats li { display: flex; justify-content: space-between; gap: 12px; font-size: 0.9rem; }
+    .cats span { color: var(--ion-color-medium); font-variant-numeric: tabular-nums; text-align: right; }
     .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .trio div { display: flex; flex-direction: column; }
     .value { font-size: 1.7rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ion-color-primary); }
@@ -160,14 +185,10 @@ export class HomeWidgetsComponent {
       const today = toLocalDate(this.clock.now());
       const week = weekStartOf(today);
       const has = (id: string) => params.w.includes(id);
-      let counts: { strength: number; mobility: number; cardio: number } | null = null;
+      let counts: Record<Category, number> | null = null;
       if (has('exercise-counts')) {
         const all = await this.exercises.list();
-        counts = {
-          strength: all.filter((e) => e.kind === 'STRENGTH').length,
-          mobility: all.filter((e) => e.kind === 'MOBILITY').length,
-          cardio: all.filter((e) => e.kind === 'CARDIO').length,
-        };
+        counts = Object.fromEntries(CATEGORIES.map((c) => [c, all.filter((e) => e.category === c).length])) as Record<Category, number>;
       }
       return {
         next: has('next-workout') ? await this.scheduled.next(today) : null,
@@ -175,6 +196,7 @@ export class HomeWidgetsComponent {
         mobility: has('mobility-minutes') ? await this.metrics.mobilityWeek(week) : null,
         streak: has('mobility-minutes') ? await this.metrics.mobilityStreak(today) : 0,
         counts,
+        byCategory: has('category-week') ? (await this.metrics.categoryWeek(week)).filter((r) => r.sets > 0 || r.minutes > 0) : null,
       };
     },
   });
@@ -188,6 +210,19 @@ export class HomeWidgetsComponent {
     return this.showAll() ? rows : rows.filter((r) => r.sets > 0);
   });
   readonly restCount = computed(() => (this.volume.value()?.rows ?? []).filter((r) => r.sets === 0).length);
+
+  readonly categories = CATEGORIES;
+  readonly categoryLabel = CATEGORY_LABEL;
+
+  /** «12 séries · 4 200 kg», «35 min · 5,2 km», «20 min»: só o que faz sentido para o que foi feito. */
+  categorySummary(r: CategoryTotals): string {
+    const parts: string[] = [];
+    if (r.sets > 0) parts.push(`${r.sets} ${r.sets === 1 ? 'série' : 'séries'}`);
+    if (r.volumeKg > 0) parts.push(`${this.fmt(r.volumeKg)} kg`);
+    if (r.minutes > 0) parts.push(`${this.fmt(r.minutes)} min`);
+    if (r.distanceKm > 0) parts.push(`${this.fmt(r.distanceKm)} km`);
+    return parts.join(' · ');
+  }
 
   pct = (p: number) => Math.round(p * 100);
   activeTime(seconds: number): string {

@@ -31,7 +31,7 @@ import { RouterLink } from '@angular/router';
 import { SettingsService } from '../../core/settings/settings.service';
 import {
   Kind,
-  CATEGORIES_BY_KIND,
+  CATEGORIES,
   CATEGORY_HINT,
   CATEGORY_LABEL,
   Category,
@@ -58,7 +58,6 @@ const EQUIPMENT_KEYS = ['machine', 'cable', 'dumbbell', 'barbell', 'bodyweight',
 type MuscleRole = 'primary' | 'secondary';
 
 const REGIONS: Region[] = ['UPPER', 'LOWER', 'CORE', 'FULL_BODY'];
-const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
 
 /**
  * Criar ou editar um exercício. Os campos mudam conforme o tipo:
@@ -99,23 +98,14 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
               />
             </ion-item>
 
-            <ion-list-header><ion-label>Tipo</ion-label></ion-list-header>
-            <ion-item lines="none">
-              <ion-segment [value]="kind()" (ionChange)="setKind($any($event).detail.value)">
-                @for (k of kinds; track k) {
-                  <ion-segment-button [value]="k"><ion-label>{{ kindLabel[k] }}</ion-label></ion-segment-button>
-                }
-              </ion-segment>
-            </ion-item>
-
-            <ion-item>
-              <ion-select label="Categoria" interface="popover" [value]="category()"
-                (ionChange)="category.set($any($event).detail.value)">
-                @for (c of categoriesOfKind(); track c) {
-                  <ion-select-option [value]="c">{{ categoryLabel[c] }}</ion-select-option>
-                }
-              </ion-select>
-            </ion-item>
+            <ion-list-header><ion-label>Categoria</ion-label></ion-list-header>
+            <div class="cats" role="radiogroup" aria-label="Categoria do exercício">
+              @for (c of categories; track c) {
+                <ion-chip [outline]="category() !== c" role="radio" [attr.aria-checked]="category() === c" (click)="setCategory(c)">
+                  {{ categoryLabel[c] }}
+                </ion-chip>
+              }
+            </div>
             <ion-item lines="none"><ion-note class="hint">{{ categoryHint[category()] }}</ion-note></ion-item>
 
             <ion-item>
@@ -267,6 +257,7 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
     </ion-footer>
   `,
   styles: `
+    .cats { display: flex; flex-wrap: wrap; gap: 2px; padding: 0 12px 4px; }
     .visual { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: center; padding: 8px 16px; }
     .visual > * { flex: 1 1 150px; min-width: 0; }
     .page { max-width: 720px; margin: 0 auto; padding-bottom: 24px; }
@@ -300,10 +291,10 @@ export class ExerciseFormPage implements OnInit {
   /** Vem da rota: /exercicios/novo (sem id) ou /exercicios/:id. */
   readonly id = input<string | undefined>();
 
-  readonly kinds = KINDS;
   readonly regions = REGIONS;
   readonly kindLabel = KIND_LABEL;
   readonly categoryLabel = CATEGORY_LABEL;
+  readonly categories = CATEGORIES;
   readonly categoryHint = CATEGORY_HINT;
   readonly metricLabel = METRIC_LABEL;
   readonly regionLabel = REGION_LABEL;
@@ -317,7 +308,6 @@ export class ExerciseFormPage implements OnInit {
   readonly nameError = signal<string | null>(null);
   readonly kind = signal<Kind>('STRENGTH');
   readonly category = signal<Category>('STRENGTH');
-  readonly categoriesOfKind = computed(() => CATEGORIES_BY_KIND[this.kind()]);
   readonly metricType = signal<MetricType>('WEIGHT_REPS');
   readonly isUnilateral = signal(false);
   readonly isIsometric = signal(false);
@@ -395,6 +385,12 @@ export class ExerciseFormPage implements OnInit {
     ex.secondaryMuscleIds.forEach((m) => roles.set(m, 'secondary'));
     this.muscleRoles.set(roles);
     this.selectedAreas.set(new Set(ex.mobilityAreaIds));
+  }
+
+  /** A categoria é a escolha do utilizador; o tipo (comportamento) deduz-se dela. */
+  setCategory(c: Category): void {
+    this.setKind(KIND_OF_CATEGORY[c]);
+    this.category.set(c);
   }
 
   setKind(kind: Kind): void {
