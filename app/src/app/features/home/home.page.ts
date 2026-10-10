@@ -20,6 +20,9 @@ import {
 } from '@ionic/angular';
 import { DatabaseService } from '../../core/db/database.service';
 import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { SettingsService } from '../../core/settings/settings.service';
+import { CLOCK } from '../../core/util/clock';
+import { formatDay, formatTime } from '../history/history-format';
 import { SessionLauncher } from '../session/session-launcher';
 
 @Component({
@@ -35,7 +38,27 @@ import { SessionLauncher } from '../session/session-launcher';
     <ion-content class="ion-padding">
       <div class="page">
         <h1 class="greeting">Bom treino.</h1>
-        @if (active.value(); as a) {
+        @if (backupDue()) {
+          <div class="active backup">
+            <div>
+              <strong>Faz uma cópia de segurança</strong>
+              <span>{{ lastExport() ? 'A última foi há mais de 2 semanas.' : 'Ainda não exportaste os teus dados.' }} Os dados vivem só neste dispositivo.</span>
+            </div>
+            <ion-button size="small" routerLink="/definicoes">Exportar</ion-button>
+          </div>
+        }
+        @if (stale(); as st) {
+          <div class="active stale">
+            <div>
+              <strong>Esqueceste-te de terminar?</strong>
+              <span>«{{ st.name }}» está aberta desde {{ st.since }}@if (st.last) { ; a última série foi às {{ st.lastTime }} }.</span>
+            </div>
+            <div class="stale-actions">
+              @if (st.last) { <ion-button size="small" (click)="endAt(st.id, st.last)">Terminar às {{ st.lastTime }}</ion-button> }
+              <ion-button size="small" fill="outline" routerLink="/sessao">Continuar</ion-button>
+            </div>
+          </div>
+        } @else if (active.value(); as a) {
           <div class="active">
             <div>
               <strong>Sessão em curso</strong>
@@ -109,6 +132,8 @@ import { SessionLauncher } from '../session/session-launcher';
     .active { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; margin: 8px 0 22px;
       border-radius: 14px; background: rgba(var(--ion-color-primary-rgb), 0.12); }
     .active strong { display: block; }
+    .stale { flex-direction: column; align-items: stretch; background: rgba(var(--ion-color-warning-rgb), 0.18); }
+    .stale-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .active span { color: var(--ion-color-medium); font-size: 0.9rem; }
     .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
     .stats-title { font-size: 0.8rem; color: var(--ion-color-medium); margin: 0 0 6px; }
@@ -129,6 +154,7 @@ export class HomePage implements ViewWillEnter {
   private readonly database = inject(DatabaseService);
   private readonly exercises = inject(EXERCISE_REPOSITORY);
   private readonly sessions = inject(SESSION_REPOSITORY);
+  private readonly clock = inject(CLOCK);
   readonly launcher = inject(SessionLauncher);
 
   readonly status = this.database.status;
@@ -139,10 +165,36 @@ export class HomePage implements ViewWillEnter {
   });
 
   readonly active = resource({ loader: () => this.sessions.getActive() });
+  /** Sessão aberta há mais de 4 h desde a última atividade: propõe terminar na última série. */
+  readonly stale = computed(() => {
+    const a = this.active.value();
+    if (!a) return null;
+    const ref = a.lastActivityAt ?? a.startedAt;
+    if (this.clock.now().getTime() - Date.parse(ref) < 4 * 3600_000) return null;
+    return {
+      id: a.id, name: a.templateName ?? 'Sessão livre', last: a.lastActivityAt,
+      since: formatDay(a.startedAt) + ', ' + formatTime(a.startedAt), lastTime: a.lastActivityAt ? formatTime(a.lastActivityAt) : '',
+    };
+  });
+
+  readonly lastExport = inject(SettingsService).get('lastExportAt');
+  readonly finishedCount = resource({ loader: async () => (await this.sessions.listFinished({ limit: 1 })).length });
+  /** Lembrete: há sessões registadas e a última exportação foi há mais de 14 dias (ou nunca). */
+  readonly backupDue = computed(() => {
+    if (!this.finishedCount.value()) return false;
+    const last = this.lastExport();
+    return !last || this.clock.now().getTime() - Date.parse(last) > 14 * 86400_000;
+  });
+
+  async endAt(id: string, endedAt: string): Promise<void> {
+    await this.sessions.finish(id, { endedAt });
+    this.active.reload();
+  }
 
   ionViewWillEnter(): void {
     this.active.reload();
     this.counts.reload();
+    this.finishedCount.reload();
   }
 
   readonly counts = resource({

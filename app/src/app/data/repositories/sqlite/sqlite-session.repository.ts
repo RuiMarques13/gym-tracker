@@ -4,11 +4,14 @@ import { newId } from '../../../core/util/uuid';
 import type { Block, Kind, MetricType, SetType, Side } from '../../models/enums';
 import { normalizeBlock } from '../../models/workout';
 import {
+  ExerciseHistoryEntry,
   FinishInput,
   Session,
+  SessionDetailsInput,
   SessionError,
   SessionExercise,
   SessionSet,
+  SessionSummary,
   SetInput,
   SideEntry,
 } from '../../models/session';
@@ -92,9 +95,11 @@ export class SqliteSessionRepository implements SessionRepository {
     if (!rows.length) return null;
     const s = rows[0];
     const exercises = await this.exercisesOf(id);
+    const times = exercises.flatMap((e) => e.sets.map((x) => x.completedAt)).filter((t): t is string => t !== null);
+    const lastActivityAt = times.length ? times.reduce((a, b) => (a > b ? a : b)) : null;
     return {
       id: s.id, templateId: s.template_id, templateName: s.template_name, startedAt: s.started_at, endedAt: s.ended_at,
-      pausedSeconds: s.paused_seconds, rpe: s.rpe, notes: s.notes, exercises,
+      pausedSeconds: s.paused_seconds, rpe: s.rpe, notes: s.notes, lastActivityAt, exercises,
     };
   }
 
@@ -144,7 +149,7 @@ export class SqliteSessionRepository implements SessionRepository {
   }
 
   async addExercise(sessionId: string, exerciseId: string, block: Block = 'MAIN'): Promise<SessionExercise> {
-    await this.assertOpen(sessionId);
+    await this.assertExists(sessionId);
     const ex = await this.db.query<{ metric_type: MetricType; is_unilateral: number }>(
       'SELECT metric_type, is_unilateral FROM exercise WHERE id = ? AND deleted_at IS NULL',
       [exerciseId],
@@ -165,8 +170,7 @@ export class SqliteSessionRepository implements SessionRepository {
   }
 
   async removeExercise(sessionExerciseId: string): Promise<void> {
-    const se = await this.requireExercise(sessionExerciseId);
-    await this.assertOpen(se.session_id);
+    await this.requireExercise(sessionExerciseId);
     const now = this.clock.nowIso();
     await this.db.transaction(async (tx) => {
       await tx.run(
@@ -181,10 +185,12 @@ export class SqliteSessionRepository implements SessionRepository {
 
   async saveSet(input: SetInput): Promise<SessionExercise> {
     const se = await this.requireExercise(input.sessionExerciseId);
-    await this.assertOpen(se.session_id);
+    const ended = await this.endedAtOf(se.session_id);
     const unilateral = se.is_unilateral === 1;
     const entries = this.validateEntries(se.kind, se.metric_type, unilateral, input.entries);
     const now = this.clock.nowIso();
+    // Série acrescentada a uma sessão já terminada (correção): conta como feita no fim da sessão.
+    const completedAt = ended ?? now;
 
     await this.db.transaction(async (tx) => {
       const existing = await tx.query<SetRow>(
@@ -198,7 +204,7 @@ export class SqliteSessionRepository implements SessionRepository {
       const type: SetType = input.type ?? rowsHere[0]?.type ?? 'WORKING';
 
       // Descanso real: ao registar uma série nova, fecha o descanso da anterior (da sessão toda).
-      if (!isEdit) {
+      if (!isEdit && !ended) {
         const prev = await tx.query<{ id: string; position: number; session_exercise_id: string; completed_at: string }>(
           `SELECT l.id, l.position, l.session_exercise_id, l.completed_at FROM set_log l
            JOIN session_exercise x ON x.id = l.session_exercise_id
@@ -237,7 +243,7 @@ export class SqliteSessionRepository implements SessionRepository {
             `INSERT INTO set_log (id, session_exercise_id, position, side, type, weight_kg, reps, duration_seconds,
                distance_m, calories_kcal, rpe, rom_score, completed_at, updated_at, deleted_at, device_id)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
-            [newId(), input.sessionExerciseId, position, e.side, ...values, now, now, this.deviceId],
+            [newId(), input.sessionExerciseId, position, e.side, ...values, completedAt, now, this.deviceId],
           );
         }
       }
@@ -253,8 +259,7 @@ export class SqliteSessionRepository implements SessionRepository {
   }
 
   async deleteSet(sessionExerciseId: string, position: number): Promise<SessionExercise> {
-    const se = await this.requireExercise(sessionExerciseId);
-    await this.assertOpen(se.session_id);
+    await this.requireExercise(sessionExerciseId);
     const now = this.clock.nowIso();
     await this.db.run(
       `UPDATE set_log SET deleted_at = ?, updated_at = ?, device_id = ?
@@ -269,11 +274,69 @@ export class SqliteSessionRepository implements SessionRepository {
     if (!s) throw new SessionError('not-found', 'Sessão não encontrada.');
     if (s.endedAt) throw new SessionError('ended', 'A sessão já terminou.');
     const now = this.clock.nowIso();
+    const endedAt = input.endedAt && input.endedAt >= s.startedAt ? input.endedAt : now;
     await this.db.run(
       'UPDATE session SET ended_at = ?, rpe = ?, notes = ?, updated_at = ?, device_id = ? WHERE id = ?',
-      [now, clampNum(input.rpe, 0, 10, 2), input.notes?.trim() || null, now, this.deviceId, id],
+      [endedAt, clampNum(input.rpe, 0, 10, 2), input.notes?.trim() || null, now, this.deviceId, id],
     );
     return (await this.get(id))!;
+  }
+
+  async updateDetails(id: string, input: SessionDetailsInput): Promise<Session> {
+    await this.assertExists(id);
+    const now = this.clock.nowIso();
+    await this.db.run('UPDATE session SET rpe = ?, notes = ?, updated_at = ?, device_id = ? WHERE id = ?', [
+      clampNum(input.rpe, 0, 10, 2), input.notes?.trim() || null, now, this.deviceId, id,
+    ]);
+    return (await this.get(id))!;
+  }
+
+  async listFinished(options: { limit?: number; offset?: number } = {}): Promise<SessionSummary[]> {
+    const rows = await this.db.query<{
+      id: string; template_name: string | null; started_at: string; ended_at: string; rpe: number | null;
+      notes: string | null; exercise_count: number; set_count: number; volume: number;
+    }>(
+      `SELECT s.id, t.name AS template_name, s.started_at, s.ended_at, s.rpe, s.notes,
+         (SELECT COUNT(*) FROM session_exercise x WHERE x.session_id = s.id AND x.deleted_at IS NULL) AS exercise_count,
+         (SELECT COUNT(*) FROM (
+            SELECT DISTINCT l.session_exercise_id, l.position FROM set_log l
+            JOIN session_exercise x ON x.id = l.session_exercise_id
+            WHERE x.session_id = s.id AND x.deleted_at IS NULL AND l.deleted_at IS NULL)) AS set_count,
+         (SELECT COALESCE(SUM(l.weight_kg * l.reps), 0) FROM set_log l
+            JOIN session_exercise x ON x.id = l.session_exercise_id
+            WHERE x.session_id = s.id AND x.deleted_at IS NULL AND l.deleted_at IS NULL AND l.type = 'WORKING') AS volume
+       FROM session s LEFT JOIN workout_template t ON t.id = s.template_id
+       WHERE s.deleted_at IS NULL AND s.ended_at IS NOT NULL
+       ORDER BY s.started_at DESC LIMIT ? OFFSET ?`,
+      [options.limit ?? 200, options.offset ?? 0],
+    );
+    return rows.map((r) => ({
+      id: r.id, templateName: r.template_name, startedAt: r.started_at, endedAt: r.ended_at,
+      exerciseCount: r.exercise_count, setCount: r.set_count, volumeKg: Math.round(r.volume * 100) / 100,
+      rpe: r.rpe, notes: r.notes,
+    }));
+  }
+
+  async exerciseHistory(exerciseId: string, options: { limit?: number } = {}): Promise<ExerciseHistoryEntry[]> {
+    const rows = await this.db.query<{
+      sx: string; session_id: string; started_at: string; template_name: string | null; kind: Kind;
+      metric_type: MetricType; is_unilateral: number;
+    }>(
+      `SELECT x.id AS sx, s.id AS session_id, s.started_at, t.name AS template_name, e.kind, x.metric_type, x.is_unilateral
+       FROM session_exercise x
+       JOIN session s ON s.id = x.session_id
+       JOIN exercise e ON e.id = x.exercise_id
+       LEFT JOIN workout_template t ON t.id = s.template_id
+       WHERE x.exercise_id = ? AND x.deleted_at IS NULL AND s.deleted_at IS NULL AND s.ended_at IS NOT NULL
+         AND EXISTS (SELECT 1 FROM set_log l WHERE l.session_exercise_id = x.id AND l.deleted_at IS NULL)
+       ORDER BY s.started_at DESC LIMIT ?`,
+      [exerciseId, options.limit ?? 100],
+    );
+    const sets = await this.setsOf(rows.map((r) => r.sx));
+    return rows.map((r) => ({
+      sessionId: r.session_id, sessionExerciseId: r.sx, startedAt: r.started_at, templateName: r.template_name,
+      kind: r.kind, metricType: r.metric_type, isUnilateral: r.is_unilateral === 1, sets: sets.get(r.sx) ?? [],
+    }));
   }
 
   async discard(id: string): Promise<void> {
@@ -335,13 +398,18 @@ export class SqliteSessionRepository implements SessionRepository {
     });
   }
 
-  private async assertOpen(sessionId: string): Promise<void> {
+  private async assertExists(sessionId: string): Promise<void> {
+    await this.endedAtOf(sessionId);
+  }
+
+  /** ended_at da sessão (null se em curso). Lança se a sessão não existe. */
+  private async endedAtOf(sessionId: string): Promise<string | null> {
     const rows = await this.db.query<{ ended_at: string | null }>(
       'SELECT ended_at FROM session WHERE id = ? AND deleted_at IS NULL',
       [sessionId],
     );
     if (!rows.length) throw new SessionError('not-found', 'Sessão não encontrada.');
-    if (rows[0].ended_at) throw new SessionError('ended', 'A sessão já terminou.');
+    return rows[0].ended_at;
   }
 
   private async requireExercise(id: string): Promise<{ id: string; session_id: string; metric_type: MetricType; is_unilateral: number; kind: Kind }> {

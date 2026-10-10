@@ -1,9 +1,10 @@
-import { Component, computed, effect, inject, OnDestroy, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, input, OnDestroy, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   AlertController,
   IonBadge,
   IonButton,
+  IonBackButton,
   IonButtons,
   IonContent,
   IonFooter,
@@ -37,6 +38,7 @@ import { groupSets, Session, SessionError, SessionExercise, SessionSet, SideEntr
 import { BLOCK_LABEL, BLOCK_ORDER } from '../../data/models/workout';
 import { SESSION_REPOSITORY } from '../../data/repositories/providers';
 import { ExercisePickerComponent } from '../workouts/exercise-picker.component';
+import { formatDay } from '../history/history-format';
 import { formatTargets } from '../workouts/workout-format';
 import { formatSetGroup } from './session-format';
 
@@ -69,16 +71,26 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
 @Component({
   selector: 'app-session',
   imports: [
-    RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonFooter, IonList, IonItem,
+    RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonContent, IonFooter, IonList, IonItem,
     IonLabel, IonBadge, IonInput, IonTextarea, IonModal, IonSegment, IonSegmentButton, IonSpinner,
   ],
   template: `
     <ion-header>
       <ion-toolbar>
-        <ion-buttons slot="start"><ion-button routerLink="/home">Sair</ion-button></ion-buttons>
+        <ion-buttons slot="start">
+          @if (historical()) {
+            <ion-back-button defaultHref="/historico" text="" />
+          } @else {
+            <ion-button routerLink="/home">Sair</ion-button>
+          }
+        </ion-buttons>
         <ion-title>{{ session()?.templateName ?? 'Sessão livre' }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button class="finish" (click)="finishOpen.set(true)"><strong>Terminar</strong></ion-button>
+          @if (historical()) {
+            <ion-button class="finish" (click)="openDetails()"><strong>Detalhes</strong></ion-button>
+          } @else {
+            <ion-button class="finish" (click)="openDetails()"><strong>Terminar</strong></ion-button>
+          }
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -89,6 +101,9 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
       } @else {
         <div class="page">
           <div class="summary">
+            @if (historical()) {
+              <span class="clock">{{ dayLabel() }}</span>
+            }
             <span class="clock"><ion-icon name="stopwatch-outline" /> {{ elapsed() }}</span>
             <span>{{ totalSets() }} {{ totalSets() === 1 ? 'série' : 'séries' }}</span>
             <span>{{ session()!.exercises.length }} {{ session()!.exercises.length === 1 ? 'exercício' : 'exercícios' }}</span>
@@ -234,7 +249,7 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
       <ng-template>
         <ion-header>
           <ion-toolbar>
-            <ion-title>Terminar sessão</ion-title>
+            <ion-title>{{ historical() ? 'Detalhes da sessão' : 'Terminar sessão' }}</ion-title>
             <ion-buttons slot="end"><ion-button (click)="finishOpen.set(false)">Voltar</ion-button></ion-buttons>
           </ion-toolbar>
         </ion-header>
@@ -245,9 +260,14 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
               placeholder="Opcional" [value]="finishRpe()" (ionInput)="finishRpe.set($any($event).detail.value ?? '')" />
             <ion-textarea label="Notas" labelPlacement="stacked" fill="outline" [autoGrow]="true" placeholder="Opcional"
               [value]="finishNotes()" (ionInput)="finishNotes.set($any($event).detail.value ?? '')" />
-            @if (!totalSets()) { <p class="hint">Ainda não registaste nenhuma série.</p> }
-            <ion-button expand="block" (click)="finish()">Terminar e guardar</ion-button>
-            <ion-button expand="block" fill="clear" color="danger" (click)="discard()">Descartar sessão</ion-button>
+            @if (!totalSets() && !historical()) { <p class="hint">Ainda não registaste nenhuma série.</p> }
+            @if (historical()) {
+              <ion-button expand="block" (click)="saveDetails()">Guardar</ion-button>
+              <ion-button expand="block" fill="clear" color="danger" (click)="discard()">Apagar sessão</ion-button>
+            } @else {
+              <ion-button expand="block" (click)="finish()">Terminar e guardar</ion-button>
+              <ion-button expand="block" fill="clear" color="danger" (click)="discard()">Descartar sessão</ion-button>
+            }
           </div>
         </ion-content>
       </ng-template>
@@ -295,6 +315,8 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   private readonly toasts = inject(ToastController);
   private readonly nav = inject(NavController);
 
+  /** Id na rota (/historico/:id): abre uma sessão já terminada para corrigir. Sem id, é a sessão em curso. */
+  readonly id = input<string | undefined>();
   readonly blockLabel = BLOCK_LABEL;
   readonly session = signal<Session | null>(null);
   readonly sheet = signal<SheetState | null>(null);
@@ -308,10 +330,13 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   private readonly now = signal(this.clock.now().getTime());
   private readonly ticker = setInterval(() => this.now.set(this.clock.now().getTime()), 1000);
 
+  readonly historical = computed(() => !!this.session()?.endedAt);
+  readonly dayLabel = computed(() => formatDay(this.session()?.startedAt ?? this.clock.nowIso()));
   readonly elapsed = computed(() => {
     const s = this.session();
     if (!s) return '0:00';
-    return formatClock((this.now() - Date.parse(s.startedAt)) / 1000 - s.pausedSeconds);
+    const end = s.endedAt ? Date.parse(s.endedAt) : this.now();
+    return formatClock((end - Date.parse(s.startedAt)) / 1000 - s.pausedSeconds);
   });
   readonly blocks = computed(() => {
     const s = this.session();
@@ -346,12 +371,13 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   }
 
   async ionViewWillEnter(): Promise<void> {
-    const active = await this.repo.getActive();
-    if (!active) {
-      this.nav.navigateRoot('/treinos');
+    const id = this.id();
+    const found = id ? await this.repo.get(id) : await this.repo.getActive();
+    if (!found) {
+      this.nav.navigateRoot(id ? '/historico' : '/treinos');
       return;
     }
-    this.session.set(active);
+    this.session.set(found);
   }
 
   groups = (ex: SessionExercise) => groupSets(ex.sets);
@@ -508,7 +534,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       });
       this.patchSession((x) => ({ ...x, exercises: x.exercises.map((e) => (e.id === updated.id ? updated : e)) }));
       this.closeSheet();
-      if (isNew) this.startRest(updated);
+      if (isNew && !this.historical()) this.startRest(updated);
     } catch (err) {
       this.sheetError.set(err instanceof SessionError ? err.message : 'Não foi possível guardar a série.');
     }
@@ -531,6 +557,23 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
 
   // --- terminar -----------------------------------------------------------------------------------
 
+  /** Abre o painel final: terminar (sessão em curso) ou corrigir esforço e notas (sessão terminada). */
+  openDetails(): void {
+    const s = this.session();
+    this.finishRpe.set(s?.rpe === null || s?.rpe === undefined ? '' : String(s.rpe));
+    this.finishNotes.set(s?.notes ?? '');
+    this.finishOpen.set(true);
+  }
+
+  async saveDetails(): Promise<void> {
+    const s = this.session();
+    if (!s) return;
+    const updated = await this.repo.updateDetails(s.id, { rpe: toNum(this.finishRpe()), notes: this.finishNotes() });
+    this.session.set(updated);
+    this.finishOpen.set(false);
+    await this.toast('Detalhes guardados.');
+  }
+
   async finish(): Promise<void> {
     const s = this.session();
     if (!s) return;
@@ -546,19 +589,19 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     const s = this.session();
     if (!s) return;
     const alert = await this.alerts.create({
-      header: 'Descartar a sessão?',
-      message: 'Perdes tudo o que registaste nesta sessão.',
+      header: this.historical() ? 'Apagar a sessão?' : 'Descartar a sessão?',
+      message: this.historical() ? 'Sai do histórico e das estatísticas. Não dá para desfazer.' : 'Perdes tudo o que registaste nesta sessão.',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
-          text: 'Descartar',
+          text: this.historical() ? 'Apagar' : 'Descartar',
           role: 'destructive',
           handler: () => {
             void (async () => {
               await this.repo.discard(s.id);
               this.timer.stop();
               this.finishOpen.set(false);
-              this.nav.navigateRoot('/home');
+              this.nav.navigateRoot(this.historical() ? '/historico' : '/home');
             })();
           },
         },

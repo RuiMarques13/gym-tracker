@@ -54,7 +54,35 @@ export interface Session {
   pausedSeconds: number;
   rpe: number | null;
   notes: string | null;
+  /** Última série registada (ou null): serve para propor o fim de uma sessão esquecida. */
+  lastActivityAt: string | null;
   exercises: SessionExercise[];
+}
+
+/** Linha da lista do histórico. */
+export interface SessionSummary {
+  id: string;
+  templateName: string | null;
+  startedAt: string;
+  endedAt: string;
+  exerciseCount: number;
+  setCount: number;
+  /** Σ carga × reps das séries de trabalho (os dois lados nos unilaterais). */
+  volumeKg: number;
+  rpe: number | null;
+  notes: string | null;
+}
+
+/** O que fizeste num exercício numa sessão. */
+export interface ExerciseHistoryEntry {
+  sessionId: string;
+  sessionExerciseId: string;
+  startedAt: string;
+  templateName: string | null;
+  kind: Kind;
+  metricType: MetricType;
+  isUnilateral: boolean;
+  sets: SessionSet[];
 }
 
 /** Valores de um lado de uma série. */
@@ -78,6 +106,13 @@ export interface SetInput {
 }
 
 export interface FinishInput {
+  rpe?: number | null;
+  notes?: string | null;
+  /** Por defeito, agora. Serve para terminar uma sessão esquecida na última série registada. */
+  endedAt?: string;
+}
+
+export interface SessionDetailsInput {
   rpe?: number | null;
   notes?: string | null;
 }

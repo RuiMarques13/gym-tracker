@@ -27,6 +27,7 @@ import {
   NavController,
   ToastController,
 } from '@ionic/angular';
+import { RouterLink } from '@angular/router';
 import { SettingsService } from '../../core/settings/settings.service';
 import {
   Kind,
@@ -56,7 +57,7 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonContent, IonFooter, IonList,
     IonListHeader, IonItem, IonLabel, IonInput, IonTextarea, IonToggle, IonSelect, IonSelectOption, IonSegment,
-    IonSegmentButton, IonChip, IonNote, IonBadge, IonSpinner,
+    IonSegmentButton, IonChip, IonNote, IonBadge, IonSpinner, RouterLink,
   ],
   template: `
     <ion-header>
@@ -65,6 +66,9 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
         <ion-title>{{ isNew() ? 'Novo exercício' : 'Editar exercício' }}</ion-title>
         @if (archivedAt()) {
           <ion-badge slot="end" color="medium" class="archived">Arquivado</ion-badge>
+        }
+        @if (!isNew()) {
+          <ion-buttons slot="end"><ion-button [routerLink]="['/exercicios', id(), 'historico']">Histórico</ion-button></ion-buttons>
         }
       </ion-toolbar>
     </ion-header>

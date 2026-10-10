@@ -21,6 +21,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/exercises/exercise-form.page').then((m) => m.ExerciseFormPage),
   },
   {
+    path: 'exercicios/:id/historico',
+    loadComponent: () => import('./features/history/exercise-history.page').then((m) => m.ExerciseHistoryPage),
+  },
+  {
     path: 'exercicios/:id',
     loadComponent: () => import('./features/exercises/exercise-form.page').then((m) => m.ExerciseFormPage),
   },
@@ -40,7 +44,8 @@ export const routes: Routes = [
   },
   { path: 'sessao', loadComponent: () => import('./features/session/session.page').then((m) => m.SessionPage) },
   { path: 'planeados', ...placeholder('Planeados', 'Fase 1.5', 'Calendário de treinos planeados.') },
-  { path: 'historico', ...placeholder('Histórico', 'Fase 1.4', 'Sessões e séries registadas, com correções.') },
+  { path: 'historico', loadComponent: () => import('./features/history/history.page').then((m) => m.HistoryPage) },
+  { path: 'historico/:id', loadComponent: () => import('./features/session/session.page').then((m) => m.SessionPage) },
   { path: 'graficos', ...placeholder('Gráficos', 'Fase 4', 'Volume, séries por músculo, mobilidade.') },
   { path: 'perfil', ...placeholder('Perfil', 'Fase 1.5', 'Dados pessoais e medições corporais.') },
   { path: '**', redirectTo: 'home' },

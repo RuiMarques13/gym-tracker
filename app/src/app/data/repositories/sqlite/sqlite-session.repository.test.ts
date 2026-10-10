@@ -139,10 +139,70 @@ describe('SqliteSessionRepository', () => {
     const done = await repo.finish(s.id, { rpe: 8.5, notes: ' boa sessão ' });
     expect(done).toMatchObject({ rpe: 8.5, notes: 'boa sessão', endedAt: '2026-10-10T08:40:00.000Z' });
     expect(await repo.getActive()).toBeNull();
-    await expect(repo.saveSet({ sessionExerciseId: ex.id, entries: [{ side: 'BOTH', weightKg: 1, reps: 1 }] })).rejects.toThrow(/terminou/);
     await expect(repo.finish(s.id)).rejects.toThrow(/terminou/);
     // pode começar outra
     await expect(repo.start()).resolves.toBeTruthy();
+  });
+
+  it('corrige sessões terminadas: séries, exercícios, esforço e notas; séries novas contam no fim da sessão', async () => {
+    const s = await repo.start();
+    const ex = await repo.addExercise(s.id, squat);
+    await repo.saveSet({ sessionExerciseId: ex.id, entries: [{ side: 'BOTH', weightKg: 60, reps: 8 }] });
+    clock.advance(40 * 60_000);
+    await repo.finish(s.id);
+    clock.advance(86400_000);
+    let r = await repo.saveSet({ sessionExerciseId: ex.id, position: 1, entries: [{ side: 'BOTH', weightKg: 62.5, reps: 8 }] });
+    expect(r.sets[0].weightKg).toBe(62.5);
+    r = await repo.saveSet({ sessionExerciseId: ex.id, entries: [{ side: 'BOTH', weightKg: 62.5, reps: 6 }] });
+    expect(r.sets[1]).toMatchObject({ position: 2, completedAt: '2026-10-10T08:40:00.000Z', restSecondsActual: null });
+    const d = await repo.updateDetails(s.id, { rpe: 7, notes: ' corrigido ' });
+    expect(d).toMatchObject({ rpe: 7, notes: 'corrigido', endedAt: '2026-10-10T08:40:00.000Z' });
+    const extra = await repo.addExercise(s.id, catCow);
+    expect(extra.position).toBe(2);
+    await repo.removeExercise(extra.id);
+  });
+
+  it('lista as sessões terminadas com totais e dá o histórico por exercício', async () => {
+    const s1 = await repo.start();
+    const a = await repo.addExercise(s1.id, squat);
+    await repo.saveSet({ sessionExerciseId: a.id, entries: [{ side: 'BOTH', weightKg: 60, reps: 8 }] });
+    await repo.saveSet({ sessionExerciseId: a.id, type: 'WARMUP', entries: [{ side: 'BOTH', weightKg: 20, reps: 10 }] });
+    const b = await repo.addExercise(s1.id, pigeon);
+    await repo.saveSet({
+      sessionExerciseId: b.id,
+      entries: [{ side: 'LEFT', durationSeconds: 30 }, { side: 'RIGHT', durationSeconds: 30 }],
+    });
+    clock.advance(30 * 60_000);
+    await repo.finish(s1.id, { rpe: 8 });
+    clock.advance(86400_000);
+    const s2 = await repo.start();
+    const c = await repo.addExercise(s2.id, squat);
+    await repo.saveSet({ sessionExerciseId: c.id, entries: [{ side: 'BOTH', weightKg: 65, reps: 5 }] });
+    expect(await repo.listFinished()).toHaveLength(1); // a s2 ainda está em curso
+    clock.advance(20 * 60_000);
+    await repo.finish(s2.id);
+    const list = await repo.listFinished();
+    expect(list.map((x) => x.id)).toEqual([s2.id, s1.id]);
+    expect(list[1]).toMatchObject({ exerciseCount: 2, setCount: 3, volumeKg: 480, rpe: 8 });
+    const hist = await repo.exerciseHistory(squat);
+    expect(hist.map((h) => [h.sessionId, h.sets.length])).toEqual([[s2.id, 1], [s1.id, 2]]);
+    expect(await repo.exerciseHistory(catCow)).toEqual([]);
+  });
+
+  it('propõe o fim de uma sessão esquecida na última série e termina nesse instante', async () => {
+    const s = await repo.start();
+    const ex = await repo.addExercise(s.id, squat);
+    clock.advance(10 * 60_000);
+    await repo.saveSet({ sessionExerciseId: ex.id, entries: [{ side: 'BOTH', weightKg: 60, reps: 8 }] });
+    const last = (await repo.get(s.id))!.lastActivityAt!;
+    expect(last).toBe('2026-10-10T08:10:00.000Z');
+    clock.advance(9 * 3600_000);
+    const done = await repo.finish(s.id, { endedAt: last });
+    expect(done.endedAt).toBe(last);
+    // um fim anterior ao início é ignorado
+    const s2 = await repo.start();
+    const d2 = await repo.finish(s2.id, { endedAt: '2000-01-01T00:00:00.000Z' });
+    expect(d2.endedAt).toBe('2026-10-10T17:10:00.000Z'); // o relógio atual
   });
 
   it('descartar apaga a sessão, os exercícios e as séries', async () => {
