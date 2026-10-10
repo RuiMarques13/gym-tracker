@@ -1,4 +1,4 @@
-import type { SessionSet } from '../../data/models/session';
+import type { ExerciseHistoryEntry, SessionSet } from '../../data/models/session';
 
 const loc = 'pt-PT';
 
@@ -25,4 +25,30 @@ export function formatVolume(kg: number): string {
 export function epley(s: Pick<SessionSet, 'weightKg' | 'reps' | 'type'>): number | null {
   if (s.type !== 'WORKING' || !s.weightKg || !s.reps) return null;
   return s.reps === 1 ? s.weightKg : Math.round(s.weightKg * (1 + s.reps / 30) * 10) / 10;
+}
+
+export interface SessionProgress {
+  at: string;
+  /** Melhor 1RM estimado (Epley) da sessão. */
+  e1rm: number;
+  /** Volume-carga: soma de carga × repetições das séries de trabalho. */
+  volume: number;
+  /** Maior carga usada numa série de trabalho. */
+  topWeight: number;
+}
+
+/** Uma linha por sessão, da mais antiga à mais recente; sessões sem séries de trabalho com carga ficam de fora. */
+export function progressSeries(entries: ExerciseHistoryEntry[]): SessionProgress[] {
+  const out: SessionProgress[] = [];
+  for (const h of entries) {
+    let e1rm = 0, volume = 0, topWeight = 0;
+    for (const s of h.sets) {
+      if (s.type !== 'WORKING' || !s.weightKg || !s.reps) continue;
+      e1rm = Math.max(e1rm, epley(s) ?? 0);
+      volume += s.weightKg * s.reps;
+      topWeight = Math.max(topWeight, s.weightKg);
+    }
+    if (e1rm > 0) out.push({ at: h.startedAt, e1rm, volume: Math.round(volume), topWeight });
+  }
+  return out.sort((a, b) => a.at.localeCompare(b.at));
 }
