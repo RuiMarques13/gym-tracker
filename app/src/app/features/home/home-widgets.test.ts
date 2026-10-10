@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeWidgets } from './home-widgets.component';
+import { normalizeWidgets } from './widget-list';
 
 describe('normalizeWidgets', () => {
   it('converte o id antigo, tira desconhecidos e repetidos e mantém a ordem', () => {
