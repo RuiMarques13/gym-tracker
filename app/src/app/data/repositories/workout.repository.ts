@@ -12,5 +12,7 @@ export interface WorkoutRepository {
   restore(id: string): Promise<void>;
   /** Só se nunca houve sessões com este treino; caso contrário usar archive. */
   remove(id: string): Promise<void>;
+  /** Apaga o treino e TODAS as sessões feitas com ele (séries, dados de saúde): o histórico e a home deixam de as contar. Devolve quantas sessões apagou. */
+  removeWithSessions(id: string): Promise<number>;
   isUsed(id: string): Promise<boolean>;
 }

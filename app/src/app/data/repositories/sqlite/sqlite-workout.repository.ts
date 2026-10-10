@@ -256,6 +256,36 @@ export class SqliteWorkoutRepository implements WorkoutRepository {
     });
   }
 
+  async removeWithSessions(id: string): Promise<number> {
+    const now = this.clock.nowIso();
+    const sessions = await this.db.query<{ id: string }>('SELECT id FROM session WHERE template_id = ? AND deleted_at IS NULL', [id]);
+    await this.db.transaction(async (tx) => {
+      for (const { id: sid } of sessions) {
+        await tx.run(
+          `UPDATE set_log SET deleted_at = ?, updated_at = ?, device_id = ?
+           WHERE deleted_at IS NULL AND session_exercise_id IN (SELECT id FROM session_exercise WHERE session_id = ?)`,
+          [now, now, this.deviceId, sid],
+        );
+        await tx.run(
+          'UPDATE session_exercise SET deleted_at = ?, updated_at = ?, device_id = ? WHERE session_id = ? AND deleted_at IS NULL',
+          [now, now, this.deviceId, sid],
+        );
+        await tx.run('UPDATE session SET deleted_at = ?, updated_at = ?, device_id = ? WHERE id = ?', [now, now, this.deviceId, sid]);
+        // dados de saúde importados: só locais, apagam-se de vez
+        await tx.run('DELETE FROM hr_sample WHERE session_id = ?', [sid]);
+        await tx.run('DELETE FROM session_health WHERE session_id = ?', [sid]);
+      }
+      for (const table of ['planned_exercise', 'scheduled_workout']) {
+        await tx.run(
+          `UPDATE ${table} SET deleted_at = ?, updated_at = ?, device_id = ? WHERE template_id = ? AND deleted_at IS NULL`,
+          [now, now, this.deviceId, id],
+        );
+      }
+      await tx.run('UPDATE workout_template SET deleted_at = ?, updated_at = ?, device_id = ? WHERE id = ?', [now, now, this.deviceId, id]);
+    });
+    return sessions.length;
+  }
+
   private async assertNameFree(name: string, selfId: string): Promise<void> {
     const rows = await this.db.query<{ name: string }>(
       'SELECT name FROM workout_template WHERE deleted_at IS NULL AND archived_at IS NULL AND id <> ?',

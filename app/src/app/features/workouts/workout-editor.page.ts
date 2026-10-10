@@ -151,7 +151,8 @@ const BLOCK_HINT: Record<Block, string> = {
               @if (!used()) {
                 <ion-button expand="block" fill="clear" color="danger" (click)="remove()">Apagar de vez</ion-button>
               } @else {
-                <p class="hint">Já tem sessões registadas, por isso só pode ser arquivado.</p>
+                <p class="hint">Já tem sessões registadas, por isso só pode ser arquivado ou apagado com todo o histórico.</p>
+                <ion-button expand="block" fill="clear" color="danger" (click)="removeAll()">Apagar treino e histórico</ion-button>
               }
             </div>
           }
@@ -457,6 +458,24 @@ export class WorkoutEditorPage {
       await this.toast('Treino restaurado.', 'success');
     } catch (err) {
       await this.toast(err instanceof WorkoutValidationError ? err.message : 'Não foi possível restaurar.', 'danger');
+    }
+  }
+
+  /** Apaga o treino e todas as sessões feitas com ele: tira os dados da home, do histórico e dos gráficos. */
+  async removeAll(): Promise<void> {
+    const alert = await this.alerts.create({
+      header: 'Apagar treino e histórico?',
+      message: `«${this.name()}» e todas as sessões feitas com ele vão ser apagados de vez (séries, volumes, dados de saúde). Deixam de contar na home, no histórico e nos gráficos. Esta ação não se desfaz.`,
+      buttons: [{ text: 'Cancelar', role: 'cancel' }, { text: 'Apagar tudo', role: 'destructive' }],
+    });
+    await alert.present();
+    if ((await alert.onDidDismiss()).role !== 'destructive') return;
+    try {
+      const n = await this.repo.removeWithSessions(this.id()!);
+      await this.toast(`Treino e ${n} ${n === 1 ? 'sessão apagados' : 'sessões apagadas'}.`, 'success');
+      this.nav.navigateBack('/treinos');
+    } catch {
+      await this.toast('Não foi possível apagar.', 'danger');
     }
   }
 

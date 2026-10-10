@@ -174,6 +174,22 @@ describe('SqliteWorkoutRepository', () => {
     await expect(repo.remove(w.id)).rejects.toThrow(/Arquiva/);
   });
 
+  it('apagar com histórico: leva as sessões, séries e dados de saúde', async () => {
+    const w = await legDay();
+    await repo.archive(w.id);
+    await db.run(`INSERT INTO session (id, template_id, started_at, ended_at, updated_at, device_id)
+                  VALUES ('x', ?, '2026-10-10T09:00:00Z', '2026-10-10T10:00:00Z', '2026-10-10T09:00:00Z', 'd')`, [w.id]);
+    await db.run(`INSERT INTO session_exercise (id, session_id, exercise_id, position, block, metric_type, updated_at, device_id)
+                  SELECT 'se', 'x', exercise_id, 0, 'MAIN', 'WEIGHT_REPS', '2026-10-10T09:00:00Z', 'd' FROM planned_exercise WHERE template_id = ? LIMIT 1`, [w.id]);
+    await db.run(`INSERT INTO session_health (session_id, imported_at) VALUES ('x', '2026-10-10T10:00:00Z')`);
+    expect(await repo.removeWithSessions(w.id)).toBe(1);
+    expect(await repo.get(w.id)).toBeNull();
+    const [n] = await db.query<{ n: number }>(`SELECT COUNT(*) AS n FROM session WHERE deleted_at IS NULL`);
+    expect(n.n).toBe(0);
+    const [h] = await db.query<{ n: number }>(`SELECT COUNT(*) AS n FROM session_health`);
+    expect(h.n).toBe(0);
+  });
+
   it('remover sem sessões apaga também itens e planeados', async () => {
     const w = await legDay();
     await db.run(`INSERT INTO scheduled_workout (id, date, template_id, updated_at, device_id)
