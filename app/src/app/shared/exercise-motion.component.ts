@@ -1,5 +1,6 @@
 import { Component, computed, ElementRef, input, signal, viewChild } from '@angular/core';
 import type { Motion, Pt } from '../core/motion/motion-core';
+import { StanceGuideComponent, stanceApplies } from './stance-guide.component';
 
 const rm = (): boolean => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -34,6 +35,7 @@ interface Track { x: number[]; y: number[]; t: string }
  */
 @Component({
   selector: 'app-exercise-motion',
+  imports: [StanceGuideComponent],
   template: `
     @if (view(); as v) {
       <figure>
@@ -101,6 +103,7 @@ interface Track { x: number[]; y: number[]; t: string }
           @if (animate()) { <button type="button" (click)="toggle($event)">{{ paused() ? 'Reproduzir' : 'Pausar' }}</button> }
         </figcaption>
       </figure>
+      @if (stance()) { <app-stance-guide [motionId]="motion().id" /> }
     }
   `,
   styles: `
@@ -155,6 +158,7 @@ export class ExerciseMotionComponent {
 
   readonly impl = computed(() => implementOf(this.equipment()));
   readonly legend = computed(() => LEGEND[this.impl()]);
+  readonly stance = computed(() => stanceApplies(this.motion().id));
   /** Só os props que ainda fazem sentido: com cabo ou elástico, o fio é desenhado até à mão. */
   readonly props = computed(() => {
     const dyn = this.impl() === 'cable' || this.impl() === 'band';
