@@ -1,4 +1,4 @@
-import { Component, computed, inject, resource } from '@angular/core';
+import { Component, computed, inject, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   IonCard,
@@ -23,13 +23,14 @@ import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories
 import { SettingsService } from '../../core/settings/settings.service';
 import { CLOCK } from '../../core/util/clock';
 import { formatDay, formatTime } from '../history/history-format';
+import { HomeWidgetsComponent } from './home-widgets.component';
 import { SessionLauncher } from '../session/session-launcher';
 
 @Component({
   selector: 'app-home',
   imports: [
     RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle,
-    IonCardSubtitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonIcon, IonButton,
+    IonCardSubtitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonIcon, IonButton, HomeWidgetsComponent,
   ],
   template: `
     <ion-header>
@@ -72,6 +73,8 @@ import { SessionLauncher } from '../session/session-launcher';
             <ion-button fill="outline" routerLink="/treinos">Escolher um treino</ion-button>
           </div>
         }
+
+        <app-home-widgets [refresh]="tick()" />
 
         <p class="stats-title">Os teus exercícios</p>
         <div class="stats">
@@ -191,7 +194,10 @@ export class HomePage implements ViewWillEnter {
     this.active.reload();
   }
 
+  readonly tick = signal(0);
+
   ionViewWillEnter(): void {
+    this.tick.update((n) => n + 1);
     this.active.reload();
     this.counts.reload();
     this.finishedCount.reload();

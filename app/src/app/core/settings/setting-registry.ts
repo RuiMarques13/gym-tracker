@@ -72,6 +72,31 @@ export const SETTINGS = {
     key: 'backup.lastExportAt', scope: 'DEVICE', schemaVersion: 1, defaultValue: null,
     validate: isIsoOrNull, label: 'Última exportação',
   }),
+  profileName: def<string>({
+    key: 'profile.name', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: '',
+    validate: (v): v is string => typeof v === 'string' && v.length <= 80, label: 'Nome',
+  }),
+  profileBirthDate: def<string | null>({
+    key: 'profile.birthDate', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: null,
+    validate: (v): v is string | null => v === null || (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)),
+    label: 'Data de nascimento',
+  }),
+  profileSex: def<'F' | 'M' | 'O' | null>({
+    key: 'profile.sex', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: null,
+    validate: (v): v is 'F' | 'M' | 'O' | null => v === null || v === 'F' || v === 'M' || v === 'O', label: 'Sexo',
+  }),
+  profileHeightCm: def<number | null>({
+    key: 'profile.heightCm', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: null,
+    validate: (v): v is number | null => v === null || isNumberInRange(50, 260)(v), label: 'Altura (cm)',
+  }),
+  onboardingDone: def<boolean>({
+    key: 'onboarding.done', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: false,
+    validate: isBool, label: 'Introdução concluída',
+  }),
+  watchChecklist: def<string[]>({
+    key: 'watch.checklist', scope: 'DEVICE', schemaVersion: 1, defaultValue: [],
+    validate: isStringArray, label: 'Passos do relógio concluídos',
+  }),
   homeWidgets: def<string[]>({
     key: 'home.widgets', scope: 'LAYOUT', schemaVersion: 1,
     defaultValue: ['next-workout', 'weekly-sets', 'mobility-minutes'],

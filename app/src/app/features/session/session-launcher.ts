@@ -9,7 +9,7 @@ export class SessionLauncher {
   private readonly nav = inject(NavController);
   private readonly alerts = inject(AlertController);
 
-  async start(templateId: string | null): Promise<void> {
+  async start(templateId: string | null, scheduledId: string | null = null): Promise<void> {
     const active = await this.repo.getActive();
     if (active) {
       const alert = await this.alerts.create({
@@ -23,7 +23,7 @@ export class SessionLauncher {
       await alert.present();
       return;
     }
-    await this.repo.start({ templateId });
+    await this.repo.start({ templateId, scheduledId });
     await this.nav.navigateForward('/sessao');
   }
 }

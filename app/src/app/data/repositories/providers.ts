@@ -4,6 +4,9 @@ import { CLOCK } from '../../core/util/clock';
 import { ExerciseRepository } from './exercise.repository';
 import { LookupRepository, SqliteLookupRepository } from './lookup.repository';
 import { SqliteExerciseRepository } from './sqlite/sqlite-exercise.repository';
+import { BodyMetricRepository, SqliteBodyMetricRepository } from './body-metric.repository';
+import { MetricsRepository, SqliteMetricsRepository } from './metrics.repository';
+import { ScheduledRepository, SqliteScheduledRepository } from './scheduled.repository';
 import { SessionRepository } from './session.repository';
 import { SqliteSessionRepository } from './sqlite/sqlite-session.repository';
 import { SqliteWorkoutRepository } from './sqlite/sqlite-workout.repository';
@@ -39,5 +42,26 @@ export const SESSION_REPOSITORY = new InjectionToken<SessionRepository>('Session
   factory: () => {
     const database = inject(DatabaseService);
     return new SqliteSessionRepository(database.db, inject(CLOCK), database.deviceId);
+  },
+});
+
+export const METRICS_REPOSITORY = new InjectionToken<MetricsRepository>('MetricsRepository', {
+  providedIn: 'root',
+  factory: () => new SqliteMetricsRepository(inject(DatabaseService).db),
+});
+
+export const SCHEDULED_REPOSITORY = new InjectionToken<ScheduledRepository>('ScheduledRepository', {
+  providedIn: 'root',
+  factory: () => {
+    const database = inject(DatabaseService);
+    return new SqliteScheduledRepository(database.db, inject(CLOCK), database.deviceId);
+  },
+});
+
+export const BODY_METRIC_REPOSITORY = new InjectionToken<BodyMetricRepository>('BodyMetricRepository', {
+  providedIn: 'root',
+  factory: () => {
+    const database = inject(DatabaseService);
+    return new SqliteBodyMetricRepository(database.db, inject(CLOCK), database.deviceId);
   },
 });

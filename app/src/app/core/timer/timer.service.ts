@@ -1,5 +1,6 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { SettingsService } from '../settings/settings.service';
+import { TimerNotifier } from './timer-notifier';
 import { CLOCK } from '../util/clock';
 import {
   addSeconds, elapsedSeconds, isFinished, isPaused, pause, progress, remainingSeconds, resume, startTimer,
@@ -23,6 +24,7 @@ export interface TimerFinish {
 export class TimerService {
   private readonly clock = inject(CLOCK);
   private readonly settings = inject(SettingsService);
+  private readonly notifier = inject(TimerNotifier);
 
   private readonly state = signal<TimerState | null>(null);
   private readonly now = signal(this.clock.now().getTime());
@@ -59,6 +61,7 @@ export class TimerService {
     this.finished.set(null);
     this.now.set(this.clock.now().getTime());
     this.state.set(startTimer(kind, label, seconds, this.now()));
+    this.notify();
   }
 
   add(seconds: number): void {
@@ -67,6 +70,7 @@ export class TimerService {
     this.now.set(this.clock.now().getTime());
     this.clearDismiss();
     this.state.set(addSeconds(s, seconds, this.now()));
+    this.notify();
   }
 
   togglePause(): void {
@@ -74,6 +78,7 @@ export class TimerService {
     if (!s) return;
     this.now.set(this.clock.now().getTime());
     this.state.set(isPaused(s) ? resume(s, this.now()) : pause(s, this.now()));
+    this.notify();
   }
 
   /** Fecha o temporizador. Devolve os segundos já feitos (útil no cronómetro de duração). */
@@ -82,6 +87,7 @@ export class TimerService {
     const done = s ? elapsedSeconds(s, this.clock.now().getTime()) : 0;
     this.clearDismiss();
     this.state.set(null);
+    void this.notifier.cancel();
     return done;
   }
 
@@ -89,6 +95,17 @@ export class TimerService {
   restart(): void {
     const s = this.state();
     if (s) this.start(s.kind, s.label, s.totalSeconds);
+  }
+
+  /** Agenda a notificação do fim, ou cancela-a se estiver em pausa. */
+  private notify(): void {
+    const s = this.state();
+    if (!s || isPaused(s)) {
+      void this.notifier.cancel();
+      return;
+    }
+    const title = s.kind === 'REST' ? 'Descanso terminado' : 'Tempo cumprido';
+    void this.notifier.schedule(new Date(s.endsAt), title, s.label);
   }
 
   private tick(): void {
@@ -107,6 +124,7 @@ export class TimerService {
     if (this.settings.get('timerVibrate')() && typeof navigator !== 'undefined') navigator.vibrate?.([250, 120, 250, 120, 400]);
     if (this.settings.get('timerSound')()) this.beep();
     // O descanso fecha sozinho; o cronómetro de duração fica até a série ser registada.
+    void this.notifier.cancel(); // já avisámos dentro da app
     if (s.kind === 'REST') {
       this.dismissHandle = setTimeout(() => {
         if (this.state() === s) this.state.set(null);

@@ -21,6 +21,7 @@ interface SessionRow {
   id: string;
   template_id: string | null;
   template_name: string | null;
+  scheduled_id: string | null;
   started_at: string;
   ended_at: string | null;
   paused_seconds: number;
@@ -87,7 +88,7 @@ export class SqliteSessionRepository implements SessionRepository {
 
   async get(id: string): Promise<Session | null> {
     const rows = await this.db.query<SessionRow>(
-      `SELECT s.id, s.template_id, t.name AS template_name, s.started_at, s.ended_at, s.paused_seconds, s.rpe, s.notes
+      `SELECT s.id, s.template_id, t.name AS template_name, s.scheduled_id, s.started_at, s.ended_at, s.paused_seconds, s.rpe, s.notes
        FROM session s LEFT JOIN workout_template t ON t.id = s.template_id
        WHERE s.id = ? AND s.deleted_at IS NULL`,
       [id],
@@ -98,12 +99,12 @@ export class SqliteSessionRepository implements SessionRepository {
     const times = exercises.flatMap((e) => e.sets.map((x) => x.completedAt)).filter((t): t is string => t !== null);
     const lastActivityAt = times.length ? times.reduce((a, b) => (a > b ? a : b)) : null;
     return {
-      id: s.id, templateId: s.template_id, templateName: s.template_name, startedAt: s.started_at, endedAt: s.ended_at,
+      id: s.id, templateId: s.template_id, templateName: s.template_name, scheduledId: s.scheduled_id, startedAt: s.started_at, endedAt: s.ended_at,
       pausedSeconds: s.paused_seconds, rpe: s.rpe, notes: s.notes, lastActivityAt, exercises,
     };
   }
 
-  async start(options: { templateId?: string | null } = {}): Promise<Session> {
+  async start(options: { templateId?: string | null; scheduledId?: string | null } = {}): Promise<Session> {
     if (await this.getActive()) throw new SessionError('active', 'Já tens uma sessão em curso.');
     const templateId = options.templateId ?? null;
     const id = newId();
@@ -114,8 +115,8 @@ export class SqliteSessionRepository implements SessionRepository {
         if (!t.length) throw new SessionError('not-found', 'Treino não encontrado.');
       }
       await tx.run(
-        `INSERT INTO session (id, template_id, started_at, updated_at, deleted_at, device_id) VALUES (?, ?, ?, ?, NULL, ?)`,
-        [id, templateId, now, now, this.deviceId],
+        `INSERT INTO session (id, template_id, scheduled_id, started_at, updated_at, deleted_at, device_id) VALUES (?, ?, ?, ?, ?, NULL, ?)`,
+        [id, templateId, options.scheduledId ?? null, now, now, this.deviceId],
       );
       if (templateId) {
         const items = await tx.query<{
@@ -275,10 +276,19 @@ export class SqliteSessionRepository implements SessionRepository {
     if (s.endedAt) throw new SessionError('ended', 'A sessão já terminou.');
     const now = this.clock.nowIso();
     const endedAt = input.endedAt && input.endedAt >= s.startedAt ? input.endedAt : now;
-    await this.db.run(
-      'UPDATE session SET ended_at = ?, rpe = ?, notes = ?, updated_at = ?, device_id = ? WHERE id = ?',
-      [endedAt, clampNum(input.rpe, 0, 10, 2), input.notes?.trim() || null, now, this.deviceId, id],
-    );
+    await this.db.transaction(async (tx) => {
+      await tx.run(
+        'UPDATE session SET ended_at = ?, rpe = ?, notes = ?, updated_at = ?, device_id = ? WHERE id = ?',
+        [endedAt, clampNum(input.rpe, 0, 10, 2), input.notes?.trim() || null, now, this.deviceId, id],
+      );
+      // Veio de um treino planeado: ficou feito.
+      if (s.scheduledId) {
+        await tx.run(
+          `UPDATE scheduled_workout SET status = 'DONE', updated_at = ?, device_id = ? WHERE id = ? AND deleted_at IS NULL`,
+          [now, this.deviceId, s.scheduledId],
+        );
+      }
+    });
     return (await this.get(id))!;
   }
 

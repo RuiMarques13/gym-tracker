@@ -8,7 +8,7 @@ export interface SessionRepository {
   getActive(): Promise<Session | null>;
   get(id: string): Promise<Session | null>;
   /** Começa uma sessão a partir de um treino (com snapshot dos alvos) ou livre (sem treino). */
-  start(options?: { templateId?: string | null }): Promise<Session>;
+  start(options?: { templateId?: string | null; scheduledId?: string | null }): Promise<Session>;
   addExercise(sessionId: string, exerciseId: string, block?: Block): Promise<SessionExercise>;
   removeExercise(sessionExerciseId: string): Promise<void>;
   /** Cria ou atualiza uma série (as duas linhas, nos unilaterais). Também corrige sessões já terminadas. */

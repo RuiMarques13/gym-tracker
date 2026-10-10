@@ -49,6 +49,7 @@ export interface Session {
   id: string;
   templateId: string | null;
   templateName: string | null;
+  scheduledId: string | null;
   startedAt: string;
   endedAt: string | null;
   pausedSeconds: number;

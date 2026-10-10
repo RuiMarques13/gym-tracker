@@ -32,6 +32,8 @@ export const routes: Routes = [
     path: 'definicoes',
     loadComponent: () => import('./features/settings/settings.page').then((m) => m.SettingsPage),
   },
+  { path: 'definicoes/relogio', loadComponent: () => import('./features/watch/watch-setup.page').then((m) => m.WatchSetupPage) },
+  { path: 'bem-vindo', loadComponent: () => import('./features/onboarding/onboarding.page').then((m) => m.OnboardingPage) },
   { path: 'mais', loadComponent: () => import('./features/more/more.page').then((m) => m.MorePage) },
   { path: 'treinos', loadComponent: () => import('./features/workouts/workouts.page').then((m) => m.WorkoutsPage) },
   {
@@ -43,10 +45,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/workouts/workout-editor.page').then((m) => m.WorkoutEditorPage),
   },
   { path: 'sessao', loadComponent: () => import('./features/session/session.page').then((m) => m.SessionPage) },
-  { path: 'planeados', ...placeholder('Planeados', 'Fase 1.5', 'Calendário de treinos planeados.') },
+  { path: 'planeados', loadComponent: () => import('./features/planned/planned.page').then((m) => m.PlannedPage) },
   { path: 'historico', loadComponent: () => import('./features/history/history.page').then((m) => m.HistoryPage) },
   { path: 'historico/:id', loadComponent: () => import('./features/session/session.page').then((m) => m.SessionPage) },
   { path: 'graficos', ...placeholder('Gráficos', 'Fase 4', 'Volume, séries por músculo, mobilidade.') },
-  { path: 'perfil', ...placeholder('Perfil', 'Fase 1.5', 'Dados pessoais e medições corporais.') },
+  { path: 'perfil', loadComponent: () => import('./features/profile/profile.page').then((m) => m.ProfilePage) },
   { path: '**', redirectTo: 'home' },
 ];

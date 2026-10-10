@@ -32,7 +32,9 @@ import {
   timeOutline,
 } from 'ionicons/icons';
 import { filter, map } from 'rxjs';
+import { DatabaseService } from './core/db/database.service';
 import { NAV_ITEMS } from './core/navigation/nav-items';
+import { EXERCISE_REPOSITORY, SESSION_REPOSITORY, WORKOUT_REPOSITORY } from './data/repositories/providers';
 import { SettingsService } from './core/settings/settings.service';
 import { TimerBubbleComponent } from './shared/timer-bubble.component';
 
@@ -112,6 +114,10 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
 export class App {
   private readonly router = inject(Router);
   private readonly settings = inject(SettingsService);
+  private readonly database = inject(DatabaseService);
+  private readonly exercises = inject(EXERCISE_REPOSITORY);
+  private readonly workouts = inject(WORKOUT_REPOSITORY);
+  private readonly sessions = inject(SESSION_REPOSITORY);
 
   readonly nav = NAV_ITEMS;
   readonly tabs = NAV_ITEMS.filter((i) => i.tab);
@@ -132,9 +138,29 @@ export class App {
   });
 
   constructor() {
+    void this.maybeOnboard();
     addIcons({
       homeOutline, calendarOutline, clipboardOutline, barbellOutline, timeOutline, statsChartOutline,
       personOutline, settingsOutline, ellipsisHorizontal, checkmarkCircleOutline, alertCircleOutline,
     });
+  }
+
+  /**
+   * Introdução só em instalações vazias. Quem já tem dados (ou importou uma cópia, que traz o
+   * «onboarding.done») nunca a vê: marca-se como feita em silêncio.
+   */
+  private async maybeOnboard(): Promise<void> {
+    try {
+      if (!this.database.status().ready || this.settings.get('onboardingDone')()) return;
+      const empty =
+        !(await this.exercises.list({ includeArchived: true })).length &&
+        !(await this.workouts.list({ includeArchived: true })).length &&
+        !(await this.sessions.listFinished({ limit: 1 })).length &&
+        !(await this.sessions.getActive());
+      if (empty) await this.router.navigateByUrl('/bem-vindo', { replaceUrl: true });
+      else await this.settings.set('onboardingDone', true);
+    } catch {
+      /* a introdução é opcional: nunca bloqueia o arranque */
+    }
   }
 }
