@@ -101,7 +101,12 @@ export const UPPER_MOTIONS: Motion[] = [
   m({ id: 'pushdown', label: 'Extensão de tríceps no cabo', pulley: [60, 4] },
     standing({ torso: 8, uarm: 176, farm: 96 }), standing({ torso: 8, uarm: 176, farm: 176 }), true),
   // Acima da cabeça: braço vertical junto à orelha, cotovelos fixos; o cabo vem de trás e de baixo.
-  m({ id: 'tri-overhead', label: 'Extensão acima da cabeça', pulley: [6, 88] }, standing({ at: [46, 92], uarm: 10, farm: 214 }), standing({ at: [46, 92], uarm: 10, farm: 14 }), true),
+  (() => {
+    // sentado (sobra espaço por cima da cabeça): braço vertical, ligeiramente à frente da orelha; o antebraço desce atrás da cabeça
+    const pose: Pose = { anchor: 'hip', at: [44, 66], shin: 4, thigh: -90, torso: 0 };
+    return m({ id: 'tri-overhead', label: 'Extensão acima da cabeça', pulley: [6, 88], props: seatAt(pose) },
+      { ...pose, uarm: 24, farm: 232 }, { ...pose, uarm: 24, farm: 24 }, true);
+  })(),
   m({ id: 'skull', label: 'Skull crusher', props: [BENCH] }, lying({ uarm: 4, farm: 128 }), lying({ uarm: 4, farm: 4 }), true),
   m({ id: 'kickback-tri', label: 'Kickback de tríceps', pulley: [94, 84] },
     standing({ shin: 6, thigh: -14, torso: 78, uarm: 258, farm: 172 }), standing({ shin: 6, thigh: -14, torso: 78, uarm: 258, farm: 258 }), true),
