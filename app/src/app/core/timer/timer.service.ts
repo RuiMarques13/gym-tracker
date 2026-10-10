@@ -124,7 +124,7 @@ export class TimerService {
     if (this.settings.get('timerVibrate')() && typeof navigator !== 'undefined') navigator.vibrate?.([250, 120, 250, 120, 400]);
     if (this.settings.get('timerSound')()) this.beep();
     // O descanso fecha sozinho; o cronómetro de duração fica até a série ser registada.
-    void this.notifier.cancel(); // já avisámos dentro da app
+    // Não cancelamos a notificação: cancelar apaga também a que o Android acabou de mostrar (e o relógio não a recebia).
     if (s.kind === 'REST') {
       this.dismissHandle = setTimeout(() => {
         if (this.state() === s) this.state.set(null);
