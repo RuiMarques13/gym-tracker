@@ -39,7 +39,7 @@ interface Track { x: number[]; y: number[]; t: string }
       <figure>
         <svg #svg viewBox="0 0 100 100" role="img" [attr.aria-label]="'Animação esquemática: ' + motion().label">
           <defs>
-            <marker [attr.id]="mid" viewBox="0 0 6 6" refX="3" refY="3" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <marker [attr.id]="mid" viewBox="0 0 6 6" refX="3" refY="3" markerWidth="3.4" markerHeight="3.4" orient="auto-start-reverse">
               <path d="M0 0 L6 3 L0 6 z" class="arrowhead" />
             </marker>
           </defs>
@@ -104,12 +104,13 @@ interface Track { x: number[]; y: number[]; t: string }
     }
   `,
   styles: `
-    :host { display: block; --em-c: #0f766e; --em-bg: rgba(128,128,128,0.12); --c-bar: #f97316; --c-db: #3b82f6; --c-kb: #a855f7; --c-cable: #0ea5e9; --c-band: #65a30d; --c-machine: #f59e0b; --c-traj: #e11d48; }
+    :host { display: block; --em-c: #0f766e; --em-bg: rgba(128,128,128,0.12); --c-bar: #f97316; --c-db: #3b82f6; --c-kb: #d946ef; --c-cable: #0ea5e9; --c-band: #65a30d; --c-machine: #8b5cf6; --c-bench: #06b6d4; --c-traj: #eab308; }
     figure { margin: 0; text-align: center; }
     svg { width: 100%; max-width: 200px; height: auto; background: var(--em-bg); border-radius: 12px; display: block; margin: 0 auto; }
     .floor { stroke: rgba(128,128,128,0.5); stroke-width: 1; fill: none; }
     .prop { stroke: rgba(128,128,128,0.8); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    :host(.machine) .prop.machine, :host(.machine) .prop.pad, :host(.machine) .prop.bench, :host(.machine) .prop.incline { stroke: var(--c-machine); stroke-width: 3; }
+    .prop.bench, .prop.pad, .prop.incline { stroke: var(--c-bench); stroke-width: 3; }
+    :host(.machine) .prop.machine { stroke: var(--c-machine); stroke-width: 3; }
     .prop.bar { stroke: #555; stroke-width: 2.4; }
     .prop.cable { stroke: var(--c-cable); stroke-width: 1.4; stroke-dasharray: 2 2; }
     .cable { stroke: var(--c-cable); stroke-width: 1.3; }
@@ -119,15 +120,15 @@ interface Track { x: number[]; y: number[]; t: string }
     .body polyline { stroke: var(--em-c); stroke-width: 4.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
     .head { fill: var(--em-c); }
     .barend { fill: var(--c-bar); }
-    .kbh { fill: none; stroke: #6b21a8; stroke-width: 1.4; }
+    .kbh { fill: none; stroke: #86198f; stroke-width: 1.4; }
     .plate.bar { fill: rgba(249,115,22,0.35); stroke: var(--c-bar); stroke-width: 1.6; }
     .plate.db { fill: var(--c-db); stroke: #1e40af; stroke-width: 0.8; }
-    .plate.kb { fill: var(--c-kb); stroke: #6b21a8; stroke-width: 0.8; }
+    .plate.kb { fill: var(--c-kb); stroke: #86198f; stroke-width: 0.8; }
     .plate.handle { fill: #fff; stroke: var(--c-machine); stroke-width: 1.6; }
     .plate.handle.cab { stroke: var(--c-cable); }
     .plate.handle.bnd { stroke: var(--c-band); }
     .plate.legacy { fill: var(--ion-text-color, #222); }
-    .traj { fill: none; stroke: var(--c-traj); stroke-width: 1.3; stroke-dasharray: 3 2.2; stroke-linecap: round; opacity: 0.9; }
+    .traj { fill: none; stroke: var(--c-traj); stroke-width: 1.6; stroke-dasharray: 3 2.2; stroke-linecap: round; opacity: 0.9; }
     .arrowhead { fill: var(--c-traj); }
     figcaption { font-size: 0.75rem; color: var(--ion-color-medium); margin-top: 4px; }
     figcaption button { margin-left: 6px; font: inherit; background: none; border: 0; color: var(--ion-color-primary); cursor: pointer; text-decoration: underline; }

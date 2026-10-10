@@ -4,11 +4,18 @@ const m = sideMotion;
 const STEP = { kind: 'step' as const, d: 'M20 80 H44 V90' };
 
 export const LEG_MOTIONS: Motion[] = [
-  m({ id: 'squat', label: 'Agachamento com barra' }, standing({ uarm: 200, farm: 20 }), standing({ shin: 28, thigh: -95, torso: 30, uarm: 205, farm: 25 }), true),
-  m({ id: 'squat-front', label: 'Agachamento frontal' }, standing({ uarm: 85, farm: 340 }), standing({ shin: 28, thigh: -95, torso: 14, uarm: 85, farm: 340 }), true),
-  m({ id: 'goblet', label: 'Agachamento goblet' }, standing({ uarm: 170, farm: 15 }), standing({ shin: 28, thigh: -95, torso: 18, uarm: 170, farm: 15 }), true),
-  m({ id: 'squat-bw', label: 'Agachamento' }, standing({ uarm: 175, farm: 175 }), standing({ shin: 28, thigh: -95, torso: 30, uarm: 90, farm: 90 })),
-  m({ id: 'squat-box', label: 'Agachamento ao caixote', props: [{ kind: 'box', d: 'M8 76 H24 V90' }] }, standing({ at: [50, 90], uarm: 200, farm: 20 }), standing({ at: [50, 90], shin: 22, thigh: -88, torso: 36, uarm: 205, farm: 25 }), true),
+  // Agachamentos: a carga mantém-se na vertical sobre o meio do pé; é o comprimento dos segmentos que decide a inclinação
+  // do tronco (neckX). Fundo = coxa à horizontal, tíbia ~30° à frente.
+  m({ id: 'squat', label: 'Agachamento com barra' },
+    standing({ at: [44, 90], neckX: 46, uarm: 200, farm: 20 }), standing({ at: [44, 90], shin: 30, thigh: -98, neckX: 46, uarm: 200, farm: 20 }), true),
+  m({ id: 'squat-front', label: 'Agachamento frontal' },
+    standing({ at: [44, 90], neckX: 44, uarm: 85, farm: 340 }), standing({ at: [44, 90], shin: 30, thigh: -98, neckX: 44, uarm: 85, farm: 340 }), true),
+  m({ id: 'goblet', label: 'Agachamento goblet' },
+    standing({ at: [44, 90], neckX: 45, reach: [8, 8], elbow: 'down' }), standing({ at: [44, 90], shin: 30, thigh: -98, neckX: 45, reach: [8, 8], elbow: 'down' }), true),
+  m({ id: 'squat-bw', label: 'Agachamento' },
+    standing({ at: [44, 90], neckX: 43, uarm: 100, farm: 90 }), standing({ at: [44, 90], shin: 30, thigh: -98, neckX: 41, uarm: 90, farm: 90 })),
+  m({ id: 'squat-box', label: 'Agachamento ao caixote', props: [{ kind: 'box', d: 'M8 75 H30 V90' }] },
+    standing({ at: [44, 90], neckX: 46, uarm: 200, farm: 20 }), standing({ at: [44, 90], shin: 6, thigh: -90, neckX: 48, uarm: 200, farm: 20 }), true),
   m({ id: 'hack', label: 'Hack squat', props: [{ kind: 'machine', d: 'M34 12 L50 90' }] },
     standing({ at: [52, 90], shin: -4, thigh: -4, torso: -12, uarm: 180, farm: 180 }),
     standing({ at: [52, 90], shin: 30, thigh: -90, torso: -12, uarm: 180, farm: 180 })),
@@ -34,8 +41,8 @@ export const LEG_MOTIONS: Motion[] = [
     { anchor: 'hip', at: [34, 62], shin: -88, thigh: -90, torso: 0, uarm: 150, farm: 160 },
     { anchor: 'hip', at: [34, 62], shin: 25, thigh: -90, torso: 0, uarm: 150, farm: 160 }),
   m({ id: 'nordic', label: 'Nordic curl', props: [PAD] },
-    { anchor: 'ankle', at: [24, 87], shin: 88, thigh: 2, torso: 2, uarm: 150, farm: 150 },
-    { anchor: 'ankle', at: [24, 87], shin: 88, thigh: 62, torso: 72, uarm: 125, farm: 150 }),
+    { anchor: 'ankle', at: [14, 87], shin: 88, thigh: 2, torso: 2, uarm: 150, farm: 150 },
+    { anchor: 'ankle', at: [14, 87], shin: 88, thigh: 62, torso: 72, uarm: 125, farm: 150 }),
   m({ id: 'calf', label: 'Elevação de gémeos', props: [{ kind: 'step', d: 'M32 90 H60' }] },
     standing({ at: [46, 88], uarm: 178, farm: 178 }), standing({ at: [46, 84], foot: 140, uarm: 178, farm: 178 })),
   m({ id: 'calf-seated', label: 'Gémeos sentado', props: [{ kind: 'bench', d: 'M16 72 H42 M22 72 V90' }] },

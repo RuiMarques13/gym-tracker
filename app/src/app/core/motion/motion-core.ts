@@ -44,15 +44,30 @@ export interface Pose {
   torso: number;
   /** Curvatura da coluna: o ângulo da metade de cima do tronco soma-se a `torso`. */
   bend?: number;
-  uarm: number;
-  farm: number;
+  /** Ângulos absolutos do braço e do antebraço (FK). Ignorados se houver `reach`. */
+  uarm?: number;
+  farm?: number;
+  /**
+   * Posição do pulso relativa ao ombro, em coordenadas do desenho (x para a frente, y para baixo). Quando existe, o braço
+   * é calculado por cinemática inversa (2 ossos): é assim que a trajetória da carga (vertical no supino, recta na
+   * puxada…) é definida, em vez de ângulos soltos. `elbow` diz para onde o cotovelo aponta.
+   */
+  reach?: Pt;
+  /** Alternativa a `reach`: posição do pulso no desenho (a carga fica nesse ponto, p. ex. barra sobre o meio do pé). */
+  hand?: Pt;
+  elbow?: 'down' | 'up' | 'back' | 'front';
+  /**
+   * Faz o tronco inclinar-se o necessário para o pescoço ficar nesta abcissa (a barra às costas ou nas mãos mantém-se na
+   * vertical sobre o meio do pé, e é o comprimento dos segmentos que decide o ângulo das costas).
+   */
+  neckX?: number;
   /** Segunda perna (coxa, canela), mesma convenção da cadeia ancorada na anca: 0 = a direito para baixo. */
   leg2?: [number, number];
   /** Direção do pé a partir do tornozelo (90 = plano, para a frente). */
   foot?: number;
 }
 
-export const L = { shin: 17, thigh: 18, torso: 24, uarm: 11, farm: 11 };
+export const L = { shin: 20, thigh: 21, torso: 24, uarm: 13.5, farm: 15 };
 const rad = (d: number) => (d * Math.PI) / 180;
 export const dir = (deg: number): Pt => [Math.sin(rad(deg)), -Math.cos(rad(deg))];
 const add = (p: Pt, d: Pt, len: number): Pt => [p[0] + d[0] * len, p[1] + d[1] * len];
@@ -63,7 +78,44 @@ export interface Joints {
   knee2?: Pt; ankle2?: Pt; toe: Pt;
 }
 
+const PREFER: Record<'down' | 'up' | 'back' | 'front', Pt> = { down: [0, 1], up: [0, -1], back: [-1, 0], front: [1, 0] };
+
+/** Cinemática inversa de dois ossos: cotovelo e pulso para o pulso ficar em `shoulder + reach` (limitado ao alcance do braço). */
+export function armIK(shoulder: Pt, reach: Pt, side: 'down' | 'up' | 'back' | 'front'): [Pt, Pt] {
+  const a = L.uarm, b = L.farm;
+  const maxD = a + b - 0.05;
+  let d = Math.hypot(reach[0], reach[1]);
+  const u: Pt = d < 1e-6 ? [0, -1] : [reach[0] / d, reach[1] / d];
+  d = Math.min(Math.max(d, Math.abs(a - b) + 0.05), maxD);
+  const x = (d * d + a * a - b * b) / (2 * d);
+  const h = Math.sqrt(Math.max(0, a * a - x * x));
+  const base: Pt = [shoulder[0] + u[0] * x, shoulder[1] + u[1] * x];
+  const perp: Pt = [-u[1], u[0]];
+  const c1: Pt = [base[0] + perp[0] * h, base[1] + perp[1] * h];
+  const c2: Pt = [base[0] - perp[0] * h, base[1] - perp[1] * h];
+  const pref = PREFER[side];
+  const score = (c: Pt) => (c[0] - shoulder[0]) * pref[0] + (c[1] - shoulder[1]) * pref[1];
+  const elbow = score(c1) >= score(c2) ? c1 : c2;
+  return [elbow, [shoulder[0] + u[0] * d, shoulder[1] + u[1] * d]];
+}
+
+/** Ângulo do tronco (graus) que põe o pescoço em `x`, dada a anca (bissecção; o tronco só se inclina para a frente). */
+function torsoForNeckX(hipX: number, x: number, bend: number): number {
+  const neckAt = (t: number) => hipX + Math.sin(rad(t)) * L.torso / 2 + Math.sin(rad(t + bend)) * L.torso / 2;
+  let lo = -40, hi = 100;
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2;
+    if (neckAt(mid) < x) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
 export function joints(p: Pose): Joints {
+  if (p.neckX !== undefined) {
+    // anca com o tronco provisório; depois afina-se o ângulo
+    const probe = joints({ ...p, neckX: undefined });
+    return joints({ ...p, neckX: undefined, torso: torsoForNeckX(probe.hip[0], p.neckX, p.bend ?? 0) });
+  }
   let ankle: Pt, knee: Pt, hip: Pt;
   if (p.anchor === 'ankle') {
     ankle = p.at;
@@ -78,8 +130,14 @@ export function joints(p: Pose): Joints {
   const mid = add(hip, dir(p.torso), L.torso / 2);
   const neck = add(mid, dir(upper), L.torso / 2);
   const head = add(neck, dir(upper), 7);
-  const elbow = add(neck, dir(p.uarm), L.uarm);
-  const wrist = add(elbow, dir(p.farm), L.farm);
+  let elbow: Pt, wrist: Pt;
+  if (p.reach || p.hand) {
+    const reach: Pt = p.reach ?? [p.hand![0] - neck[0], p.hand![1] - neck[1]];
+    [elbow, wrist] = armIK(neck, reach, p.elbow ?? 'down');
+  } else {
+    elbow = add(neck, dir(p.uarm ?? 180), L.uarm);
+    wrist = add(elbow, dir(p.farm ?? 180), L.farm);
+  }
   let knee2: Pt | undefined, ankle2: Pt | undefined;
   if (p.leg2) {
     knee2 = sub(hip, dir(p.leg2[0]), L.thigh);
@@ -179,7 +237,13 @@ const mix = (a: number, b: number): number => (a + b) / 2;
 const mixPose = (a: Pose, b: Pose): Pose => ({
   anchor: a.anchor, at: [mix(a.at[0], b.at[0]), mix(a.at[1], b.at[1])],
   shin: mix(a.shin, b.shin), thigh: mix(a.thigh, b.thigh), torso: mix(a.torso, b.torso),
-  bend: mix(a.bend ?? 0, b.bend ?? 0), uarm: mix(a.uarm, b.uarm), farm: mix(a.farm, b.farm),
+  bend: mix(a.bend ?? 0, b.bend ?? 0),
+  uarm: a.uarm !== undefined && b.uarm !== undefined ? mix(a.uarm, b.uarm) : undefined,
+  farm: a.farm !== undefined && b.farm !== undefined ? mix(a.farm, b.farm) : undefined,
+  reach: a.reach && b.reach ? [mix(a.reach[0], b.reach[0]), mix(a.reach[1], b.reach[1])] : undefined,
+  hand: a.hand && b.hand ? [mix(a.hand[0], b.hand[0]), mix(a.hand[1], b.hand[1])] : undefined,
+  neckX: a.neckX !== undefined && b.neckX !== undefined ? mix(a.neckX, b.neckX) : undefined,
+  elbow: a.elbow,
   leg2: a.leg2 && b.leg2 ? [mix(a.leg2[0], b.leg2[0]), mix(a.leg2[1], b.leg2[1])] : undefined,
   foot: mix(a.foot ?? 90, b.foot ?? 90),
 });
@@ -200,6 +264,39 @@ export const sideMotion = (s: Spec, a: Pose, b: Pose, weight = false): Motion =>
 export const frontMotion = (s: Spec, a: FrontPose, b: FrontPose, weight = false): Motion => ({
   id: s.id, label: s.label, pulley: s.pulley, props: s.props ?? [], from: front(a, weight), mid: front(mixFront(a, b), weight), to: front(b, weight),
 });
+
+/**
+ * Banco (ou encosto) desenhado ao longo do tronco da pose: a linha do banco acompanha a coluna, por isso o ângulo do
+ * banco é sempre o do tronco. Inclui a almofada do assento e os pés do banco.
+ */
+export function benchAlong(p: Pose, opts: { kind?: Prop['kind']; seat?: boolean } = {}): Prop[] {
+  const j = joints(p);
+  const t: Pt = [j.neck[0] - j.hip[0], j.neck[1] - j.hip[1]];
+  const len = Math.hypot(t[0], t[1]) || 1;
+  const u: Pt = [t[0] / len, t[1] / len];
+  let n: Pt = [-u[1], u[0]];
+  if (n[1] < 0) n = [-n[0], -n[1]];
+  const kind = opts.kind ?? 'bench';
+  const r = (v: number) => Math.round(v * 10) / 10;
+  const lo: Pt = [j.hip[0] - u[0] * 6 + n[0] * 4.5, j.hip[1] - u[1] * 6 + n[1] * 4.5];
+  const hi: Pt = [j.neck[0] + u[0] * 9 + n[0] * 4.5, j.neck[1] + u[1] * 9 + n[1] * 4.5];
+  const floor = 90;
+  const parts = [`M${r(lo[0])} ${r(lo[1])} L${r(hi[0])} ${r(hi[1])}`];
+  // assento (pequeno, horizontal) e pés do banco
+  const seatY = lo[1];
+  if (opts.seat !== false) parts.push(`M${r(lo[0])} ${r(seatY)} H${r(lo[0] + 14)}`);
+  if (seatY < floor - 1) parts.push(`M${r(lo[0] + 4)} ${r(seatY)} V${floor}`);
+  if (hi[1] < floor - 1 && Math.abs(hi[1] - lo[1]) > 6) parts.push(`M${r(hi[0])} ${r(hi[1])} V${floor}`);
+  return [{ kind, d: parts.join(' ') }];
+}
+
+/** Assento (sem encosto) sob a anca de uma pose sentada: linha horizontal até ao joelho e o pé do banco. */
+export function seatAt(p: Pose, kind: Prop['kind'] = 'bench'): Prop[] {
+  const j = joints(p);
+  const r = (v: number) => Math.round(v * 10) / 10;
+  const y = j.hip[1] + 5;
+  return [{ kind, d: `M${r(j.hip[0] - 8)} ${r(y)} H${r(j.knee[0] - 2)} M${r(j.hip[0] - 3)} ${r(y)} V90` }];
+}
 
 export const BENCH: Prop = { kind: 'bench', d: 'M20 76 H72 M26 76 V90 M66 76 V90' };
 export const PAD: Prop = { kind: 'pad', d: 'M10 88 H82' };
