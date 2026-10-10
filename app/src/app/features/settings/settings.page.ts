@@ -18,6 +18,7 @@ import {
   IonToolbar,
   ToastController,
 } from '@ionic/angular';
+import { AuthService } from '../../core/cloud/auth.service';
 import { BackupService } from '../../core/backup/backup.service';
 import { MERGE_TABLES, MergeError, MergeReport } from '../../core/merge/merge';
 import { SettingsService } from '../../core/settings/settings.service';
@@ -35,6 +36,14 @@ import { SettingsService } from '../../core/settings/settings.service';
     <ion-content>
       <div class="page">
         <ion-list>
+          <ion-list-header><ion-label>Conta</ion-label></ion-list-header>
+          <ion-item button detail routerLink="/conta">
+            <ion-label class="ion-text-wrap">
+              <h3>{{ auth.email() ?? 'Entrar ou criar conta' }}</h3>
+              <p>{{ auth.state() === 'signedIn' ? 'Sessão iniciada' : 'Opcional: guarda os dados na nuvem' }}</p>
+            </ion-label>
+          </ion-item>
+
           <ion-list-header><ion-label>Aspeto</ion-label></ion-list-header>
           <ion-item lines="none">
             <ion-label>Tema</ion-label>
@@ -95,6 +104,7 @@ import { SettingsService } from '../../core/settings/settings.service';
   styles: `.page { max-width: 760px; margin: 0 auto; } ion-segment { margin: 4px 0 12px; } .last { margin-top: 6px; } .msg { color: var(--ion-color-success-shade); } .msg.error { color: var(--ion-color-danger); }`,
 })
 export class SettingsPage {
+  protected readonly auth = inject(AuthService);
   private readonly settings = inject(SettingsService);
   private readonly backup = inject(BackupService);
   private readonly alerts = inject(AlertController);

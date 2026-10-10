@@ -10,6 +10,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { Capacitor } from '@capacitor/core';
 import { provideRouter, RouteReuseStrategy, withComponentInputBinding } from '@angular/router';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular';
+import { AuthService } from './core/cloud/auth.service';
 import { UpdateService } from './core/pwa/update.service';
 import { DatabaseService } from './core/db/database.service';
 import { SettingsService } from './core/settings/settings.service';
@@ -33,11 +34,13 @@ export const appConfig: ApplicationConfig = {
       const db = inject(DatabaseService);
       const settings = inject(SettingsService);
       const theme = inject(ThemeService);
+      const auth = inject(AuthService);
       const update = inject(UpdateService); // inject() só funciona antes do primeiro await
       theme.start();
       await db.init();
       await settings.init();
       update.start();
+      void auth.init(); // lê a sessão guardada sem atrasar o primeiro ecrã
     }),
   ],
 };

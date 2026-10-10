@@ -4,7 +4,7 @@ App pessoal para planear e registar treinos de força e mobilidade. Local primei
 dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: documento
 «Gym Tracker — requisitos, arquitetura e fases» (v2) no projeto.
 
-## Estado: Fases 0 e 1 concluídas (MVP local)
+## Estado: Fases 0 e 1 concluídas (MVP local); Fase 2 em curso
 
 - [x] Projeto Ionic 9 + Angular 21 (standalone, sem zone.js) + Capacitor 8, alvos web e Android
 - [x] `DbAdapter` com três implementações: SQLite nativo (Android), jeep-sqlite (browser), sql.js (testes)
@@ -21,7 +21,11 @@ dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: docum
 - [x] Fase 1.3: sessão ativa (a partir de um treino ou livre), séries com carga, reps, duração, lados e amplitude, pré-preenchimento, descanso real, cronómetro de duração e bolha do temporizador com som e vibração; terminar com esforço e notas
 - [x] Fase 1.4: histórico por sessão e por exercício com correções; exportar/importar JSON com merge «última escrita ganha» (`core/merge`), lembrete de cópia de segurança e proposta de fim para sessões esquecidas
 - [x] Fase 1.5: Home com próximo treino, séries da semana por músculo e mobilidade da semana; Planeados; Perfil com medições e IMC; onboarding; ecrã de configurar o relógio; notificação local no fim do temporizador (Android)
-- [x] 117 testes em Node (migrações, restrições, seed, definições, transações, repositórios, biblioteca, treinos)
+- [x] 134 testes em Node (migrações, restrições, seed, definições, transações, repositórios, biblioteca, treinos, servidor Postgres)
+- [x] PWA: instalável no telemóvel, abre offline e avisa quando há versão nova
+- [x] Fase 2 (servidor): `supabase/migrations` com o esquema Postgres, RLS por utilizador e as funções `sync_push`, `sync_pull` e `delete_my_data`, testadas num Postgres real (PGlite)
+- [x] Fase 2 (app): conta opcional com Supabase Auth (Definições → Conta): entrar, criar conta, sair, apagar dados na nuvem
+- [ ] Fase 2: aplicar o SQL no projeto Supabase (ver «Servidor» abaixo)
 - [ ] APK testado num Android real (falta correr no teu PC, ver abaixo)
 
 ## Requisitos
@@ -97,3 +101,18 @@ docs/                 notas técnicas
   gravar a meio (no browser, gravar reabre a base e repõe os PRAGMAs).
 - **Migrações em TypeScript** (`001-init.ts`) em vez de `.sql`, para o mesmo ficheiro servir o build e os testes sem configuração extra.
 - IDs determinísticos: ver `docs/ids.md`.
+
+
+## Servidor (Supabase)
+
+O projeto fica em `app/src/app/core/cloud/cloud-config.ts` (URL e chave *publishable*, públicas por desenho).
+Nunca pôr aí a chave `service_role` nem a palavra-passe da base de dados.
+
+Aplicar o esquema, uma vez, no SQL Editor do Supabase e por esta ordem:
+
+1. `supabase/migrations/20261010000001_schema.sql`
+2. `supabase/migrations/20261010000002_sync.sql`
+
+Em Authentication → Providers → Email, para uso pessoal convém desligar «Confirm email»
+(ou definir o Site URL em Authentication → URL Configuration) e, depois de criares a conta,
+desligar «Allow new users to sign up».
