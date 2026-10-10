@@ -40,6 +40,8 @@ import {
   REGION_LABEL,
 } from '../../data/models/enums';
 import { Exercise, ExerciseInput, ExerciseValidationError } from '../../data/models/exercise';
+import { specOfMuscleIds } from '../../core/metrics/muscles';
+import { MuscleMapComponent } from '../../shared/muscle-map.component';
 import { MuscleGroup, NamedItem } from '../../data/repositories/lookup.repository';
 import { EXERCISE_REPOSITORY, LOOKUP_REPOSITORY } from '../../data/repositories/providers';
 
@@ -54,7 +56,7 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
  */
 @Component({
   selector: 'app-exercise-form',
-  imports: [
+  imports: [MuscleMapComponent, 
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonContent, IonFooter, IonList,
     IonListHeader, IonItem, IonLabel, IonInput, IonTextarea, IonToggle, IonSelect, IonSelectOption, IonSegment,
     IonSegmentButton, IonChip, IonNote, IonBadge, IonSpinner, RouterLink,
@@ -163,6 +165,7 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
                   </p>
                 </ion-label>
               </ion-list-header>
+              <app-muscle-map [primary]="specPrimary()" [secondary]="specSecondary()" />
               @for (group of muscleGroups(); track group.region) {
                 <div class="chips-block">
                   <span class="chips-title">{{ group.label }}</span>
@@ -305,6 +308,12 @@ export class ExerciseFormPage implements OnInit {
     this.kind() === 'MOBILITY' ? 'Sem descanso' : `Usa o global (${this.settings.get('defaultRestSeconds')()} s)`,
   );
   readonly validVideoUrl = computed(() => (/^https?:\/\/\S+$/i.test(this.videoUrl().trim()) ? this.videoUrl().trim() : null));
+  readonly specPrimary = computed(() =>
+    specOfMuscleIds([...this.muscleRoles()].filter(([, r]) => r === 'primary').map(([id]) => id)),
+  );
+  readonly specSecondary = computed(() =>
+    specOfMuscleIds([...this.muscleRoles()].filter(([, r]) => r === 'secondary').map(([id]) => id)),
+  );
   readonly muscleGroups = computed(() =>
     REGIONS.map((r) => ({ region: r, label: REGION_LABEL[r], muscles: this.muscles().filter((m) => (m.region ?? 'FULL_BODY') === r) }))
       .filter((g) => g.muscles.length),

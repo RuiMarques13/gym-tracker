@@ -23,6 +23,8 @@ import { addIcons } from 'ionicons';
 import { add, checkmark, refreshOutline } from 'ionicons/icons';
 import { libraryItemToInput, LibraryItemState } from '../../core/library/library';
 import type { LibraryItem } from '../../core/library/library-types';
+import { specOfKeys } from '../../core/metrics/muscles';
+import { MuscleMapComponent } from '../../shared/muscle-map.component';
 import { SEED } from '../../core/seed/seed.generated';
 import { ids } from '../../core/util/uuid';
 import { METRIC_LABEL } from '../../data/models/enums';
@@ -41,7 +43,7 @@ const PAGE = 60;
  */
 @Component({
   selector: 'app-library',
-  imports: [
+  imports: [MuscleMapComponent, 
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent, IonSearchbar, IonChip, IonLabel,
     IonList, IonItem, IonNote, IonBadge, IonButton, IonIcon, IonSpinner,
   ],
@@ -80,9 +82,12 @@ const PAGE = 60;
           <ion-list lines="full">
             @for (item of visible(); track item.key) {
               <ion-item>
-                <ion-label class="ion-text-wrap">
+                <ion-label class="ion-text-wrap" (click)="toggleOpen(item.key)">
                   <h2>{{ item.name }}</h2>
                   <p>{{ subtitle(item) }}</p>
+                  @if (openKey() === item.key && item.kind === 'STRENGTH') {
+                    <app-muscle-map [primary]="specOf(item.primary)" [secondary]="specOf(item.secondary)" />
+                  }
                 </ion-label>
                 <div slot="end" class="end">
                   @if (item.isUnilateral) { <ion-badge color="tertiary">Unilateral</ion-badge> }
@@ -143,6 +148,11 @@ export class LibraryPage implements ViewWillEnter {
   readonly equipment = signal<string | null>(null);
   readonly limit = signal(PAGE);
   readonly busy = signal<string | null>(null);
+  readonly openKey = signal<string | null>(null);
+  readonly specOf = specOfKeys;
+  toggleOpen(key: string): void {
+    this.openKey.update((k) => (k === key ? null : key));
+  }
   readonly equipmentList = SEED.equipment;
 
   /** Carregada à parte (chunk próprio) para não pesar no arranque. */
