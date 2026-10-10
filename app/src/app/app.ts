@@ -26,6 +26,7 @@ import {
   bodyOutline,
   cameraOutline,
   cloudDoneOutline,
+  heartOutline,
   homeOutline,
   logOutOutline,
   optionsOutline,
@@ -169,7 +170,7 @@ export class App {
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => void this.requireLogin());
     addIcons({
       homeOutline, calendarOutline, clipboardOutline, barbellOutline, timeOutline, statsChartOutline,
-      personOutline, settingsOutline, bodyOutline, cameraOutline, cloudDoneOutline, logOutOutline, optionsOutline, checkmarkCircleOutline, alertCircleOutline,
+      personOutline, settingsOutline, bodyOutline, cameraOutline, cloudDoneOutline, heartOutline, logOutOutline, optionsOutline, checkmarkCircleOutline, alertCircleOutline,
     });
   }
 

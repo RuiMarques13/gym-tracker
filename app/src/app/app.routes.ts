@@ -49,6 +49,8 @@ export const routes: Routes = [
   { path: 'planeados', loadComponent: () => import('./features/planned/planned.page').then((m) => m.PlannedPage) },
   { path: 'historico', loadComponent: () => import('./features/history/history.page').then((m) => m.HistoryPage) },
   { path: 'historico/:id', loadComponent: () => import('./features/session/session.page').then((m) => m.SessionPage) },
+  { path: 'saude', loadComponent: () => import('./features/health/health.page').then((m) => m.HealthPage) },
+  { path: 'saude/:id', loadComponent: () => import('./features/health/health-detail.page').then((m) => m.HealthDetailPage) },
   { path: 'fotos', loadComponent: () => import('./features/photos/photos.page').then((m) => m.PhotosPage) },
   { path: 'volume', loadComponent: () => import('./features/volume/volume.page').then((m) => m.VolumePage) },
   { path: 'graficos', loadComponent: () => import('./features/charts/charts.page').then((m) => m.ChartsPage) },

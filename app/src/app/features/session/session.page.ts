@@ -1,5 +1,4 @@
 import { EffortScaleComponent } from '../../shared/effort-scale.component';
-import { SessionHealthComponent } from '../../shared/session-health.component';
 import { Component, computed, effect, inject, input, OnDestroy, resource, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
@@ -76,7 +75,7 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
 /** Sessão em curso: registar séries, descanso e duração com o temporizador, terminar. */
 @Component({
   selector: 'app-session',
-  imports: [SessionHealthComponent, EffortScaleComponent, 
+  imports: [EffortScaleComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonContent, IonFooter, IonList, IonItem,
     IonLabel, IonBadge, IonInput, IonTextarea, IonModal, IonSegment, IonSegmentButton, IonSpinner,
   ],
@@ -116,9 +115,6 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
           </div>
           @for (w of warnings(); track w) {
             <p class="warn">{{ w }}</p>
-          }
-          @if (historical()) {
-            <app-session-health [sessionId]="session()!.id" [startedAt]="session()!.startedAt" [endedAt]="session()!.endedAt" />
           }
 
           @for (b of blocks(); track b.block) {

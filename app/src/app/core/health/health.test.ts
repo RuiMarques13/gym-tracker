@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb } from '../testing/test-db';
 import { SqliteHealthRepository } from '../../data/repositories/health.repository';
 import type { HealthProvider } from './health-provider';
-import { downsample, summarize } from './health.logic';
+import { chartSeries, downsample, summarize } from './health.logic';
 import { importSessionHealth } from './health.service';
 
 const t = (s: number) => new Date(Date.UTC(2026, 9, 10, 10, 0, s)).toISOString();
@@ -66,5 +66,17 @@ describe('importar saúde de uma sessão', () => {
     let seen = '';
     await importSessionHealth(fake({ heartRate: async (_s, e) => { seen = e; return []; }, activeCalories: async () => 10 }), repo, { ...session, endedAt: null }, t(77));
     expect(seen).toBe(t(77));
+  });
+});
+
+describe('chartSeries', () => {
+  it('média por minuto desde o início', () => {
+    const r = chartSeries([{ ts: t(0), bpm: 100 }, { ts: t(30), bpm: 120 }, { ts: t(70), bpm: 140 }], t(0));
+    expect(r).toEqual([{ minute: 1, bpm: 110 }, { minute: 2, bpm: 140 }]);
+  });
+  it('limita o número de pontos em treinos longos', () => {
+    const many = Array.from({ length: 200 }, (_, i) => ({ ts: t(i * 60), bpm: 100 + (i % 20) }));
+    expect(chartSeries(many, t(0), 60).length).toBeLessThanOrEqual(60);
+    expect(chartSeries([], t(0))).toEqual([]);
   });
 });

@@ -43,3 +43,30 @@ export function summarize(points: readonly HrPoint[]): HrSummary {
   }
   return { avg: Math.round(sum / points.length), max, min, samples: points.length };
 }
+
+export interface HrChartPoint {
+  /** Minuto desde o início do treino (ponto central do intervalo). */
+  minute: number;
+  bpm: number;
+}
+
+/**
+ * Reduz as amostras a no máximo `maxPoints` pontos para o gráfico: média por intervalos de 1 min
+ * (ou de vários minutos, em treinos longos). `minute` conta desde o início do treino.
+ */
+export function chartSeries(points: readonly HrPoint[], startIso: string, maxPoints = 60): HrChartPoint[] {
+  const t0 = Date.parse(startIso);
+  const valid = points.filter((p) => Number.isFinite(p.bpm) && Date.parse(p.ts) >= t0 - 60_000);
+  if (!valid.length || Number.isNaN(t0)) return [];
+  const lastMin = Math.max(0, (Date.parse(valid[valid.length - 1].ts) - t0) / 60_000);
+  const step = Math.max(1, Math.ceil((lastMin + 1) / maxPoints));
+  const buckets = new Map<number, { sum: number; n: number }>();
+  for (const p of valid) {
+    const k = Math.floor(Math.max(0, (Date.parse(p.ts) - t0) / 60_000) / step);
+    const b = buckets.get(k) ?? { sum: 0, n: 0 };
+    b.sum += p.bpm;
+    b.n += 1;
+    buckets.set(k, b);
+  }
+  return [...buckets.entries()].sort((a, b) => a[0] - b[0]).map(([k, b]) => ({ minute: Math.round(k * step + step / 2), bpm: Math.round(b.sum / b.n) }));
+}

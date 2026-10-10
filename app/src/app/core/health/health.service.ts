@@ -52,6 +52,7 @@ export class HealthService {
   summary(sessionId: string) { return this.repo.summary(sessionId); }
   points(sessionId: string) { return this.repo.points(sessionId); }
   clear(sessionId: string) { return this.repo.clear(sessionId); }
+  all() { return this.repo.all(); }
 
   importForSession(session: { id: string; startedAt: string; endedAt: string | null }): Promise<ImportResult> {
     return importSessionHealth(this.provider, this.repo, session, this.clock.nowIso());

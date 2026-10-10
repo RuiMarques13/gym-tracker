@@ -13,6 +13,8 @@ export interface HealthRepository {
   summary(sessionId: string): Promise<SessionHealth | null>;
   points(sessionId: string): Promise<HrPoint[]>;
   clear(sessionId: string): Promise<void>;
+  /** Resumos de todas as sessões com dados de saúde, por id da sessão. */
+  all(): Promise<Map<string, SessionHealth>>;
 }
 
 export class SqliteHealthRepository implements HealthRepository {
@@ -50,5 +52,12 @@ export class SqliteHealthRepository implements HealthRepository {
   async clear(sessionId: string): Promise<void> {
     await this.db.run('DELETE FROM hr_sample WHERE session_id = ?', [sessionId]);
     await this.db.run('DELETE FROM session_health WHERE session_id = ?', [sessionId]);
+  }
+
+  async all(): Promise<Map<string, SessionHealth>> {
+    const rows = await this.db.query<{ session_id: string; avg_bpm: number | null; max_bpm: number | null; min_bpm: number | null; samples: number; calories_kcal: number | null; source: string | null; imported_at: string }>(
+      'SELECT * FROM session_health',
+    );
+    return new Map(rows.map((x) => [x.session_id, { avg: x.avg_bpm, max: x.max_bpm, min: x.min_bpm, samples: x.samples, caloriesKcal: x.calories_kcal, source: x.source, importedAt: x.imported_at }]));
   }
 }
