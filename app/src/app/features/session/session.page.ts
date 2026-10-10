@@ -1,5 +1,5 @@
 import { SessionHealthComponent } from '../../shared/session-health.component';
-import { Component, computed, effect, inject, input, OnDestroy, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, input, OnDestroy, resource, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   AlertController,
@@ -31,13 +31,16 @@ import { addIcons } from 'ionicons';
 import { add, checkmarkCircle, ellipseOutline, stopwatchOutline, trashOutline } from 'ionicons/icons';
 import { SettingsService } from '../../core/settings/settings.service';
 import { formatClock } from '../../core/timer/timer-math';
+import { EffortReminder } from '../../core/timer/effort-reminder';
 import { TimerService } from '../../core/timer/timer.service';
 import { CLOCK } from '../../core/util/clock';
 import type { SetType, Side } from '../../data/models/enums';
 import type { Exercise } from '../../data/models/exercise';
 import { groupSets, Session, SessionError, SessionExercise, SessionSet, SideEntry, workingSetCount } from '../../data/models/session';
 import { BLOCK_LABEL, BLOCK_ORDER } from '../../data/models/workout';
-import { SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { MUSCLE_LABEL, specOfMuscleIds } from '../../core/metrics/muscles';
+import { MetricExercise, MetricSet, sessionWarnings } from '../../core/metrics/volume';
+import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories/providers';
 import { ExercisePickerComponent } from '../workouts/exercise-picker.component';
 import { formatDay } from '../history/history-format';
 import { formatTargets } from '../workouts/workout-format';
@@ -110,6 +113,9 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
             <span>{{ totalSets() }} {{ totalSets() === 1 ? 'série' : 'séries' }}</span>
             <span>{{ session()!.exercises.length }} {{ session()!.exercises.length === 1 ? 'exercício' : 'exercícios' }}</span>
           </div>
+          @for (w of warnings(); track w) {
+            <p class="warn">{{ w }}</p>
+          }
           @if (historical()) {
             <app-session-health [sessionId]="session()!.id" [startedAt]="session()!.startedAt" [endedAt]="session()!.endedAt" />
           }
@@ -304,6 +310,8 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
     .n { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 8px; border-radius: 50%;
       background: var(--ion-color-step-150, #ddd); font-size: 0.75rem; font-weight: 700; }
     .actions { padding: 8px 12px 12px; }
+    .warn { margin: 8px 0; padding: 8px 12px; border-radius: 10px; font-size: 0.85rem;
+      background: var(--ion-color-warning-tint, #fff3cd); color: var(--ion-color-warning-shade, #6b5200); }
     .hint { text-align: center; color: var(--ion-color-medium); margin: 24px 0; }
     .footer { max-width: 760px; margin: 0 auto; padding: 4px 12px; }
     .sheet { padding: 12px 16px 24px; display: grid; gap: 14px; max-width: 520px; margin: 0 auto; }
@@ -356,6 +364,38 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     if (!s) return [];
     return BLOCK_ORDER.map((block) => ({ block, items: s.exercises.filter((e) => e.block === block) })).filter((b) => b.items.length);
   });
+  private readonly exerciseRepo = inject(EXERCISE_REPOSITORY);
+  private readonly effort = inject(EffortReminder);
+  /** Músculos primários (ids do spec) de cada exercício da sessão. */
+  private readonly primaryMuscles = resource({
+    params: () => [...new Set((this.session()?.exercises ?? []).map((e) => e.exerciseId))].sort().join(','),
+    loader: async ({ params }) => {
+      const out = new Map<string, MetricExercise>();
+      for (const id of params ? params.split(',') : []) {
+        const ex = await this.exerciseRepo.get(id);
+        out.set(id, { id, primaryMuscles: specOfMuscleIds(ex?.primaryMuscleIds ?? []), secondaryMuscles: [] });
+      }
+      return out;
+    },
+  });
+  /** Aviso quando uma sessão passa das séries diretas úteis por músculo (só em sessão em curso). */
+  readonly warnings = computed<string[]>(() => {
+    const s = this.session();
+    const exs = this.primaryMuscles.value();
+    if (!s || !exs || s.endedAt) return [];
+    const sets: MetricSet[] = [];
+    for (const e of s.exercises) {
+      if (e.kind !== 'STRENGTH') continue;
+      for (const g of groupSets(e.sets)) {
+        const x = g.sets[0];
+        if (g.type !== 'WORKING' || !x?.completedAt) continue;
+        sets.push({ exerciseId: e.exerciseId, sessionId: s.id, weightKg: x.weightKg ?? 0, reps: x.reps ?? 0, rir: x.rir,
+          type: 'working', performedAt: new Date(x.completedAt) });
+      }
+    }
+    return sessionWarnings(sets, exs, MUSCLE_LABEL);
+  });
+
   readonly totalSets = computed(() => (this.session()?.exercises ?? []).reduce((n, e) => n + groupSets(e.sets).length, 0));
   readonly sheetExercise = computed(() => {
     const sh = this.sheet();
@@ -592,6 +632,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     if (!s) return;
     const updated = await this.repo.updateDetails(s.id, { rpe: toNum(this.finishRpe()), notes: this.finishNotes() });
     this.session.set(updated);
+    if (updated.rpe !== null) void this.effort.cancel();
     this.finishOpen.set(false);
     await this.toast('Detalhes guardados.');
   }
@@ -601,6 +642,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     if (!s) return;
     const rpe = toNum(this.finishRpe());
     await this.repo.finish(s.id, { rpe, notes: this.finishNotes() });
+    if (rpe === null && this.totalSets() > 0) void this.effort.schedule(s.id); // sRPE: pergunta ~30 min depois
     this.timer.stop();
     this.finishOpen.set(false);
     await this.toast('Sessão guardada.');

@@ -41,6 +41,7 @@ import { DatabaseService } from './core/db/database.service';
 import { resolveNav } from './core/navigation/nav-items';
 import { EXERCISE_REPOSITORY, SESSION_REPOSITORY, WORKOUT_REPOSITORY } from './data/repositories/providers';
 import { SettingsService } from './core/settings/settings.service';
+import { EffortReminder } from './core/timer/effort-reminder';
 import { TimerBubbleComponent } from './shared/timer-bubble.component';
 
 @Component({
@@ -154,7 +155,10 @@ export class App {
 
   private onboardChecked = false;
 
+  private readonly effort = inject(EffortReminder);
+
   constructor() {
+    void this.effort.onOpen((id) => void this.router.navigate(['/historico', id]));
     void this.start();
     // A introdução (instalações vazias) só corre depois de entrares ou de escolheres continuar sem conta.
     effect(() => {
