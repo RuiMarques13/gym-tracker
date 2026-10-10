@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   AlertController, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonInput, IonItem, IonLabel, IonList,
@@ -16,10 +16,10 @@ import { AuthService } from '../../core/cloud/auth.service';
   template: `
     <ion-header>
       <ion-toolbar>
-        @if (!inicio()) {
+        @if (auth.state() === 'signedIn') {
           <ion-buttons slot="start"><ion-back-button defaultHref="/definicoes" text="" /></ion-buttons>
         }
-        <ion-title>{{ inicio() ? 'Gym Tracker' : 'Conta' }}</ion-title>
+        <ion-title>{{ auth.state() === 'signedIn' ? 'Conta' : 'Gym Tracker' }}</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content>
@@ -29,7 +29,7 @@ import { AuthService } from '../../core/cloud/auth.service';
             <p class="intro">A verificar a sessão…</p>
           }
           @case ('signedOut') {
-            <p class="intro">Com uma conta, os teus treinos passam a estar também na nuvem e a sincronizar entre dispositivos (chega na próxima fase). Sem conta, tudo continua a funcionar só neste dispositivo.</p>
+            <p class="intro">Entra na tua conta para usar a app. Os teus treinos ficam guardados neste dispositivo e, na próxima fase, também na nuvem, a sincronizar entre dispositivos.</p>
             <ion-segment [value]="mode()" (ionChange)="setMode($any($event).detail.value)">
               <ion-segment-button value="in"><ion-label>Entrar</ion-label></ion-segment-button>
               <ion-segment-button value="up"><ion-label>Criar conta</ion-label></ion-segment-button>
@@ -55,11 +55,6 @@ import { AuthService } from '../../core/cloud/auth.service';
                 </ion-button>
               </div>
             </form>
-            @if (inicio()) {
-              <div class="actions">
-                <ion-button expand="block" fill="clear" (click)="continueWithout()">Continuar sem conta</ion-button>
-              </div>
-            }
           }
           @case ('signedIn') {
             <ion-list lines="full">
@@ -106,8 +101,6 @@ import { AuthService } from '../../core/cloud/auth.service';
 export class AccountPage {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  /** Preenchido (?inicio=1) quando a app abre sem sessão e vem direto para aqui. */
-  readonly inicio = input<string>();
   private readonly alerts = inject(AlertController);
 
   readonly mode = signal<'in' | 'up'>('in');
@@ -139,7 +132,7 @@ export class AccountPage {
     this.busy.set(false);
     if (!r.ok) return this.show(r.message, true);
     this.password.set('');
-    if (!r.needsConfirmation && this.inicio()) {
+    if (!r.needsConfirmation) {
       await this.router.navigateByUrl('/home', { replaceUrl: true });
       return;
     }
@@ -147,11 +140,6 @@ export class AccountPage {
       this.mode.set('in');
       this.show('Conta criada. Abre o email que te enviámos, carrega no link e depois entra aqui.', false);
     }
-  }
-
-  async continueWithout(): Promise<void> {
-    this.auth.skipLogin();
-    await this.router.navigateByUrl('/home', { replaceUrl: true });
   }
 
   async signOut(): Promise<void> {

@@ -47,7 +47,7 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
   ],
   template: `
     <ion-app>
-      <ion-split-pane contentId="main" when="lg">
+      <ion-split-pane contentId="main" [when]="auth.state() === 'signedIn' ? 'lg' : false">
         <!-- Menu lateral: fixo no PC (≥ 992 px). No telemóvel usa-se a barra de separadores. -->
         <ion-menu contentId="main" type="overlay" [swipeGesture]="false">
           <ion-content>
@@ -75,7 +75,7 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
 
         <div class="ion-page shell" id="main">
           <ion-router-outlet />
-          @if (isPhone()) {
+          @if (isPhone() && auth.state() === 'signedIn') {
             <ion-tab-bar [selectedTab]="selectedTab()">
               @for (item of tabs; track item.path) {
                 <ion-tab-button [tab]="item.path" [routerLink]="item.path">
@@ -113,7 +113,7 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
   `,
 })
 export class App {
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly settings = inject(SettingsService);
   private readonly database = inject(DatabaseService);
@@ -145,20 +145,26 @@ export class App {
     void this.start();
     // A introdução (instalações vazias) só corre depois de entrares ou de escolheres continuar sem conta.
     effect(() => {
-      if (this.auth.state() === 'signedIn' || this.auth.skipped()) untracked(() => void this.maybeOnboard());
+      if (this.auth.state() === 'signedIn') untracked(() => void this.maybeOnboard());
+      if (this.auth.state() === 'signedOut') untracked(() => void this.requireLogin());
     });
+    // Sem sessão não se mexe na app: qualquer navegação volta ao login.
+    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => void this.requireLogin());
     addIcons({
       homeOutline, calendarOutline, clipboardOutline, barbellOutline, timeOutline, statsChartOutline,
       personOutline, settingsOutline, ellipsisHorizontal, checkmarkCircleOutline, alertCircleOutline,
     });
   }
 
-  /** Ao abrir: sem sessão (e sem ter escolhido continuar sem conta), vai direto ao ecrã de login. */
+  /** Ao abrir: sem sessão, vai direto ao ecrã de login. */
   private async start(): Promise<void> {
     await this.auth.init();
-    if (this.auth.state() === 'signedOut' && !this.auth.skipped()) {
-      await this.router.navigateByUrl('/conta?inicio=1', { replaceUrl: true });
-    }
+    await this.requireLogin();
+  }
+
+  private async requireLogin(): Promise<void> {
+    if (this.auth.state() !== 'signedOut' || this.router.url.startsWith('/conta')) return;
+    await this.router.navigateByUrl('/conta', { replaceUrl: true });
   }
 
   /**

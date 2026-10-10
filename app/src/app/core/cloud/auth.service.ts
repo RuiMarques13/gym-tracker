@@ -17,9 +17,6 @@ export class AuthService {
   readonly email = signal<string | null>(null);
   readonly userId = signal<string | null>(null);
 
-  /** Entrou sem conta nesta sessão (só vale até fechar a app). */
-  readonly skipped = signal(this.readSkip());
-
   private clientPromise: Promise<SupabaseClient> | null = null;
   private initPromise: Promise<void> | null = null;
 
@@ -40,24 +37,6 @@ export class AuthService {
       this.apply(data.session);
     } catch {
       this.apply(null);
-    }
-  }
-
-  /** Continuar sem conta, só nesta sessão. */
-  skipLogin(): void {
-    this.skipped.set(true);
-    try {
-      sessionStorage.setItem('gt.skipLogin', '1');
-    } catch {
-      /* sem sessionStorage: vale só até recarregar */
-    }
-  }
-
-  private readSkip(): boolean {
-    try {
-      return sessionStorage.getItem('gt.skipLogin') === '1';
-    } catch {
-      return false;
     }
   }
 
