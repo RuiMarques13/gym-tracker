@@ -2,7 +2,8 @@ import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
-  IonBadge, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonListHeader, IonTitle, IonToolbar, ViewWillEnter,
+  AlertController, IonBadge, IonContent, IonHeader, IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonLabel, IonList,
+  IonListHeader, IonTitle, IonToolbar, ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { timeOutline } from 'ionicons/icons';
@@ -14,7 +15,7 @@ import { formatDay, formatMonth, formatSpan, formatVolume } from './history-form
 /** Sessões terminadas, da mais recente para a mais antiga, agrupadas por mês. */
 @Component({
   selector: 'app-history',
-  imports: [NavButtonComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonBadge, IonIcon],
+  imports: [NavButtonComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonItemSliding, IonItemOptions, IonItemOption, IonLabel, IonBadge, IonIcon],
   template: `
     <ion-header><ion-toolbar><app-nav-button slot="start" /><ion-title>Histórico</ion-title></ion-toolbar></ion-header>
     <ion-content>
@@ -30,6 +31,7 @@ import { formatDay, formatMonth, formatSpan, formatVolume } from './history-form
             <ion-list lines="full">
               <ion-list-header><ion-label>{{ g.month }}</ion-label></ion-list-header>
               @for (s of g.items; track s.id) {
+                <ion-item-sliding #slide>
                 <ion-item [routerLink]="['/historico', s.id]" [detail]="true">
                   <ion-label class="ion-text-wrap">
                     <h2>{{ s.templateName ?? 'Sessão livre' }}
@@ -38,6 +40,10 @@ import { formatDay, formatMonth, formatSpan, formatVolume } from './history-form
                     <p>{{ day(s.startedAt) }} · {{ span(s) }} · {{ s.setCount }} {{ s.setCount === 1 ? 'série' : 'séries' }}@if (s.volumeKg) { · {{ volume(s.volumeKg) }} }</p>
                   </ion-label>
                 </ion-item>
+                <ion-item-options side="end">
+                  <ion-item-option color="danger" (click)="confirmDelete(s, slide)">Apagar</ion-item-option>
+                </ion-item-options>
+                </ion-item-sliding>
               }
             </ion-list>
           }
@@ -56,6 +62,7 @@ import { formatDay, formatMonth, formatSpan, formatVolume } from './history-form
 })
 export class HistoryPage implements ViewWillEnter {
   private readonly repo = inject(SESSION_REPOSITORY);
+  private readonly alerts = inject(AlertController);
   effortName = (v: number): string => {
     const l = effortLabel(v);
     return l ? ' · ' + l.toLowerCase() : '';
@@ -78,6 +85,20 @@ export class HistoryPage implements ViewWillEnter {
   }
 
   ionViewWillEnter(): void {
+    this.sessions.reload();
+  }
+
+  /** Apaga a sessão (séries incluídas): sai do histórico, da home e das estatísticas. */
+  async confirmDelete(s: SessionSummary, slide: IonItemSliding): Promise<void> {
+    await slide.close();
+    const alert = await this.alerts.create({
+      header: 'Apagar a sessão?',
+      message: `«${s.templateName ?? 'Sessão livre'}» · ${this.day(s.startedAt)}. Sai do histórico, da home e das estatísticas. Não dá para desfazer.`,
+      buttons: [{ text: 'Cancelar', role: 'cancel' }, { text: 'Apagar', role: 'destructive' }],
+    });
+    await alert.present();
+    if ((await alert.onDidDismiss()).role !== 'destructive') return;
+    await this.repo.discard(s.id);
     this.sessions.reload();
   }
 
