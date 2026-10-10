@@ -7,6 +7,22 @@ import { DbAdapter, SqlValue, TransactionOptions } from '../db-adapter';
  */
 export abstract class BaseAdapter implements DbAdapter {
   private queue: Promise<unknown> = Promise.resolve();
+  private writeListener: (() => void) | null = null;
+
+  /** Avisa depois de cada escrita nos dados (o sync usa-o para agendar um envio). */
+  onWrite(listener: (() => void) | null): void {
+    this.writeListener = listener;
+  }
+
+  private notifyWrite(sql: string): void {
+    // estado interno (local_meta, sync_row, migrações) não é «dados do utilizador»
+    if (/\b(local_meta|sync_row|schema_migrations)\b/i.test(sql)) return;
+    try {
+      this.writeListener?.();
+    } catch {
+      /* um ouvinte com erro nunca estraga a escrita */
+    }
+  }
 
   protected abstract rawQuery<T>(sql: string, params: SqlValue[]): Promise<T[]>;
   protected abstract rawRun(sql: string, params: SqlValue[]): Promise<void>;
@@ -30,6 +46,7 @@ export abstract class BaseAdapter implements DbAdapter {
     return this.enqueue(async () => {
       await this.rawRun(sql, params);
       await this.flush();
+      this.notifyWrite(sql);
     });
   }
 
@@ -37,6 +54,7 @@ export abstract class BaseAdapter implements DbAdapter {
     return this.enqueue(async () => {
       await this.rawExec(script);
       await this.flush();
+      this.notifyWrite(script);
     });
   }
 
@@ -60,6 +78,7 @@ export abstract class BaseAdapter implements DbAdapter {
           await this.rollback();
           throw err;
         }
+        this.notifyWrite('transaction');
         return result;
       } finally {
         if (options.foreignKeysOff) await this.rawExec('PRAGMA foreign_keys = ON;');

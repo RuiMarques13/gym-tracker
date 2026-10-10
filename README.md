@@ -4,7 +4,7 @@ App pessoal para planear e registar treinos de força e mobilidade. Local primei
 dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: documento
 «Gym Tracker — requisitos, arquitetura e fases» (v2) no projeto.
 
-## Estado: Fases 0 e 1 concluídas (MVP local); Fase 2 em curso
+## Estado: Fases 0, 1 e 2 concluídas; Fase 3 (sync) em curso
 
 - [x] Projeto Ionic 9 + Angular 21 (standalone, sem zone.js) + Capacitor 8, alvos web e Android
 - [x] `DbAdapter` com três implementações: SQLite nativo (Android), jeep-sqlite (browser), sql.js (testes)
@@ -21,11 +21,13 @@ dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: docum
 - [x] Fase 1.3: sessão ativa (a partir de um treino ou livre), séries com carga, reps, duração, lados e amplitude, pré-preenchimento, descanso real, cronómetro de duração e bolha do temporizador com som e vibração; terminar com esforço e notas
 - [x] Fase 1.4: histórico por sessão e por exercício com correções; exportar/importar JSON com merge «última escrita ganha» (`core/merge`), lembrete de cópia de segurança e proposta de fim para sessões esquecidas
 - [x] Fase 1.5: Home com próximo treino, séries da semana por músculo e mobilidade da semana; Planeados; Perfil com medições e IMC; onboarding; ecrã de configurar o relógio; notificação local no fim do temporizador (Android)
-- [x] 134 testes em Node (migrações, restrições, seed, definições, transações, repositórios, biblioteca, treinos, servidor Postgres)
+- [x] 144 testes em Node (migrações, restrições, seed, definições, transações, repositórios, biblioteca, treinos, servidor Postgres)
 - [x] PWA: instalável no telemóvel, abre offline e avisa quando há versão nova
 - [x] Fase 2 (servidor): `supabase/migrations` com o esquema Postgres, RLS por utilizador e as funções `sync_push`, `sync_pull` e `delete_my_data`, testadas num Postgres real (PGlite)
 - [x] Fase 2 (app): conta opcional com Supabase Auth (Definições → Conta): entrar, criar conta, sair, apagar dados na nuvem
-- [ ] Fase 2: aplicar o SQL no projeto Supabase (ver «Servidor» abaixo)
+- [x] Fase 2: SQL aplicado no projeto Supabase (ver «Servidor» abaixo); login obrigatório
+- [x] Fase 3: sync automático (`core/sync`): envia o que mudou, traz o que mudou, última escrita ganha; estado em Definições → Conta; testado contra um Postgres real com vários dispositivos simulados
+- [ ] Fase 3: testar com o PC e o telemóvel reais
 - [ ] APK testado num Android real (falta correr no teu PC, ver abaixo)
 
 ## Requisitos

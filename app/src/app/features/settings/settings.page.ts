@@ -19,6 +19,7 @@ import {
   ToastController,
 } from '@ionic/angular';
 import { AuthService } from '../../core/cloud/auth.service';
+import { SyncService } from '../../core/sync/sync.service';
 import { BackupService } from '../../core/backup/backup.service';
 import { MERGE_TABLES, MergeError, MergeReport } from '../../core/merge/merge';
 import { SettingsService } from '../../core/settings/settings.service';
@@ -40,7 +41,7 @@ import { SettingsService } from '../../core/settings/settings.service';
           <ion-item button detail routerLink="/conta">
             <ion-label class="ion-text-wrap">
               <h3>{{ auth.email() ?? 'Entrar ou criar conta' }}</h3>
-              <p>{{ auth.state() === 'signedIn' ? 'Sessão iniciada' : 'Opcional: guarda os dados na nuvem' }}</p>
+              <p>{{ syncLabel() }}</p>
             </ion-label>
           </ion-item>
 
@@ -105,6 +106,17 @@ import { SettingsService } from '../../core/settings/settings.service';
 })
 export class SettingsPage {
   protected readonly auth = inject(AuthService);
+  private readonly syncService = inject(SyncService);
+  readonly syncLabel = computed(() => {
+    switch (this.syncService.status()) {
+      case 'syncing': return 'A sincronizar…';
+      case 'offline': return 'Sem ligação';
+      case 'error': return 'O sync falhou';
+      case 'paused': return 'Sincronização em pausa';
+      case 'idle': return 'Sincronizado';
+      default: return 'Sessão iniciada';
+    }
+  });
   private readonly settings = inject(SettingsService);
   private readonly backup = inject(BackupService);
   private readonly alerts = inject(AlertController);

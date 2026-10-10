@@ -23,4 +23,6 @@ export interface DbAdapter {
   transaction<T>(fn: (tx: DbAdapter) => Promise<T>, options?: TransactionOptions): Promise<T>;
   /** Persiste no armazenamento (só faz algo no browser). */
   flush(): Promise<void>;
+  /** Avisa depois de cada escrita nos dados (o sync usa-o para agendar um envio). */
+  onWrite?(listener: (() => void) | null): void;
 }

@@ -5,6 +5,7 @@ import {
   IonListHeader, IonNote, IonSegment, IonSegmentButton, IonTitle, IonToolbar,
 } from '@ionic/angular';
 import { AuthService } from '../../core/cloud/auth.service';
+import { SyncService } from '../../core/sync/sync.service';
 
 /** Conta na nuvem: entrar, criar conta, sair e apagar os dados da nuvem. Opcional: a app funciona sem conta. */
 @Component({
@@ -29,7 +30,7 @@ import { AuthService } from '../../core/cloud/auth.service';
             <p class="intro">A verificar a sessão…</p>
           }
           @case ('signedOut') {
-            <p class="intro">Entra na tua conta para usar a app. Os teus treinos ficam guardados neste dispositivo e, na próxima fase, também na nuvem, a sincronizar entre dispositivos.</p>
+            <p class="intro">Entra na tua conta para usar a app. Os teus treinos ficam guardados neste dispositivo e também na tua conta, a sincronizar entre dispositivos.</p>
             <ion-segment [value]="mode()" (ionChange)="setMode($any($event).detail.value)">
               <ion-segment-button value="in"><ion-label>Entrar</ion-label></ion-segment-button>
               <ion-segment-button value="up"><ion-label>Criar conta</ion-label></ion-segment-button>
@@ -62,10 +63,20 @@ import { AuthService } from '../../core/cloud/auth.service';
               <ion-item lines="none">
                 <ion-label class="ion-text-wrap">
                   <h3>{{ auth.email() }}</h3>
-                  <p>A sincronização entre dispositivos chega na próxima fase. Os teus dados continuam a viver neste dispositivo.</p>
+                </ion-label>
+              </ion-item>
+              <ion-item lines="none">
+                <ion-label class="ion-text-wrap">
+                  <h3>{{ syncTitle() }}</h3>
+                  <p>{{ sync.message() ?? syncHint() }}</p>
                 </ion-label>
               </ion-item>
             </ion-list>
+            <div class="actions">
+              <ion-button expand="block" (click)="sync.syncNow()" [disabled]="sync.status() === 'syncing'">
+                {{ sync.status() === 'paused' ? 'Retomar e sincronizar' : 'Sincronizar agora' }}
+              </ion-button>
+            </div>
             <div class="actions">
               <ion-button expand="block" fill="outline" (click)="signOut()" [disabled]="busy()">Sair</ion-button>
             </div>
@@ -100,6 +111,7 @@ import { AuthService } from '../../core/cloud/auth.service';
 })
 export class AccountPage {
   protected readonly auth = inject(AuthService);
+  protected readonly sync = inject(SyncService);
   private readonly router = inject(Router);
   private readonly alerts = inject(AlertController);
 
@@ -109,6 +121,22 @@ export class AccountPage {
   readonly busy = signal(false);
   readonly message = signal('');
   readonly isError = signal(false);
+
+  readonly syncTitle = computed(() => {
+    switch (this.sync.status()) {
+      case 'syncing': return 'A sincronizar…';
+      case 'offline': return 'Sem ligação';
+      case 'error': return 'O sync falhou';
+      case 'paused': return 'Sincronização em pausa';
+      default: return this.sync.lastSyncAt() ? 'Tudo em dia' : 'Sincronização ligada';
+    }
+  });
+  readonly syncHint = computed(() => {
+    const at = this.sync.lastSyncAt();
+    if (this.sync.status() === 'paused') return 'Os dados deste dispositivo não estão a ser enviados. Retoma quando quiseres.';
+    if (!at) return 'Os teus dados são enviados para a tua conta e chegam aos outros dispositivos.';
+    return `Última vez às ${new Date(at).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}.`;
+  });
 
   readonly canSubmit = computed(() => {
     const e = this.email().trim();
@@ -164,8 +192,9 @@ export class AccountPage {
   private async deleteCloud(): Promise<void> {
     this.busy.set(true);
     const r = await this.auth.deleteCloudData();
+    if (r.ok) await this.sync.pauseAndReset();
     this.busy.set(false);
-    this.show(r.ok ? 'Dados da nuvem apagados.' : r.message, !r.ok);
+    this.show(r.ok ? 'Dados da nuvem apagados. A sincronização ficou em pausa: retoma quando quiseres enviar tudo outra vez.' : r.message, !r.ok);
   }
 
   private show(text: string, error: boolean): void {

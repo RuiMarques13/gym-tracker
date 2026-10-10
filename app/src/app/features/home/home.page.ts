@@ -1,4 +1,5 @@
-import { Component, computed, inject, resource, signal } from '@angular/core';
+import { Component, computed, effect, inject, resource, signal, untracked } from '@angular/core';
+import { SyncService } from '../../core/sync/sync.service';
 import { RouterLink } from '@angular/router';
 import {
   IonCard,
@@ -195,6 +196,12 @@ export class HomePage implements ViewWillEnter {
   }
 
   readonly tick = signal(0);
+  private readonly sync = inject(SyncService);
+  /** O sync trouxe dados de outro dispositivo: recarrega o que está no ecrã. */
+  private readonly onSynced = effect(() => {
+    if (this.sync.dataVersion() === 0) return;
+    untracked(() => this.ionViewWillEnter());
+  });
 
   ionViewWillEnter(): void {
     this.tick.update((n) => n + 1);

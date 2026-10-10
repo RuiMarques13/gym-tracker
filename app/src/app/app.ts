@@ -33,6 +33,7 @@ import {
 } from 'ionicons/icons';
 import { filter, map } from 'rxjs';
 import { AuthService } from './core/cloud/auth.service';
+import { SyncService } from './core/sync/sync.service';
 import { DatabaseService } from './core/db/database.service';
 import { NAV_ITEMS } from './core/navigation/nav-items';
 import { EXERCISE_REPOSITORY, SESSION_REPOSITORY, WORKOUT_REPOSITORY } from './data/repositories/providers';
@@ -114,6 +115,7 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
 })
 export class App {
   protected readonly auth = inject(AuthService);
+  private readonly sync = inject(SyncService);
   private readonly router = inject(Router);
   private readonly settings = inject(SettingsService);
   private readonly database = inject(DatabaseService);
@@ -175,7 +177,10 @@ export class App {
     if (this.onboardChecked) return;
     this.onboardChecked = true;
     try {
-      if (!this.database.status().ready || this.settings.get('onboardingDone')()) return;
+      if (!this.database.status().ready) return;
+      // Num dispositivo novo, os dados da conta podem estar a caminho: espera um pouco pelo primeiro sync.
+      await this.sync.whenFirstDone(8000);
+      if (this.settings.get('onboardingDone')()) return;
       const empty =
         !(await this.exercises.list({ includeArchived: true })).length &&
         !(await this.workouts.list({ includeArchived: true })).length &&

@@ -1,47 +1,22 @@
-import { PGlite } from '@electric-sql/pglite';
-import { readdirSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import type { PGlite } from '@electric-sql/pglite';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { SqliteSessionRepository } from '../../data/repositories/sqlite/sqlite-session.repository';
 import { SqliteWorkoutRepository } from '../../data/repositories/sqlite/sqlite-workout.repository';
 import { MIGRATIONS } from '../db/migrations';
 import { exportData, MERGE_TABLES, mergeData } from '../merge/merge';
 import { loadSeed } from '../seed/seed-loader';
+import { asUser, freshServer } from '../testing/pg-server';
 import { createTestDb, TEST_SEED } from '../testing/test-db';
 import { FixedClock } from '../util/clock';
 import { ids } from '../util/uuid';
 
-/**
- * Corre as migrações de supabase/migrations num Postgres real (PGlite, WASM) e testa o contrato
- * sync_push / sync_pull com dados verdadeiros da app (SQLite → servidor → SQLite).
- */
-const MIGRATION_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../../../../supabase/migrations');
+/** Corre as migrações de supabase/migrations num Postgres real (PGlite) e testa o contrato sync_push / sync_pull. */
 const SCHEMA = MIGRATIONS.at(-1)!.version;
 const USER_A = '11111111-1111-4111-8111-111111111111';
 const USER_B = '22222222-2222-4222-8222-222222222222';
 
 type Row = Record<string, unknown>;
 type Tables = Record<string, Row[]>;
-
-async function freshServer(): Promise<PGlite> {
-  const pg = new PGlite();
-  await pg.exec(`CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;`);
-  for (const f of readdirSync(MIGRATION_DIR).filter((n) => n.endsWith('.sql')).sort()) {
-    await pg.exec(readFileSync(join(MIGRATION_DIR, f), 'utf8'));
-  }
-  return pg;
-}
-
-async function asUser<T>(pg: PGlite, user: string | null, fn: () => Promise<T>): Promise<T> {
-  await pg.exec(`SET ROLE authenticated`);
-  await pg.query(`SELECT set_config('request.jwt.claims', $1, false)`, [user ? JSON.stringify({ sub: user }) : '']);
-  try {
-    return await fn();
-  } finally {
-    await pg.exec(`RESET ROLE`);
-  }
-}
 
 const push = (pg: PGlite, user: string | null, tables: Tables, protocol = 1) =>
   asUser(pg, user, async () => {
