@@ -1,22 +1,38 @@
-import { Component, computed, inject, input, resource } from '@angular/core';
+import { Component, computed, inject, input, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonButton } from '@ionic/angular';
+import { VolumeService } from '../../core/metrics/volume.service';
+import { MuscleBarsComponent } from '../../shared/muscle-bars.component';
 import { SettingsService } from '../../core/settings/settings.service';
 import { CLOCK } from '../../core/util/clock';
 import { addDays, toLocalDate, weekStartOf } from '../../core/util/week';
-import { METRICS_REPOSITORY, SCHEDULED_REPOSITORY } from '../../data/repositories/providers';
+import { EXERCISE_REPOSITORY, METRICS_REPOSITORY, SCHEDULED_REPOSITORY } from '../../data/repositories/providers';
 import { SessionLauncher } from '../session/session-launcher';
 
 export const WIDGETS = [
   { id: 'next-workout', label: 'Próximo treino' },
-  { id: 'weekly-sets', label: 'Séries da semana por músculo' },
+  { id: 'week-summary', label: 'Resumo da semana (tempo, exercícios, séries)' },
+  { id: 'volume-week', label: 'Volume semanal por músculo' },
   { id: 'mobility-minutes', label: 'Mobilidade da semana' },
+  { id: 'exercise-counts', label: 'Os teus exercícios' },
 ] as const;
+
+export const DEFAULT_WIDGETS = ['next-workout', 'week-summary', 'volume-week', 'mobility-minutes', 'exercise-counts'];
+
+/** Definições antigas: «weekly-sets» passou a «volume-week». Ids desconhecidos e repetidos saem. */
+export function normalizeWidgets(saved: readonly string[]): string[] {
+  const out: string[] = [];
+  for (const raw of saved) {
+    const id = raw === 'weekly-sets' ? 'volume-week' : raw;
+    if (WIDGETS.some((w) => w.id === id) && !out.includes(id)) out.push(id);
+  }
+  return out;
+}
 
 /** Os widgets da Home, pela ordem e com os que escolheres (definição home.widgets). */
 @Component({
   selector: 'app-home-widgets',
-  imports: [RouterLink, IonButton],
+  imports: [RouterLink, IonButton, MuscleBarsComponent],
   template: `
     @for (id of enabled(); track id) {
       @switch (id) {
@@ -36,23 +52,57 @@ export const WIDGETS = [
             }
           </section>
         }
-        @case ('weekly-sets') {
+        @case ('week-summary') {
           <section class="widget">
-            <h3>Séries esta semana</h3>
-            @if (data.value()?.sets?.length) {
-              <ul class="bars">
-                @for (m of data.value()!.sets; track m.muscleId) {
-                  <li>
-                    <span class="name">{{ m.muscle }}</span>
-                    <span class="track"><span class="fill" [style.width.%]="(m.series / max()) * 100"></span></span>
-                    <span class="n">{{ fmt(m.series) }}</span>
-                  </li>
-                }
-              </ul>
-              <p class="muted small">Só séries de trabalho de força. Músculos secundários contam {{ fmt(secondary()) }}.</p>
-            } @else {
-              <p class="muted">Ainda sem séries de força esta semana.</p>
+            <h3>Esta semana</h3>
+            @if (data.value()?.week; as w) {
+              <div class="quad">
+                <div><span class="value">{{ activeTime(w.activeSeconds) }}</span><span class="label">tempo ativo</span></div>
+                <div><span class="value">{{ w.sessions }}</span><span class="label">{{ w.sessions === 1 ? 'sessão' : 'sessões' }}</span></div>
+                <div><span class="value">{{ w.exercises }}</span><span class="label">{{ w.exercises === 1 ? 'exercício' : 'exercícios' }}</span></div>
+                <div><span class="value">{{ w.sets }}</span><span class="label">{{ w.sets === 1 ? 'série' : 'séries' }}</span></div>
+              </div>
             }
+          </section>
+        }
+        @case ('volume-week') {
+          <section class="widget">
+            <h3>Volume semanal <a class="more" routerLink="/volume">detalhe</a></h3>
+            @if (volume.value(); as v) {
+              <div class="headline">
+                <span class="value">{{ v.inRange }}<small> de {{ v.rows.length }}</small></span>
+                <span class="label">músculos na faixa recomendada</span>
+              </div>
+              <div class="prog" role="progressbar" aria-label="Progresso para o alvo semanal" [attr.aria-valuenow]="pct(v.progress)" aria-valuemin="0" aria-valuemax="100">
+                <div class="prog-fill" [style.width.%]="pct(v.progress)"></div>
+              </div>
+              <p class="muted small">{{ pct(v.progress) }}% do alvo semanal (soma dos alvos por músculo, últimos 7 dias).</p>
+              <app-muscle-bars [rows]="shownRows()" />
+              @if (restCount() > 0) {
+                <ion-button fill="clear" size="small" (click)="showAll.set(!showAll())">
+                  {{ showAll() ? 'Mostrar só os treinados' : 'Ver os restantes (' + restCount() + ')' }}
+                </ion-button>
+              }
+              <p class="muted small">Orientação geral de treino, não aconselhamento médico.</p>
+            } @else {
+              <p class="muted">A calcular…</p>
+            }
+          </section>
+        }
+        @case ('exercise-counts') {
+          <section class="widget">
+            <h3>Os teus exercícios</h3>
+            <div class="trio">
+              <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'STRENGTH' }">
+                <span class="value">{{ data.value()?.counts?.strength ?? '–' }}</span><span class="label">de força</span>
+              </a>
+              <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'MOBILITY' }">
+                <span class="value">{{ data.value()?.counts?.mobility ?? '–' }}</span><span class="label">de mobilidade</span>
+              </a>
+              <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'CARDIO' }">
+                <span class="value">{{ data.value()?.counts?.cardio ?? '–' }}</span><span class="label">de cardio</span>
+              </a>
+            </div>
           </section>
         }
         @case ('mobility-minutes') {
@@ -84,6 +134,15 @@ export const WIDGETS = [
     .track { height: 10px; border-radius: 5px; background: var(--ion-color-step-150, rgba(127,127,127,0.2)); overflow: hidden; }
     .fill { display: block; height: 100%; border-radius: 5px; background: var(--ion-color-primary); }
     .n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .more { float: right; font-weight: 400; font-size: 0.8rem; }
+    .quad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .quad div { display: flex; flex-direction: column; }
+    .quad .value { font-size: 1.35rem; }
+    .headline { display: flex; flex-direction: column; margin-bottom: 8px; }
+    .headline small { font-size: 1rem; font-weight: 500; color: var(--ion-color-medium); }
+    .prog { height: 12px; border-radius: 6px; background: var(--ion-color-step-150, rgba(127,127,127,0.2)); overflow: hidden; }
+    .prog-fill { height: 100%; border-radius: 6px; background: var(--ion-color-primary); }
+    a.stat { text-decoration: none; color: inherit; display: flex; flex-direction: column; }
     .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .trio div { display: flex; flex-direction: column; }
     .value { font-size: 1.7rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ion-color-primary); }
@@ -99,25 +158,52 @@ export class HomeWidgetsComponent {
   private readonly settings = inject(SettingsService);
   private readonly clock = inject(CLOCK);
 
-  readonly secondary = this.settings.get('secondaryMuscleWeight');
   private readonly widgets = this.settings.get('homeWidgets');
-  readonly enabled = computed(() => this.widgets().filter((id) => WIDGETS.some((w) => w.id === id)));
+  private readonly volumeService = inject(VolumeService);
+  private readonly exercises = inject(EXERCISE_REPOSITORY);
+  readonly enabled = computed(() => normalizeWidgets(this.widgets()));
+  readonly showAll = signal(false);
 
   readonly data = resource({
-    params: () => ({ r: this.refresh(), w: this.enabled(), sw: this.secondary() }),
+    params: () => ({ r: this.refresh(), w: this.enabled() }),
     loader: async ({ params }) => {
       const today = toLocalDate(this.clock.now());
       const week = weekStartOf(today);
       const has = (id: string) => params.w.includes(id);
+      let counts: { strength: number; mobility: number; cardio: number } | null = null;
+      if (has('exercise-counts')) {
+        const all = await this.exercises.list();
+        counts = {
+          strength: all.filter((e) => e.kind === 'STRENGTH').length,
+          mobility: all.filter((e) => e.kind === 'MOBILITY').length,
+          cardio: all.filter((e) => e.kind === 'CARDIO').length,
+        };
+      }
       return {
         next: has('next-workout') ? await this.scheduled.next(today) : null,
-        sets: has('weekly-sets') ? await this.metrics.weeklySetsByMuscle(week, params.sw) : [],
+        week: has('week-summary') ? await this.metrics.weekSummary(week) : null,
         mobility: has('mobility-minutes') ? await this.metrics.mobilityWeek(week) : null,
         streak: has('mobility-minutes') ? await this.metrics.mobilityStreak(today) : 0,
+        counts,
       };
     },
   });
-  readonly max = computed(() => Math.max(1, ...(this.data.value()?.sets ?? []).map((s) => s.series)));
+
+  readonly volume = resource({
+    params: () => ({ r: this.refresh(), on: this.enabled().includes('volume-week') }),
+    loader: async ({ params }) => (params.on ? await this.volumeService.load() : undefined),
+  });
+  readonly shownRows = computed(() => {
+    const rows = this.volume.value()?.rows ?? [];
+    return this.showAll() ? rows : rows.filter((r) => r.sets > 0);
+  });
+  readonly restCount = computed(() => (this.volume.value()?.rows ?? []).filter((r) => r.sets === 0).length);
+
+  pct = (p: number) => Math.round(p * 100);
+  activeTime(seconds: number): string {
+    const m = Math.round(seconds / 60);
+    return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}`;
+  }
 
   fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 1 });
 

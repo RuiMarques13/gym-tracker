@@ -175,3 +175,23 @@ describe('metricData (para o volume por músculo do spec)', () => {
     expect(d.withoutPrimary).toEqual([]);
   });
 });
+
+describe('resumo da semana', () => {
+  it('soma tempo ativo (sem pausas), sessões, exercícios distintos e séries de trabalho', async () => {
+    await session('2026-10-05T10:00:00.000Z', async (id) => {
+      const a = await sessions.addExercise(id, bench);
+      await work(a.id, 3);
+      await sessions.saveSet({ sessionExerciseId: a.id, type: 'WARMUP', entries: [{ side: 'BOTH', weightKg: 20, reps: 10 }] });
+      const b = await sessions.addExercise(id, fly);
+      await work(b.id, 2);
+    });
+    await session('2026-10-12T10:00:00.000Z', async (id) => {
+      const a = await sessions.addExercise(id, bench);
+      await work(a.id, 1);
+    });
+    const w = await metrics.weekSummary('2026-10-05');
+    expect(w).toMatchObject({ sessions: 1, exercises: 2, sets: 5 });
+    expect(w.activeSeconds).toBe(30 * 60);
+    expect(await metrics.weekSummary('2026-09-28')).toEqual({ activeSeconds: 0, sessions: 0, exercises: 0, sets: 0 });
+  });
+});

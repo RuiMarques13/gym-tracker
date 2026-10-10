@@ -32,6 +32,16 @@ export interface MetricsRepository {
   weeklyMobilityMinutes(fromWeek: string, weeks: number): Promise<WeekValue[]>;
   /** Séries de força feitas em [from, to) e os músculos (ids do spec) dos exercícios usados. */
   metricData(from: Date, to: Date): Promise<MetricData>;
+  /** Resumo da semana (segunda a domingo): tempo ativo das sessões terminadas, sessões, exercícios distintos e séries de trabalho. */
+  weekSummary(weekStart: string): Promise<WeekSummary>;
+}
+
+export interface WeekSummary {
+  activeSeconds: number;
+  sessions: number;
+  exercises: number;
+  /** Séries de trabalho (força e cardio); LEFT/RIGHT contam uma vez. */
+  sets: number;
 }
 
 export interface MetricData {
@@ -138,6 +148,26 @@ export class SqliteMetricsRepository implements MetricsRepository {
     );
     const r = rows[0];
     return { minutes: Math.round(((r.seconds ?? 0) / 60) * 10) / 10, sessions: r.sessions, activeDays: r.days };
+  }
+
+  async weekSummary(weekStart: string): Promise<WeekSummary> {
+    const a = await this.db.query<{ n: number; secs: number | null }>(
+      `SELECT COUNT(*) AS n,
+              SUM(MAX(0, (julianday(s.ended_at) - julianday(s.started_at)) * 86400 - s.paused_seconds)) AS secs
+         FROM session s
+        WHERE s.deleted_at IS NULL AND s.ended_at IS NOT NULL AND ${WEEK_OF} = ?`,
+      [weekStart],
+    );
+    const b = await this.db.query<{ ex: number; sets: number }>(
+      `SELECT COUNT(DISTINCT se.exercise_id) AS ex,
+              COUNT(DISTINCT CASE WHEN sl.type = 'WORKING' THEN se.id || '#' || sl.position END) AS sets
+         FROM set_log sl
+         JOIN session_exercise se ON se.id = sl.session_exercise_id AND se.deleted_at IS NULL
+         JOIN session s ON s.id = se.session_id AND s.deleted_at IS NULL
+        WHERE sl.deleted_at IS NULL AND sl.completed_at IS NOT NULL AND ${WEEK_OF} = ?`,
+      [weekStart],
+    );
+    return { activeSeconds: Math.round(a[0].secs ?? 0), sessions: a[0].n, exercises: b[0].ex, sets: b[0].sets };
   }
 
   async weeklyStrengthSets(fromWeek: string, weeks: number): Promise<WeekValue[]> {

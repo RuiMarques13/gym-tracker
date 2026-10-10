@@ -1,7 +1,6 @@
 import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { WIDGETS } from '../home/home-widgets.component';
 import {
   AlertController,
   IonButton,
@@ -29,7 +28,7 @@ import { SettingsService } from '../../core/settings/settings.service';
   selector: 'app-settings',
   imports: [NavButtonComponent, 
     IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonNote,
-    IonSegment, IonSegmentButton, IonButton, RouterLink, IonToggle,
+    IonSegment, IonSegmentButton, IonButton, RouterLink,
   ],
   template: `
     <ion-header>
@@ -74,13 +73,6 @@ import { SettingsService } from '../../core/settings/settings.service';
             <ion-label>Peso das séries em músculos secundários</ion-label>
             <ion-note slot="end">{{ secondary() }}</ion-note>
           </ion-item>
-
-          <ion-list-header><ion-label>Home</ion-label></ion-list-header>
-          @for (w of widgets; track w.id) {
-            <ion-item>
-              <ion-toggle [checked]="widgetOn(w.id)" (ionChange)="setWidget(w.id, $any($event).detail.checked)">{{ w.label }}</ion-toggle>
-            </ion-item>
-          }
 
           <ion-list-header><ion-label>Relógio</ion-label></ion-list-header>
           <ion-item button detail routerLink="/definicoes/relogio">
@@ -134,14 +126,6 @@ export class SettingsPage {
   readonly secondary = this.settings.get('secondaryMuscleWeight');
   private readonly lastExportAt = this.settings.get('lastExportAt');
 
-  readonly widgets = WIDGETS;
-  private readonly homeWidgets = this.settings.get('homeWidgets');
-  widgetOn = (id: string) => this.homeWidgets().includes(id);
-  setWidget(id: string, on: boolean): void {
-    const order = WIDGETS.map((w) => w.id as string);
-    const next = order.filter((x) => (x === id ? on : this.homeWidgets().includes(x)));
-    void this.settings.set('homeWidgets', next);
-  }
 
   readonly busy = signal(false);
   readonly message = signal<string | null>(null);

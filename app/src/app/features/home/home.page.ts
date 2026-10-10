@@ -3,19 +3,10 @@ import { Component, computed, effect, inject, resource, signal, untracked } from
 import { SyncService } from '../../core/sync/sync.service';
 import { RouterLink } from '@angular/router';
 import {
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardSubtitle,
-  IonCardTitle,
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonNote,
   IonTitle,
   IonToolbar,
   ViewWillEnter,
@@ -26,17 +17,24 @@ import { SettingsService } from '../../core/settings/settings.service';
 import { CLOCK } from '../../core/util/clock';
 import { formatDay, formatTime } from '../history/history-format';
 import { HomeWidgetsComponent } from './home-widgets.component';
+import { HomeLayoutEditorComponent } from './home-layout-editor.component';
 import { SessionLauncher } from '../session/session-launcher';
 
 @Component({
   selector: 'app-home',
   imports: [NavButtonComponent, 
-    RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle,
-    IonCardSubtitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonIcon, IonButton, HomeWidgetsComponent,
+    RouterLink, IonHeader, IonToolbar, IonTitle, IonContent,
+    IonButton, HomeWidgetsComponent, HomeLayoutEditorComponent, IonButtons,
   ],
   template: `
     <ion-header>
-      <ion-toolbar><app-nav-button slot="start" /><ion-title>Home</ion-title></ion-toolbar>
+      <ion-toolbar>
+        <app-nav-button slot="start" />
+        <ion-title>Home</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="editing.set(!editing())">{{ editing() ? 'Concluir' : 'Editar' }}</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
       <div class="page">
@@ -76,57 +74,12 @@ import { SessionLauncher } from '../session/session-launcher';
           </div>
         }
 
-        <app-home-widgets [refresh]="tick()" />
+        @if (editing()) {
+          <app-home-layout-editor />
+        } @else {
+          <app-home-widgets [refresh]="tick()" />
+        }
 
-        <p class="stats-title">Os teus exercícios</p>
-        <div class="stats">
-          <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'STRENGTH' }">
-            <span class="value">{{ counts.value()?.strength ?? '–' }}</span>
-            <span class="label">de força</span>
-          </a>
-          <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'MOBILITY' }">
-            <span class="value">{{ counts.value()?.mobility ?? '–' }}</span>
-            <span class="label">de mobilidade</span>
-          </a>
-          <a class="stat" routerLink="/exercicios" [queryParams]="{ kind: 'CARDIO' }">
-            <span class="value">{{ counts.value()?.cardio ?? '–' }}</span>
-            <span class="label">de cardio</span>
-          </a>
-        </div>
-
-        <ion-card>
-          <ion-card-header>
-            <ion-card-subtitle>Diagnóstico</ion-card-subtitle>
-            <ion-card-title>Base de dados local</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            @if (status().error; as err) {
-              <p class="error"><ion-icon name="alert-circle-outline" /> {{ err }}</p>
-            }
-            <ion-list lines="full">
-              <ion-item>
-                <ion-label>Estado</ion-label>
-                <ion-note slot="end" [class.ok]="status().ready">{{ status().ready ? 'Pronta' : 'A iniciar…' }}</ion-note>
-              </ion-item>
-              <ion-item>
-                <ion-label>Versão do esquema</ion-label>
-                <ion-note slot="end">{{ status().schemaVersion }}</ion-note>
-              </ion-item>
-              <ion-item>
-                <ion-label>Versão do seed</ion-label>
-                <ion-note slot="end">{{ status().seedVersion }}</ion-note>
-              </ion-item>
-              <ion-item>
-                <ion-label>Dispositivo</ion-label>
-                <ion-note slot="end" class="mono">{{ shortDevice() }}</ion-note>
-              </ion-item>
-              <ion-item lines="none">
-                <ion-label>Armazenamento persistente</ion-label>
-                <ion-note slot="end">{{ persistentLabel() }}</ion-note>
-              </ion-item>
-            </ion-list>
-          </ion-card-content>
-        </ion-card>
       </div>
     </ion-content>
   `,
@@ -140,19 +93,6 @@ import { SessionLauncher } from '../session/session-launcher';
     .stale { flex-direction: column; align-items: stretch; background: rgba(var(--ion-color-warning-rgb), 0.18); }
     .stale-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .active span { color: var(--ion-color-medium); font-size: 0.9rem; }
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
-    .stats-title { font-size: 0.8rem; color: var(--ion-color-medium); margin: 0 0 6px; }
-    .stat {
-      display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 14px;
-      background: var(--ion-background-color-step-50, rgba(127,127,127,0.08)); text-decoration: none; color: inherit;
-    }
-    .stat .value { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ion-color-primary); }
-    .stat .label { font-size: 0.85rem; color: var(--ion-color-medium); }
-    ion-card { margin: 12px 0 0; box-shadow: none; border: 1px solid var(--ion-background-color-step-150, rgba(127,127,127,0.2)); }
-    ion-card-content { padding: 0 0 8px; }
-    .ok { color: var(--ion-color-success); }
-    .mono { font-family: ui-monospace, monospace; font-size: 0.85rem; }
-    .error { color: var(--ion-color-danger); padding: 0 16px; }
   `,
 })
 export class HomePage implements ViewWillEnter {
@@ -197,6 +137,7 @@ export class HomePage implements ViewWillEnter {
   }
 
   readonly tick = signal(0);
+  readonly editing = signal(false);
   private readonly sync = inject(SyncService);
   /** O sync trouxe dados de outro dispositivo: recarrega o que está no ecrã. */
   private readonly onSynced = effect(() => {
@@ -207,18 +148,7 @@ export class HomePage implements ViewWillEnter {
   ionViewWillEnter(): void {
     this.tick.update((n) => n + 1);
     this.active.reload();
-    this.counts.reload();
     this.finishedCount.reload();
   }
 
-  readonly counts = resource({
-    loader: async () => {
-      const all = await this.exercises.list();
-      return {
-        strength: all.filter((e) => e.kind === 'STRENGTH').length,
-        mobility: all.filter((e) => e.kind === 'MOBILITY').length,
-        cardio: all.filter((e) => e.kind === 'CARDIO').length,
-      };
-    },
-  });
 }
