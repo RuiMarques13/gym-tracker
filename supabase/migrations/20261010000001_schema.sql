@@ -18,7 +18,7 @@ CREATE SEQUENCE sync_version_seq AS bigint;
 -- Utilizador autenticado. Lê o JWT que o PostgREST/Supabase coloca na sessão
 -- (request.jwt.claims, ou o formato antigo request.jwt.claim.sub). Um backend próprio
 -- só precisa de definir um destes valores antes de cada pedido.
-CREATE FUNCTION current_user_id() RETURNS uuid
+CREATE OR REPLACE FUNCTION current_user_id() RETURNS uuid
 LANGUAGE sql STABLE AS $$
   SELECT COALESCE(
     NULLIF(current_setting('request.jwt.claim.sub', true), ''),
@@ -27,7 +27,7 @@ LANGUAGE sql STABLE AS $$
 $$;
 
 -- Data/hora no mesmo formato que a app gera (toISOString): 2026-10-10T12:00:00.123Z
-CREATE FUNCTION iso_ts(ts timestamptz) RETURNS text
+CREATE OR REPLACE FUNCTION iso_ts(ts timestamptz) RETURNS text
 LANGUAGE sql IMMUTABLE AS $$
   SELECT to_char(ts AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
 $$;

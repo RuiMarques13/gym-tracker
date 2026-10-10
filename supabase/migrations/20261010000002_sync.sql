@@ -11,7 +11,7 @@
 --
 -- Em Spring Boot: POST /sync/push e GET /sync/pull com os mesmos payloads.
 
-CREATE FUNCTION sync_tables() RETURNS text[]
+CREATE OR REPLACE FUNCTION sync_tables() RETURNS text[]
 LANGUAGE sql IMMUTABLE AS $$
   SELECT ARRAY['equipment','muscle_group','mobility_area','exercise','exercise_muscle',
     'exercise_mobility_area','workout_template','planned_exercise','scheduled_workout','session',
@@ -19,7 +19,7 @@ LANGUAGE sql IMMUTABLE AS $$
 $$;
 
 -- Colunas sincronizáveis de uma tabela (tudo menos user_id e server_version), na ordem do esquema.
-CREATE FUNCTION sync_columns(tbl text) RETURNS text[]
+CREATE OR REPLACE FUNCTION sync_columns(tbl text) RETURNS text[]
 LANGUAGE sql STABLE SET search_path = public, pg_temp AS $$
   SELECT array_agg(attname::text ORDER BY attnum)
   FROM pg_attribute
@@ -28,7 +28,7 @@ LANGUAGE sql STABLE SET search_path = public, pg_temp AS $$
     AND attname NOT IN ('user_id', 'server_version')
 $$;
 
-CREATE FUNCTION sync_push(payload jsonb) RETURNS jsonb
+CREATE OR REPLACE FUNCTION sync_push(payload jsonb) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
 DECLARE
   uid uuid := current_user_id();
@@ -109,7 +109,7 @@ BEGIN
     'server_time', iso_ts(clock_timestamp()));
 END $$;
 
-CREATE FUNCTION sync_pull(p_since bigint DEFAULT 0, p_limit integer DEFAULT 1000) RETURNS jsonb
+CREATE OR REPLACE FUNCTION sync_pull(p_since bigint DEFAULT 0, p_limit integer DEFAULT 1000) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
 DECLARE
   uid uuid := current_user_id();
@@ -167,7 +167,7 @@ BEGIN
 END $$;
 
 -- Apaga todos os dados do utilizador autenticado (a conta em si apaga-se no fornecedor de login).
-CREATE FUNCTION delete_my_data() RETURNS jsonb
+CREATE OR REPLACE FUNCTION delete_my_data() RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
 DECLARE
   uid uuid := current_user_id();
