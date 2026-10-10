@@ -53,8 +53,8 @@ export const UPPER_MOTIONS: Motion[] = [
     { anchor: 'hip', at: [32, 70], shin: 2, thigh: -90, torso: -6, reach: [5, 13], elbow: 'back' }, true),
   m({ id: 'pulldown', label: 'Puxada', pulley: [50, 4],
       props: [...seatAt({ anchor: 'hip', at: [36, 70], shin: 2, thigh: -90, torso: -15 }), { kind: 'machine', d: 'M52 62 H66' }] },
-    { anchor: 'hip', at: [36, 70], shin: 2, thigh: -90, torso: -15, reach: [5, -27], elbow: 'back' },
-    { anchor: 'hip', at: [36, 70], shin: 2, thigh: -90, torso: -15, reach: [7, -2], elbow: 'front' }, true),
+    { anchor: 'hip', at: [36, 70], shin: 2, thigh: -90, torso: -15, reach: [5, -27.8], elbow: 'front' },
+    { anchor: 'hip', at: [36, 70], shin: 2, thigh: -90, torso: -15, reach: [5, -1.5], elbow: 'down' }, true),
   // Barra fixa: as mãos ficam na barra; é o corpo que sobe até o queixo passar a barra.
   m({ id: 'pullup', label: 'Barra fixa', props: [{ kind: 'bar', d: 'M30 6 H68' }] },
     { anchor: 'hip', at: [46, 57], shin: 100, thigh: 0, torso: 0, hand: [50, 6], elbow: 'down' },
