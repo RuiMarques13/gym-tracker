@@ -153,7 +153,7 @@ describe('biblioteca', () => {
     expect(ex.id).toBe(ids.libraryExercise(item.key));
     expect(ex).toMatchObject({
       name: 'Puxada à frente', equipmentName: 'Cabo', metricType: 'WEIGHT_REPS',
-      primaryMuscleIds: [ids.muscle('lats')], secondaryMuscleIds: [ids.muscle('biceps')],
+      primaryMuscleIds: [ids.muscle('lats')], secondaryMuscleIds: [ids.muscle('biceps'), ids.muscle('upper_back'), ids.muscle('rear_delt')],
       notes: 'Variações: pega larga, fechada, neutra, supinada',
     });
   });
@@ -172,7 +172,7 @@ describe('biblioteca', () => {
   it('peso corporal mede-se por reps, pranchas por duração, búlgaro é unilateral', async () => {
     expect(libItem('Flexões')).toMatchObject({ metricType: 'REPS', isUnilateral: false });
     expect(libItem('Prancha')).toMatchObject({ metricType: 'DURATION', isIsometric: true });
-    expect(libItem('Agachamento búlgaro')).toMatchObject({ isUnilateral: true, primary: ['quadriceps'] });
+    expect(libItem('Agachamento búlgaro')).toMatchObject({ isUnilateral: true, primary: ['quadriceps', 'glutes'] });
   });
 
   it('adicionar outra vez depois de arquivar reativa a mesma linha', async () => {

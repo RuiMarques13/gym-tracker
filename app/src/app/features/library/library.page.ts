@@ -87,10 +87,10 @@ const PAGE = 60;
                 <ion-label class="ion-text-wrap" (click)="toggleOpen(item.key)">
                   <h2>{{ item.name }}</h2>
                   <p>{{ subtitle(item) }}</p>
-                  @if (openKey() === item.key && item.kind === 'STRENGTH') {
+                  @if (openKey() === item.key && (item.kind === 'STRENGTH' || motionOf(item))) {
                     <div class="visual">
                       @if (motionOf(item); as mo) { <app-exercise-motion [motion]="mo" /> }
-                      <app-muscle-map [primary]="specOf(item.primary)" [secondary]="specOf(item.secondary)" />
+                      @if (item.kind === 'STRENGTH') { <app-muscle-map [primary]="specOf(item.primary)" [secondary]="specOf(item.secondary)" /> }
                     </div>
                   }
                 </ion-label>

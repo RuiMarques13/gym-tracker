@@ -1,5 +1,5 @@
 import { Component, computed, ElementRef, input, signal, viewChild } from '@angular/core';
-import { bodyPoints, joints, Motion } from '../core/motion/motion';
+import type { Motion } from '../core/motion/motion-core';
 
 const rm = (): boolean => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -7,33 +7,29 @@ const rm = (): boolean => typeof matchMedia !== 'undefined' && matchMedia('(pref
 @Component({
   selector: 'app-exercise-motion',
   template: `
-    @if (frames(); as f) {
+    @if (view(); as v) {
       <figure>
         <svg #svg viewBox="0 0 100 100" role="img" [attr.aria-label]="'Animação esquemática: ' + motion().label">
           <path class="floor" d="M8 90 H92" />
           @for (p of motion().props; track p.d) { <path class="prop" [attr.d]="p.d" /> }
           <g class="body">
-            <polyline [attr.points]="f.from.leg">
-              @if (animate()) { <animate attributeName="points" [attr.values]="vals(f.from.leg, f.to.leg)" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines=".45 0 .25 1;.45 0 .25 1" /> }
-            </polyline>
-            <polyline [attr.points]="f.from.torso">
-              @if (animate()) { <animate attributeName="points" [attr.values]="vals(f.from.torso, f.to.torso)" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines=".45 0 .25 1;.45 0 .25 1" /> }
-            </polyline>
-            <polyline [attr.points]="f.from.arm">
-              @if (animate()) { <animate attributeName="points" [attr.values]="vals(f.from.arm, f.to.arm)" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines=".45 0 .25 1;.45 0 .25 1" /> }
-            </polyline>
+            @for (l of v.lines; track $index) {
+              <polyline [attr.points]="l.v[0]">
+                @if (animate()) { <animate attributeName="points" [attr.values]="l.v.join(';')" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" [attr.keyTimes]="keyTimes" [attr.keySplines]="splines" /> }
+              </polyline>
+            }
           </g>
-          <circle class="head" r="5.5" [attr.cx]="f.hx0" [attr.cy]="f.hy0">
+          <circle class="head" r="5.5" [attr.cx]="v.head.x[0]" [attr.cy]="v.head.y[0]">
             @if (animate()) {
-              <animate attributeName="cx" [attr.values]="f.hx0 + ';' + f.hx1 + ';' + f.hx0" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines=".45 0 .25 1;.45 0 .25 1" />
-              <animate attributeName="cy" [attr.values]="f.hy0 + ';' + f.hy1 + ';' + f.hy0" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines=".45 0 .25 1;.45 0 .25 1" />
+              <animate attributeName="cx" [attr.values]="v.head.x.join(';')" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" [attr.keyTimes]="keyTimes" [attr.keySplines]="splines" />
+              <animate attributeName="cy" [attr.values]="v.head.y.join(';')" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" [attr.keyTimes]="keyTimes" [attr.keySplines]="splines" />
             }
           </circle>
-          @if (motion().weight) {
-            <circle class="weight" r="3.4" [attr.cx]="f.wx0" [attr.cy]="f.wy0">
+          @for (w of v.weights; track $index) {
+            <circle class="weight" r="3.4" [attr.cx]="w.x[0]" [attr.cy]="w.y[0]">
               @if (animate()) {
-                <animate attributeName="cx" [attr.values]="f.wx0 + ';' + f.wx1 + ';' + f.wx0" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines=".45 0 .25 1;.45 0 .25 1" />
-                <animate attributeName="cy" [attr.values]="f.wy0 + ';' + f.wy1 + ';' + f.wy0" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines=".45 0 .25 1;.45 0 .25 1" />
+                <animate attributeName="cx" [attr.values]="w.x.join(';')" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" [attr.keyTimes]="keyTimes" [attr.keySplines]="splines" />
+                <animate attributeName="cy" [attr.values]="w.y.join(';')" [attr.dur]="dur" repeatCount="indefinite" calcMode="spline" [attr.keyTimes]="keyTimes" [attr.keySplines]="splines" />
               }
             </circle>
           }
@@ -66,19 +62,19 @@ export class ExerciseMotionComponent {
   readonly animate = signal(!rm());
   private readonly svg = viewChild<ElementRef<SVGSVGElement>>('svg');
 
-  readonly frames = computed(() => {
+  /** Sequência de keyframes: de → meio → para → meio → de. */
+  readonly keyTimes = '0;0.25;0.5;0.75;1';
+  readonly splines = '.4 0 .6 1;.4 0 .6 1;.4 0 .6 1;.4 0 .6 1';
+
+  readonly view = computed(() => {
     const m = this.motion();
-    const a = joints(m.from);
-    const b = joints(m.to);
-    const pa = bodyPoints(a);
-    const pb = bodyPoints(b);
+    const seq = [m.from, m.mid, m.to, m.mid, m.from];
     return {
-      from: pa, to: pb, hx0: a.head[0], hy0: a.head[1], hx1: b.head[0], hy1: b.head[1],
-      wx0: a.wrist[0], wy0: a.wrist[1], wx1: b.wrist[0], wy1: b.wrist[1],
+      lines: m.from.lines.map((_, i) => ({ v: seq.map((f) => f.lines[i]) })),
+      head: { x: seq.map((f) => f.head[0]), y: seq.map((f) => f.head[1]) },
+      weights: m.from.weights.map((_, i) => ({ x: seq.map((f) => f.weights[i][0]), y: seq.map((f) => f.weights[i][1]) })),
     };
   });
-
-  vals = (a: string, b: string) => `${a};${b};${a}`;
 
   toggle(ev: Event): void {
     ev.stopPropagation();

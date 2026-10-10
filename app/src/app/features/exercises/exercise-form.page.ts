@@ -157,6 +157,9 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
               </ion-select>
             </ion-item>
 
+            @if (kind() !== 'STRENGTH' && motion(); as mo) {
+              <div class="visual"><app-exercise-motion [motion]="mo" /></div>
+            }
             @if (kind() !== 'MOBILITY') {
               <ion-list-header>
                 <ion-label>
@@ -168,7 +171,7 @@ const KINDS: Kind[] = ['STRENGTH', 'MOBILITY', 'CARDIO'];
                 </ion-label>
               </ion-list-header>
               <div class="visual">
-                @if (motion(); as mo) { <app-exercise-motion [motion]="mo" /> }
+                @if (kind() === 'STRENGTH' && motion(); as mo) { <app-exercise-motion [motion]="mo" /> }
                 <app-muscle-map [primary]="specPrimary()" [secondary]="specSecondary()" />
               </div>
               @for (group of muscleGroups(); track group.region) {

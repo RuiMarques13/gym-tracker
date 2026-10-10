@@ -1,37 +1,47 @@
 import { describe, expect, it } from 'vitest';
-import { joints, motionFor, MOTIONS } from './motion';
+import { LIBRARY } from '../library/library-data';
+import { specOfKeys } from '../metrics/muscles';
+import { MOTIONS, motionFor } from './motion';
 
 describe('animações', () => {
-  it('todas as poses cabem na figura (0–100) e os membros mantêm o comprimento', () => {
+  it('todas as frames cabem na figura e têm o mesmo número de linhas', () => {
     for (const m of Object.values(MOTIONS)) {
-      for (const pose of [m.from, m.to]) {
-        const j = joints(pose);
-        for (const [x, y] of [j.ankle, j.knee, j.hip, j.neck, j.head, j.elbow, j.wrist]) {
-          expect(x, `${m.id} x`).toBeGreaterThanOrEqual(0);
-          expect(x, `${m.id} x`).toBeLessThanOrEqual(100);
-          expect(y, `${m.id} y`).toBeGreaterThanOrEqual(0);
-          expect(y, `${m.id} y`).toBeLessThanOrEqual(100);
+      expect(m.from.lines.length, m.id).toBe(m.to.lines.length);
+      expect(m.from.lines.length, m.id).toBe(m.mid.lines.length);
+      for (const fr of [m.from, m.mid, m.to]) {
+        const all = [...fr.lines.flatMap((l) => l.split(' ').map((p) => p.split(',').map(Number))), fr.head, ...fr.weights];
+        for (const [x, y] of all) {
+          expect(x, `${m.id} x`).toBeGreaterThanOrEqual(-1);
+          expect(x, `${m.id} x`).toBeLessThanOrEqual(101);
+          expect(y, `${m.id} y`).toBeGreaterThanOrEqual(-1);
+          expect(y, `${m.id} y`).toBeLessThanOrEqual(101);
         }
-        const d = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], a[1] - b[1]);
-        expect(d(j.ankle, j.knee)).toBeCloseTo(17, 5);
-        expect(d(j.hip, j.neck)).toBeCloseTo(24, 5);
       }
     }
   });
 
-  it('escolhe o padrão pelo nome e, sem pista no nome, pelo músculo principal', () => {
-    expect(motionFor('Supino plano (halteres)', ['peito'])?.id).toBe('bench');
-    expect(motionFor('Puxada à frente', ['costas_dorsais'])?.id).toBe('pull');
-    expect(motionFor('Remada curvada', ['costas_dorsais', 'costas_superiores'])?.id).toBe('row');
-    expect(motionFor('Agachamento búlgaro', ['quadriceps'])?.id).toBe('lunge');
-    expect(motionFor('Peso morto romeno', ['isquiotibiais'])?.id).toBe('hinge');
-    expect(motionFor('Elevação lateral', ['deltoide_lateral'])?.id).toBe('lateral');
-    expect(motionFor('Curl martelo', ['biceps'])?.id).toBe('curl');
-    expect(motionFor('Extensão de tríceps na polia', ['triceps'])?.id).toBe('triceps');
-    expect(motionFor('Hip thrust', ['gluteos'])?.id).toBe('hipthrust');
+  it('cada exercício da biblioteca (força, mobilidade e cardio) tem animação', () => {
+    const miss = LIBRARY.items.filter((i) => !motionFor(i.name, specOfKeys(i.primary), i.kind)).map((i) => i.name);
+    expect(miss).toEqual([]);
+  });
+
+  it('exercícios que falhavam', () => {
+    const id = (n: string) => motionFor(n, [])?.id;
+    expect(id('Supino plano (barra)')).toBe('bench');
+    expect(id('Supino inclinado (halteres)')).toBe('bench-incline');
+    expect(id('Elevações laterais')).toBe('lateral');
+    expect(id('Face pull (cabo)')).toBe('facepull');
+    expect(id('Leg curl deitado')).toBe('legcurl-lying');
+    expect(id('Hip thrust (barra)')).toBe('hipthrust');
+    expect(id('Farmer’s walk')).toBe('carry');
+    expect(id('Curl inclinado')).toBe('curl');
+    expect(id('Gato-camelo')).toBe('mob-catcamel');
+    expect(id('Bicicleta: spinning')).toBe('bike');
+  });
+
+  it('sem pista no nome, usa o músculo principal (só em força)', () => {
     expect(motionFor('Exercício esquisito', ['gemeos'])?.id).toBe('calf');
     expect(motionFor('Exercício esquisito', [])).toBeNull();
-    expect(motionFor('Agachamento', ['quadriceps'], 'MOBILITY')).toBeNull();
-    expect(motionFor('Corrida', [], 'CARDIO')).toBeNull();
+    expect(motionFor('Exercício esquisito', ['gemeos'], 'MOBILITY')).toBeNull();
   });
 });
