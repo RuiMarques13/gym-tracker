@@ -1,11 +1,15 @@
 import type { Block, Kind, MetricType } from './enums';
 
-export const BLOCK_ORDER: Block[] = ['WARMUP', 'MAIN', 'MOBILITY'];
+export const BLOCK_ORDER: Block[] = ['WARMUP', 'MAIN'];
+
+/** Linhas antigas com 'MOBILITY' (já não usado) passam para o bloco principal. */
+export function normalizeBlock(raw: string): Block {
+  return raw === 'WARMUP' ? 'WARMUP' : 'MAIN';
+}
 
 export const BLOCK_LABEL: Record<Block, string> = {
   WARMUP: 'Aquecimento',
   MAIN: 'Principal',
-  MOBILITY: 'Mobilidade',
 };
 
 /** Um exercício dentro de um treino, com os alvos. */
@@ -91,5 +95,5 @@ export function defaultTargets(kind: Kind, metric: MetricType): Omit<PlannedExer
 
 /** Bloco natural para um tipo de exercício. */
 export function defaultBlock(kind: Kind): Block {
-  return kind === 'MOBILITY' ? 'MOBILITY' : kind === 'CARDIO' ? 'WARMUP' : 'MAIN';
+  return kind === 'STRENGTH' ? 'MAIN' : 'WARMUP';
 }

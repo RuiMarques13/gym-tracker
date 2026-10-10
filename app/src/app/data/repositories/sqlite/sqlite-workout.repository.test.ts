@@ -35,21 +35,29 @@ const legDay = () =>
       { exerciseId: squat, block: 'MAIN', targetSets: 4, targetReps: 8, targetWeightKg: 60, restSeconds: 120 },
       { exerciseId: catCow, block: 'WARMUP', targetSets: 2, targetReps: 10 },
       { exerciseId: rdl, block: 'MAIN', targetSets: 3, targetReps: 10 },
-      { exerciseId: pigeon, block: 'MOBILITY', targetSets: 2, targetDurationSeconds: 45 },
+      { exerciseId: pigeon, block: 'MAIN', targetSets: 2, targetDurationSeconds: 45 },
     ],
   });
 
 describe('SqliteWorkoutRepository', () => {
-  it('guarda e ordena por bloco (aquecimento, principal, mobilidade) mantendo a ordem dentro de cada bloco', async () => {
+  it('guarda e ordena por bloco (aquecimento, principal; mobilidade pode estar em qualquer um) mantendo a ordem dentro de cada bloco', async () => {
     const w = await legDay();
     expect(w.items.map((i) => [i.block, i.exerciseName, i.position])).toEqual([
       ['WARMUP', 'Gato-camelo', 1],
       ['MAIN', 'Squat', 2],
       ['MAIN', 'RDL', 3],
-      ['MOBILITY', 'Pombo (pigeon)', 4],
+      ['MAIN', 'Pombo (pigeon)', 4],
     ]);
     expect(w.items[1]).toMatchObject({ targetSets: 4, targetReps: 8, targetWeightKg: 60, restSeconds: 120 });
     expect(w.notes).toBe('Foco em técnica');
+  });
+
+  it("linhas antigas com bloco 'MOBILITY' são lidas como principal", async () => {
+    const w = await legDay();
+    await db.run(`UPDATE planned_exercise SET block = 'MOBILITY' WHERE template_id = ? AND exercise_id = ?`, [w.id, pigeon]);
+    const again = (await repo.get(w.id))!;
+    expect(again.items.find((i) => i.exerciseId === pigeon)?.block).toBe('MAIN');
+    expect((await repo.list())[0].blockCounts).toEqual({ WARMUP: 1, MAIN: 3 });
   });
 
   it('normaliza os alvos conforme a medida do exercício', async () => {
@@ -57,7 +65,7 @@ describe('SqliteWorkoutRepository', () => {
       name: 'X',
       items: [
         // mobilidade por duração: reps e carga são descartadas
-        { exerciseId: pigeon, block: 'MOBILITY', targetSets: 0, targetReps: 10, targetWeightKg: 5, targetDurationSeconds: 30.4 },
+        { exerciseId: pigeon, block: 'MAIN', targetSets: 0, targetReps: 10, targetWeightKg: 5, targetDurationSeconds: 30.4 },
         // mobilidade por reps: sem carga nem duração
         { exerciseId: catCow, block: 'WARMUP', targetReps: 10, targetWeightKg: 5, targetDurationSeconds: 30 },
       ],
@@ -118,7 +126,7 @@ describe('SqliteWorkoutRepository', () => {
     await repo.save({ name: 'Vazio', items: [] });
     let list = await repo.list();
     expect(list.map((l) => [l.name, l.exerciseCount])).toEqual([['Pernas A', 4], ['Vazio', 0]]);
-    expect(list[0].blockCounts).toEqual({ WARMUP: 1, MAIN: 2, MOBILITY: 1 });
+    expect(list[0].blockCounts).toEqual({ WARMUP: 1, MAIN: 3 });
     await repo.archive(w.id);
     list = await repo.list();
     expect(list.map((l) => l.name)).toEqual(['Vazio']);

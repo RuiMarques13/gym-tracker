@@ -4,6 +4,8 @@ import { CLOCK } from '../../core/util/clock';
 import { ExerciseRepository } from './exercise.repository';
 import { LookupRepository, SqliteLookupRepository } from './lookup.repository';
 import { SqliteExerciseRepository } from './sqlite/sqlite-exercise.repository';
+import { SessionRepository } from './session.repository';
+import { SqliteSessionRepository } from './sqlite/sqlite-session.repository';
 import { SqliteWorkoutRepository } from './sqlite/sqlite-workout.repository';
 import { WorkoutRepository } from './workout.repository';
 
@@ -29,5 +31,13 @@ export const WORKOUT_REPOSITORY = new InjectionToken<WorkoutRepository>('Workout
   factory: () => {
     const database = inject(DatabaseService);
     return new SqliteWorkoutRepository(database.db, inject(CLOCK), database.deviceId);
+  },
+});
+
+export const SESSION_REPOSITORY = new InjectionToken<SessionRepository>('SessionRepository', {
+  providedIn: 'root',
+  factory: () => {
+    const database = inject(DatabaseService);
+    return new SqliteSessionRepository(database.db, inject(CLOCK), database.deviceId);
   },
 });

@@ -38,6 +38,7 @@ export const routes: Routes = [
     path: 'treinos/:id',
     loadComponent: () => import('./features/workouts/workout-editor.page').then((m) => m.WorkoutEditorPage),
   },
+  { path: 'sessao', loadComponent: () => import('./features/session/session.page').then((m) => m.SessionPage) },
   { path: 'planeados', ...placeholder('Planeados', 'Fase 1.5', 'Calendário de treinos planeados.') },
   { path: 'historico', ...placeholder('Histórico', 'Fase 1.4', 'Sessões e séries registadas, com correções.') },
   { path: 'graficos', ...placeholder('Gráficos', 'Fase 4', 'Volume, séries por músculo, mobilidade.') },

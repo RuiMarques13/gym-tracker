@@ -2,7 +2,11 @@ export type Kind = 'STRENGTH' | 'MOBILITY' | 'CARDIO';
 export type MetricType = 'WEIGHT_REPS' | 'REPS' | 'DURATION';
 export type Region = 'UPPER' | 'LOWER' | 'CORE' | 'FULL_BODY';
 export type MovementType = 'PUSH' | 'PULL';
-export type Block = 'WARMUP' | 'MAIN' | 'MOBILITY';
+/**
+ * Blocos de um treino. Só há dois: qualquer exercício (força, mobilidade ou cardio) pode estar em qualquer um.
+ * A base ainda aceita 'MOBILITY' (migração 001), mas a app nunca o escreve; ao ler, passa a 'MAIN'.
+ */
+export type Block = 'WARMUP' | 'MAIN';
 export type SetType = 'WARMUP' | 'WORKING';
 export type Side = 'BOTH' | 'LEFT' | 'RIGHT';
 export type ScheduledStatus = 'PLANNED' | 'DONE' | 'SKIPPED';

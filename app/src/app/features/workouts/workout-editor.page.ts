@@ -54,9 +54,8 @@ interface EditItem extends PlannedExerciseInput {
 }
 
 const BLOCK_HINT: Record<Block, string> = {
-  WARMUP: 'Ativação, cardio leve, mobilidade dinâmica',
-  MAIN: 'O trabalho principal de força',
-  MOBILITY: 'Alongamentos e mobilidade no fim',
+  WARMUP: 'Ativação, mobilidade, cardio leve',
+  MAIN: 'O resto do treino, pela ordem que fizeres (mobilidade no fim também)',
 };
 
 @Component({
@@ -274,7 +273,7 @@ export class WorkoutEditorPage {
 
   readonly isNew = computed(() => !this.id());
   readonly byBlock = computed(() => {
-    const out: Record<Block, EditItem[]> = { WARMUP: [], MAIN: [], MOBILITY: [] };
+    const out: Record<Block, EditItem[]> = { WARMUP: [], MAIN: [] };
     for (const it of this.items()) out[it.block].push(it);
     return out;
   });
@@ -329,7 +328,7 @@ export class WorkoutEditorPage {
       component: ExercisePickerComponent,
       componentProps: {
         title: `Adicionar a ${BLOCK_LABEL[block]}`,
-        initialKind: block === 'MOBILITY' ? 'MOBILITY' : 'ALL',
+        initialKind: 'ALL',
       },
     });
     await modal.present();

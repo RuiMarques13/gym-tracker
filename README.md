@@ -4,7 +4,7 @@ App pessoal para planear e registar treinos de força e mobilidade. Local primei
 dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: documento
 «Gym Tracker — requisitos, arquitetura e fases» (v2) no projeto.
 
-## Estado: Fase 0, 1.1 e 1.2 concluídas
+## Estado: Fase 0, 1.1, 1.2 e 1.3 concluídas
 
 - [x] Projeto Ionic 9 + Angular 21 (standalone, sem zone.js) + Capacitor 8, alvos web e Android
 - [x] `DbAdapter` com três implementações: SQLite nativo (Android), jeep-sqlite (browser), sql.js (testes)
@@ -17,8 +17,9 @@ dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: docum
 - [x] Biblioteca de 414 exercícios (376 força, 14 mobilidade, 24 cardio) (Exercícios → Biblioteca), adiciona com um toque (ver `docs/biblioteca.md`)
 - [x] Fase 1.1: criar, editar, arquivar, restaurar e apagar exercícios; filtros completos e ordenação
 - [x] Tipo Cardio (migração 002): duração, com distância e calorias opcionais por série
-- [x] Fase 1.2: treinos com blocos Aquecimento / Principal / Mobilidade; criar, editar, copiar, arquivar, apagar, reordenar e alvos por exercício
-- [x] 67 testes em Node (migrações, restrições, seed, definições, transações, repositórios, biblioteca, treinos)
+- [x] Fase 1.2: treinos com dois blocos, Aquecimento e Principal (mobilidade livre em qualquer um); criar, editar, copiar, arquivar, apagar, reordenar e alvos por exercício
+- [x] Fase 1.3: sessão ativa (a partir de um treino ou livre), séries com carga, reps, duração, lados e amplitude, pré-preenchimento, descanso real, cronómetro de duração e bolha do temporizador com som e vibração; terminar com esforço e notas
+- [x] 85 testes em Node (migrações, restrições, seed, definições, transações, repositórios, biblioteca, treinos)
 - [ ] APK testado num Android real (falta correr no teu PC, ver abaixo)
 
 ## Requisitos

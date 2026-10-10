@@ -21,9 +21,10 @@ import {
   ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, clipboardOutline } from 'ionicons/icons';
+import { add, clipboardOutline, play } from 'ionicons/icons';
 import { BLOCK_LABEL, BLOCK_ORDER, WorkoutSummary, WorkoutValidationError } from '../../data/models/workout';
 import { WORKOUT_REPOSITORY } from '../../data/repositories/providers';
+import { SessionLauncher } from '../session/session-launcher';
 
 /** Os teus treinos (templates). Deslizar para copiar ou arquivar; tocar para editar. */
 @Component({
@@ -47,7 +48,7 @@ import { WORKOUT_REPOSITORY } from '../../data/repositories/providers';
           <div class="empty">
             <ion-icon name="clipboard-outline" />
             <h2>Ainda não tens treinos</h2>
-            <p>Cria um treino com aquecimento, parte principal e mobilidade. Depois é só começar a sessão a partir dele.</p>
+            <p>Cria um treino com aquecimento e parte principal; mobilidade, força ou cardio, em qualquer um. Depois é só começar a sessão a partir dele.</p>
             <ion-button routerLink="/treinos/novo">Criar o primeiro treino</ion-button>
           </div>
         } @else {
@@ -60,6 +61,11 @@ import { WORKOUT_REPOSITORY } from '../../data/repositories/providers';
                     <p>{{ describe(w) }}</p>
                     @if (w.notes) { <p class="notes">{{ w.notes }}</p> }
                   </ion-label>
+                  @if (!w.archivedAt && w.exerciseCount) {
+                    <ion-button slot="end" fill="solid" size="default" class="play" (click)="startSession(w, $event)" aria-label="Iniciar treino">
+                      <ion-icon slot="start" name="play" /> Iniciar
+                    </ion-button>
+                  }
                 </ion-item>
                 <ion-item-options side="end">
                   <ion-item-option color="medium" (click)="copy(w)">Copiar</ion-item-option>
@@ -85,6 +91,7 @@ import { WORKOUT_REPOSITORY } from '../../data/repositories/providers';
     .page { max-width: 760px; margin: 0 auto; }
     h2 { font-weight: 600; display: flex; gap: 6px; align-items: center; }
     .notes { font-style: italic; }
+    .play { --border-radius: 20px; margin-inline-start: 8px; }
     .empty { max-width: 380px; margin: 14vh auto 0; text-align: center; padding: 0 16px; }
     .empty ion-icon { font-size: 44px; color: var(--ion-color-primary); }
     .empty h2 { justify-content: center; margin: 10px 0 6px; font-weight: 700; }
@@ -94,6 +101,7 @@ import { WORKOUT_REPOSITORY } from '../../data/repositories/providers';
 export class WorkoutsPage implements ViewWillEnter {
   private readonly repo = inject(WORKOUT_REPOSITORY);
   private readonly toasts = inject(ToastController);
+  private readonly launcher = inject(SessionLauncher);
 
   readonly showArchived = signal(false);
   readonly workouts = resource({
@@ -102,7 +110,7 @@ export class WorkoutsPage implements ViewWillEnter {
   });
 
   constructor() {
-    addIcons({ add, clipboardOutline });
+    addIcons({ add, clipboardOutline, play });
   }
 
   ionViewWillEnter(): void {
@@ -113,6 +121,12 @@ export class WorkoutsPage implements ViewWillEnter {
     if (!w.exerciseCount) return 'Sem exercícios';
     const blocks = BLOCK_ORDER.filter((b) => w.blockCounts[b]).map((b) => `${BLOCK_LABEL[b]} ${w.blockCounts[b]}`);
     return `${w.exerciseCount} ${w.exerciseCount === 1 ? 'exercício' : 'exercícios'} · ${blocks.join(' · ')}`;
+  }
+
+  async startSession(w: WorkoutSummary, ev: Event): Promise<void> {
+    ev.stopPropagation();
+    ev.preventDefault();
+    await this.launcher.start(w.id);
   }
 
   async copy(w: WorkoutSummary): Promise<void> {

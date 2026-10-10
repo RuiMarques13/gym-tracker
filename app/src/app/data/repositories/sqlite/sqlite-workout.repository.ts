@@ -4,6 +4,7 @@ import { newId } from '../../../core/util/uuid';
 import type { Block, Kind, MetricType } from '../../models/enums';
 import {
   BLOCK_ORDER,
+  normalizeBlock,
   PlannedExercise,
   PlannedExerciseInput,
   Workout,
@@ -72,17 +73,17 @@ export class SqliteWorkoutRepository implements WorkoutRepository {
       `SELECT id, name, notes, archived_at, updated_at FROM workout_template
        WHERE deleted_at IS NULL ${options.includeArchived ? '' : 'AND archived_at IS NULL'}`,
     );
-    const counts = await this.db.query<{ template_id: string; block: Block; n: number }>(
+    const counts = await this.db.query<{ template_id: string; block: string; n: number }>(
       `SELECT template_id, block, COUNT(*) AS n FROM planned_exercise
        WHERE deleted_at IS NULL GROUP BY template_id, block`,
     );
     return templates
       .map((t) => {
-        const blockCounts: Record<Block, number> = { WARMUP: 0, MAIN: 0, MOBILITY: 0 };
-        for (const c of counts.filter((c) => c.template_id === t.id)) blockCounts[c.block] = c.n;
+        const blockCounts: Record<Block, number> = { WARMUP: 0, MAIN: 0 };
+        for (const c of counts.filter((c) => c.template_id === t.id)) blockCounts[normalizeBlock(c.block)] += c.n;
         return {
           id: t.id, name: t.name, notes: t.notes, archivedAt: t.archived_at, updatedAt: t.updated_at, blockCounts,
-          exerciseCount: blockCounts.WARMUP + blockCounts.MAIN + blockCounts.MOBILITY,
+          exerciseCount: blockCounts.WARMUP + blockCounts.MAIN,
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }));
@@ -274,7 +275,7 @@ function toPlanned(r: ItemRow): PlannedExercise {
     isUnilateral: r.is_unilateral === 1,
     exerciseArchived: r.exercise_archived_at !== null,
     position: r.position,
-    block: r.block,
+    block: normalizeBlock(r.block),
     supersetGroup: r.superset_group,
     targetSets: r.target_sets,
     targetReps: r.target_reps,

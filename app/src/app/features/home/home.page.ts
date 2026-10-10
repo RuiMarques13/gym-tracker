@@ -6,6 +6,7 @@ import {
   IonCardHeader,
   IonCardSubtitle,
   IonCardTitle,
+  IonButton,
   IonContent,
   IonHeader,
   IonIcon,
@@ -15,15 +16,17 @@ import {
   IonNote,
   IonTitle,
   IonToolbar,
+  ViewWillEnter,
 } from '@ionic/angular';
 import { DatabaseService } from '../../core/db/database.service';
-import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
+import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { SessionLauncher } from '../session/session-launcher';
 
 @Component({
   selector: 'app-home',
   imports: [
     RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle,
-    IonCardSubtitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonIcon,
+    IonCardSubtitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonIcon, IonButton,
   ],
   template: `
     <ion-header>
@@ -32,7 +35,20 @@ import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
     <ion-content class="ion-padding">
       <div class="page">
         <h1 class="greeting">Bom treino.</h1>
-        <p class="lede">Os teus exercícios já se gerem aqui. Treinos e sessões são os próximos passos.</p>
+        @if (active.value(); as a) {
+          <div class="active">
+            <div>
+              <strong>Sessão em curso</strong>
+              <span>{{ a.templateName ?? 'Sessão livre' }}</span>
+            </div>
+            <ion-button routerLink="/sessao">Continuar</ion-button>
+          </div>
+        } @else {
+          <div class="start">
+            <ion-button (click)="launcher.start(null)">Sessão livre</ion-button>
+            <ion-button fill="outline" routerLink="/treinos">Escolher um treino</ion-button>
+          </div>
+        }
 
         <p class="stats-title">Os teus exercícios</p>
         <div class="stats">
@@ -89,7 +105,11 @@ import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
   styles: `
     .page { max-width: 760px; margin: 0 auto; }
     .greeting { font-size: 1.9rem; font-weight: 700; margin: 8px 0 4px; letter-spacing: -0.01em; }
-    .lede { color: var(--ion-color-medium); margin: 0 0 20px; }
+    .start { display: flex; gap: 10px; margin: 8px 0 22px; flex-wrap: wrap; }
+    .active { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; margin: 8px 0 22px;
+      border-radius: 14px; background: rgba(var(--ion-color-primary-rgb), 0.12); }
+    .active strong { display: block; }
+    .active span { color: var(--ion-color-medium); font-size: 0.9rem; }
     .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
     .stats-title { font-size: 0.8rem; color: var(--ion-color-medium); margin: 0 0 6px; }
     .stat {
@@ -105,9 +125,11 @@ import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
     .error { color: var(--ion-color-danger); padding: 0 16px; }
   `,
 })
-export class HomePage {
+export class HomePage implements ViewWillEnter {
   private readonly database = inject(DatabaseService);
   private readonly exercises = inject(EXERCISE_REPOSITORY);
+  private readonly sessions = inject(SESSION_REPOSITORY);
+  readonly launcher = inject(SessionLauncher);
 
   readonly status = this.database.status;
   readonly shortDevice = computed(() => this.status().deviceId?.slice(0, 8) ?? '–');
@@ -115,6 +137,13 @@ export class HomePage {
     const p = this.status().persistentStorage;
     return p === null ? 'n/d (nativo)' : p ? 'Sim' : 'Não concedido';
   });
+
+  readonly active = resource({ loader: () => this.sessions.getActive() });
+
+  ionViewWillEnter(): void {
+    this.active.reload();
+    this.counts.reload();
+  }
 
   readonly counts = resource({
     loader: async () => {

@@ -34,12 +34,13 @@ import {
 import { filter, map } from 'rxjs';
 import { NAV_ITEMS } from './core/navigation/nav-items';
 import { SettingsService } from './core/settings/settings.service';
+import { TimerBubbleComponent } from './shared/timer-bubble.component';
 
 @Component({
   selector: 'app-root',
   imports: [
     RouterLink, RouterLinkActive, IonApp, IonSplitPane, IonMenu, IonContent, IonList, IonListHeader,
-    IonMenuToggle, IonItem, IonIcon, IonLabel, IonNote, IonRouterOutlet, IonTabBar, IonTabButton,
+    IonMenuToggle, IonItem, IonIcon, IonLabel, IonNote, IonRouterOutlet, IonTabBar, IonTabButton, TimerBubbleComponent,
   ],
   template: `
     <ion-app>
@@ -87,6 +88,7 @@ import { SettingsService } from './core/settings/settings.service';
           }
         </div>
       </ion-split-pane>
+      <app-timer-bubble />
     </ion-app>
   `,
   styles: `
@@ -124,7 +126,7 @@ export class App {
   );
 
   readonly selectedTab = computed(() => {
-    const url = this.url();
+    const url = this.url().startsWith('/sessao') ? '/home' : this.url();
     const tab = this.tabs.find((t) => url.startsWith(t.path));
     return tab?.path ?? '/mais';
   });
