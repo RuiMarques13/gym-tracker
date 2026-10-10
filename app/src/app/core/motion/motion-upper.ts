@@ -7,12 +7,12 @@ const INCLINE = { kind: 'incline' as const, d: 'M18 78 L52 54 M26 78 V90 M56 54 
 export const UPPER_MOTIONS: Motion[] = [
   // ---- Peito ----
   // ---- Supinos (biomecânica): a carga sobe e desce numa linha quase vertical sobre o peito; no fundo o antebraço fica
-  // vertical (pulso sobre o cotovelo) e o cotovelo para o lado dos pés; em cima o braço fica esticado. O banco acompanha o
+  // vertical e a carga toca a parte baixa do peito (para o lado dos pés); em cima o braço fica esticado sobre os OMBROS (trajetória em J, segundo a literatura). O banco acompanha o
   // tronco: horizontal (0°), inclinado (~35° acima da horizontal) e declinado (~15° abaixo).
   ...[
-    { id: 'bench', label: 'Supino', pose: lying({ at: [30, 72] }), lock: [-9, -27] as [number, number], touch: [-9, -7] as [number, number], elbow: 'down' as const },
-    { id: 'bench-incline', label: 'Supino inclinado', pose: { anchor: 'hip', at: [46, 71], shin: 0, thigh: -90, torso: -55 } as Pose, lock: [8, -27] as [number, number], touch: [8, -6] as [number, number], elbow: 'down' as const },
-    { id: 'bench-decline', label: 'Supino declinado', pose: lying({ at: [26, 64], torso: 105 }), lock: [-9, -27] as [number, number], touch: [-9, -7] as [number, number], elbow: 'down' as const },
+    { id: 'bench', label: 'Supino', pose: lying({ at: [30, 72] }), lock: [0, -27.3] as [number, number], touch: [-10, -7] as [number, number], elbow: 'down' as const },
+    { id: 'bench-incline', label: 'Supino inclinado', pose: { anchor: 'hip', at: [46, 71], shin: 0, thigh: -90, torso: -55 } as Pose, lock: [0, -27.3] as [number, number], touch: [10, -2] as [number, number], elbow: 'down' as const },
+    { id: 'bench-decline', label: 'Supino declinado', pose: lying({ at: [26, 64], torso: 105 }), lock: [0, -27.3] as [number, number], touch: [-10, -7] as [number, number], elbow: 'down' as const },
   ].map((b) => m({ id: b.id, label: b.label, props: benchAlong(b.pose) },
     { ...b.pose, reach: b.lock, elbow: b.elbow }, { ...b.pose, reach: b.touch, elbow: b.elbow }, true)),
   // Chest press (máquina): costas encostadas, as mãos empurram em linha recta à frente do peito (perpendicular ao encosto).
