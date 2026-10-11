@@ -1,22 +1,30 @@
 export const WIDGETS = [
   { id: 'next-workout', label: 'Próximo treino' },
+  { id: 'week-progress', label: 'Alvo da semana vs progresso (gráfico)' },
   { id: 'week-summary', label: 'Resumo da semana (tempo, exercícios, séries)' },
   { id: 'volume-week', label: 'Volume semanal por músculo' },
   { id: 'recovery', label: 'Descanso recomendado por músculo' },
   { id: 'category-week', label: 'Semana por categoria (séries, carga, tempo, distância)' },
   { id: 'mobility-minutes', label: 'Mobilidade da semana' },
-  { id: 'exercise-counts', label: 'Os teus exercícios' },
 ] as const;
 
-export const DEFAULT_WIDGETS = ['next-workout', 'week-summary', 'volume-week', 'recovery', 'category-week', 'mobility-minutes', 'exercise-counts'];
+export const DEFAULT_WIDGETS = ['next-workout', 'week-progress', 'week-summary', 'volume-week', 'recovery', 'category-week', 'mobility-minutes'];
 
-/** Definições antigas: «weekly-sets» passou a «volume-week». Ids desconhecidos e repetidos saem. */
+/**
+ * Definições antigas: «weekly-sets» passou a «volume-week»; «exercise-counts» (os teus exercícios) saiu e dá o lugar
+ * ao gráfico do alvo da semana, que entra logo a seguir ao próximo treino. Ids desconhecidos e repetidos saem.
+ */
 export function normalizeWidgets(saved: readonly string[]): string[] {
   const out: string[] = [];
+  let wantsChart = false;
   for (const raw of saved) {
+    if (raw === 'exercise-counts') {
+      wantsChart = true;
+      continue;
+    }
     const id = raw === 'weekly-sets' ? 'volume-week' : raw;
     if (WIDGETS.some((w) => w.id === id) && !out.includes(id)) out.push(id);
   }
+  if (wantsChart && !out.includes('week-progress')) out.splice(out[0] === 'next-workout' ? 1 : 0, 0, 'week-progress');
   return out;
 }
-

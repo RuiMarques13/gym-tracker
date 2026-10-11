@@ -3,7 +3,8 @@ import { METRICS_REPOSITORY } from '../../data/repositories/providers';
 import { SettingsService } from '../settings/settings.service';
 import { CLOCK } from '../util/clock';
 import { MUSCLE_LABEL, SPEC_MUSCLES } from './muscles';
-import { MetricProfile, Recommendation, recommend } from './volume';
+import { MetricProfile, Recommendation, recommend, weekProgress, WeekProgress } from './volume';
+import { fromLocalDate, toLocalDate, weekStartOf } from '../util/week';
 
 const DAY = 86_400_000;
 const STATUS_TEXT = { below: 'Abaixo', ok: 'Na faixa', above: 'Acima' } as const;
@@ -27,6 +28,8 @@ export interface VolumeView {
   inRange: number;
   /** Soma das séries feitas (limitadas ao alvo de cada músculo) sobre a soma dos alvos. */
   progress: number;
+  /** Alvo da semana (segunda a domingo) e progresso real dia a dia. */
+  week: WeekProgress;
 }
 
 /** Calcula o volume semanal por músculo com o perfil (objetivo, nível) e o histórico dos últimos meses. */
@@ -64,8 +67,12 @@ export class VolumeService {
     const above = recs.filter((r) => r.status === 'above');
     const targetSum = recs.reduce((n, r) => n + r.range.target, 0);
     const doneSum = recs.reduce((n, r) => n + Math.min(r.sets, r.range.target), 0);
+    const week = weekProgress(
+      md.sets, md.exercises, new Map(recs.map((r) => [r.muscle, r.range.target])),
+      fromLocalDate(weekStartOf(toLocalDate(now))), now,
+    );
     return {
-      rows, tips: [...below, ...above].slice(0, 3), missing: md.withoutPrimary.length,
+      week, rows, tips: [...below, ...above].slice(0, 3), missing: md.withoutPrimary.length,
       inRange: recs.filter((r) => r.status === 'ok').length, progress: targetSum ? doneSum / targetSum : 0,
     };
   }

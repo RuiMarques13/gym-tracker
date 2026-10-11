@@ -1,15 +1,16 @@
 import { Component, computed, inject, input, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonButton } from '@ionic/angular';
-import { Category, CATEGORIES, CATEGORY_LABEL } from '../../data/models/enums';
+import { CATEGORY_LABEL } from '../../data/models/enums';
 import type { CategoryTotals } from '../../data/repositories/metrics.repository';
 import { VolumeService } from '../../core/metrics/volume.service';
 import { MuscleBarsComponent } from '../../shared/muscle-bars.component';
+import { WeekProgressChartComponent } from '../../shared/week-progress-chart.component';
 import { RecoveryCardComponent } from '../../shared/recovery-card.component';
 import { SettingsService } from '../../core/settings/settings.service';
 import { CLOCK } from '../../core/util/clock';
 import { addDays, toLocalDate, weekStartOf } from '../../core/util/week';
-import { EXERCISE_REPOSITORY, METRICS_REPOSITORY, SCHEDULED_REPOSITORY } from '../../data/repositories/providers';
+import { METRICS_REPOSITORY, SCHEDULED_REPOSITORY } from '../../data/repositories/providers';
 import { SessionLauncher } from '../session/session-launcher';
 
 export { DEFAULT_WIDGETS, normalizeWidgets, WIDGETS } from './widget-list';
@@ -18,7 +19,7 @@ import { normalizeWidgets } from './widget-list';
 /** Os widgets da Home, pela ordem e com os que escolheres (definição home.widgets). */
 @Component({
   selector: 'app-home-widgets',
-  imports: [RouterLink, IonButton, MuscleBarsComponent, RecoveryCardComponent],
+  imports: [RouterLink, IonButton, MuscleBarsComponent, RecoveryCardComponent, WeekProgressChartComponent],
   template: `
     @for (id of enabled(); track id) {
       @switch (id) {
@@ -81,16 +82,14 @@ import { normalizeWidgets } from './widget-list';
             <app-recovery-card [refresh]="refresh()" />
           </section>
         }
-        @case ('exercise-counts') {
+        @case ('week-progress') {
           <section class="widget">
-            <h3>Os teus exercícios</h3>
-            <div class="grid4">
-              @for (c of categories; track c) {
-                <a class="stat" routerLink="/exercicios" [queryParams]="{ category: c }">
-                  <span class="value">{{ data.value()?.counts?.[c] ?? '–' }}</span><span class="label">{{ categoryLabel[c] }}</span>
-                </a>
-              }
-            </div>
+            <h3>Alvo da semana <a class="more" routerLink="/volume">detalhe</a></h3>
+            @if (volume.value(); as v) {
+              <app-week-progress-chart [progress]="v.week" />
+            } @else {
+              <p class="muted">A calcular…</p>
+            }
           </section>
         }
         @case ('category-week') {
@@ -152,9 +151,6 @@ import { normalizeWidgets } from './widget-list';
     .prog { height: 12px; border-radius: 6px; background: var(--ion-color-step-150, rgba(127,127,127,0.2)); overflow: hidden; }
     .prog-fill { height: 100%; border-radius: 6px; background: var(--ion-color-primary); }
     a.stat { text-decoration: none; color: inherit; display: flex; flex-direction: column; }
-    .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 8px; }
-    .grid4 .value { font-size: 1.35rem; }
-    .grid4 .label { font-size: 0.72rem; }
     .cats { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
     .cats li { display: flex; justify-content: space-between; gap: 12px; font-size: 0.9rem; }
     .cats span { color: var(--ion-color-medium); font-variant-numeric: tabular-nums; text-align: right; }
@@ -175,7 +171,6 @@ export class HomeWidgetsComponent {
 
   private readonly widgets = this.settings.get('homeWidgets');
   private readonly volumeService = inject(VolumeService);
-  private readonly exercises = inject(EXERCISE_REPOSITORY);
   readonly enabled = computed(() => normalizeWidgets(this.widgets()));
   readonly showAll = signal(false);
 
@@ -185,24 +180,18 @@ export class HomeWidgetsComponent {
       const today = toLocalDate(this.clock.now());
       const week = weekStartOf(today);
       const has = (id: string) => params.w.includes(id);
-      let counts: Record<Category, number> | null = null;
-      if (has('exercise-counts')) {
-        const all = await this.exercises.list();
-        counts = Object.fromEntries(CATEGORIES.map((c) => [c, all.filter((e) => e.category === c).length])) as Record<Category, number>;
-      }
       return {
         next: has('next-workout') ? await this.scheduled.next(today) : null,
         week: has('week-summary') ? await this.metrics.weekSummary(week) : null,
         mobility: has('mobility-minutes') ? await this.metrics.mobilityWeek(week) : null,
         streak: has('mobility-minutes') ? await this.metrics.mobilityStreak(today) : 0,
-        counts,
         byCategory: has('category-week') ? (await this.metrics.categoryWeek(week)).filter((r) => r.sets > 0 || r.minutes > 0) : null,
       };
     },
   });
 
   readonly volume = resource({
-    params: () => ({ r: this.refresh(), on: this.enabled().includes('volume-week') }),
+    params: () => ({ r: this.refresh(), on: this.enabled().includes('volume-week') || this.enabled().includes('week-progress') }),
     loader: async ({ params }) => (params.on ? await this.volumeService.load() : undefined),
   });
   readonly shownRows = computed(() => {
@@ -211,7 +200,6 @@ export class HomeWidgetsComponent {
   });
   readonly restCount = computed(() => (this.volume.value()?.rows ?? []).filter((r) => r.sets === 0).length);
 
-  readonly categories = CATEGORIES;
   readonly categoryLabel = CATEGORY_LABEL;
 
   /** «12 séries · 4 200 kg», «35 min · 5,2 km», «20 min»: só o que faz sentido para o que foi feito. */

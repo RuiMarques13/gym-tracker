@@ -6,11 +6,14 @@ import {
   IonButton,
   IonButtons,
   IonContent,
+  IonIcon,
   IonHeader,
   IonTitle,
   IonToolbar,
   ViewWillEnter,
 } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { home } from 'ionicons/icons';
 import { DatabaseService } from '../../core/db/database.service';
 import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories/providers';
 import { SettingsService } from '../../core/settings/settings.service';
@@ -24,13 +27,13 @@ import { SessionLauncher } from '../session/session-launcher';
   selector: 'app-home',
   imports: [NavButtonComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonContent,
-    IonButton, HomeWidgetsComponent, HomeLayoutEditorComponent, IonButtons,
+    IonButton, HomeWidgetsComponent, HomeLayoutEditorComponent, IonButtons, IonIcon,
   ],
   template: `
     <ion-header>
       <ion-toolbar>
         <app-nav-button slot="start" />
-        <ion-title>Home</ion-title>
+        <ion-title aria-label="Home"><ion-icon name="home" class="home-icon" /></ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="editing.set(!editing())">{{ editing() ? 'Concluir' : 'Editar' }}</ion-button>
         </ion-buttons>
@@ -38,7 +41,6 @@ import { SessionLauncher } from '../session/session-launcher';
     </ion-header>
     <ion-content class="ion-padding">
       <div class="page">
-        <h1 class="greeting">Bom treino.</h1>
         @if (backupDue()) {
           <div class="active backup">
             <div>
@@ -85,8 +87,8 @@ import { SessionLauncher } from '../session/session-launcher';
   `,
   styles: `
     .page { max-width: 760px; margin: 0 auto; }
-    .greeting { font-size: 1.9rem; font-weight: 700; margin: 8px 0 4px; letter-spacing: -0.01em; }
-    .start { display: flex; gap: 10px; margin: 8px 0 22px; flex-wrap: wrap; }
+    .home-icon { font-size: 1.45rem; vertical-align: middle; }
+    .start { display: flex; justify-content: center; gap: 10px; margin: 12px 0 22px; flex-wrap: wrap; }
     .active { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; margin: 8px 0 22px;
       border-radius: 14px; background: rgba(var(--ion-color-primary-rgb), 0.12); }
     .active strong { display: block; }
@@ -101,6 +103,10 @@ export class HomePage implements ViewWillEnter {
   private readonly sessions = inject(SESSION_REPOSITORY);
   private readonly clock = inject(CLOCK);
   readonly launcher = inject(SessionLauncher);
+
+  constructor() {
+    addIcons({ home });
+  }
 
   readonly status = this.database.status;
   readonly shortDevice = computed(() => this.status().deviceId?.slice(0, 8) ?? '–');

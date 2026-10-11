@@ -82,6 +82,56 @@ export function weeklyVolume(
   return { sets: vol, freq: new Map([...sessions].map(([m, ids]) => [m, ids.size])) };
 }
 
+export interface WeekProgressPoint {
+  /** 0 = início da segunda; 1..7 = fim de cada dia. */
+  x: number;
+  /** Ritmo para chegar ao alvo no domingo (reta). */
+  pace: number;
+  /** Séries feitas até ao fim desse dia (cada músculo limitado ao seu alvo); null nos dias que ainda não chegaram. */
+  real: number | null;
+}
+
+export interface WeekProgress {
+  /** Soma dos alvos semanais por músculo. */
+  target: number;
+  /** Feito até agora (cada músculo limitado ao seu alvo). */
+  done: number;
+  /** 0..6: dia de hoje na semana (segunda = 0). */
+  today: number;
+  points: WeekProgressPoint[];
+}
+
+/**
+ * Alvo da semana (segunda a domingo) contra o progresso real, dia a dia. O progresso soma, por músculo, as séries
+ * fracionais feitas desde segunda, limitadas ao alvo desse músculo (como o resto da app: passar do alvo não «compensa»
+ * outro músculo em falta).
+ */
+export function weekProgress(
+  sets: MetricSet[],
+  exercises: Map<string, MetricExercise>,
+  targets: ReadonlyMap<string, number>,
+  weekStart: Date,
+  now: Date,
+  rules: VolumeRules = VOLUME_RULES,
+): WeekProgress {
+  const target = [...targets.values()].reduce((n, t) => n + t, 0);
+  const dayStart = (i: number) => new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i);
+  const sod = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = Math.min(6, Math.max(0, Math.round((sod.getTime() - dayStart(0).getTime()) / DAY)));
+  const doneAt = (end: Date) => {
+    const { sets: vol } = weeklyVolume(sets, exercises, dayStart(0), end, rules);
+    let n = 0;
+    for (const [m, t] of targets) n += Math.min(vol.get(m) ?? 0, t);
+    return Math.round(n * 10) / 10;
+  };
+  const points: WeekProgressPoint[] = [{ x: 0, pace: 0, real: 0 }];
+  for (let i = 0; i < 7; i++) {
+    const end = i === today ? now : dayStart(i + 1);
+    points.push({ x: i + 1, pace: Math.round(((target * (i + 1)) / 7) * 10) / 10, real: i <= today ? doneAt(end) : null });
+  }
+  return { target: Math.round(target * 10) / 10, done: points[today + 1].real ?? 0, today, points };
+}
+
 /** e1RM de Brzycki, só com ≤ 10 repetições (incluindo as de reserva) e carga > 0. */
 export function e1rm(s: Pick<MetricSet, 'weightKg' | 'reps' | 'rir'>): number | null {
   const reps = s.reps + (s.rir ?? 0);
