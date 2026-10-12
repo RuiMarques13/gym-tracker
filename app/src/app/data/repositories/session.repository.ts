@@ -19,6 +19,8 @@ export interface SessionRepository {
   listFinished(options?: { limit?: number; offset?: number }): Promise<SessionSummary[]>;
   /** O que fizeste num exercício, sessão a sessão (terminadas), da mais recente para a mais antiga. */
   exerciseHistory(exerciseId: string, options?: { limit?: number }): Promise<ExerciseHistoryEntry[]>;
+  /** A sessão ainda não tinha começado a sério: recomeça o relógio em `atIso` (por defeito, agora). Só em sessões em curso. */
+  restartClock(id: string, atIso?: string): Promise<Session>;
   /** Corrige o esforço e as notas (sessão em curso ou terminada). */
   updateDetails(id: string, input: SessionDetailsInput): Promise<Session>;
   /** Descarta a sessão (fica apagada, não aparece no histórico). */

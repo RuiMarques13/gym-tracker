@@ -293,6 +293,15 @@ export class SqliteSessionRepository implements SessionRepository {
     return (await this.get(id))!;
   }
 
+  async restartClock(id: string, atIso?: string): Promise<Session> {
+    const s = await this.get(id);
+    if (!s) throw new SessionError('not-found', 'Sessão não encontrada.');
+    if (s.endedAt) throw new SessionError('ended', 'A sessão já terminou.');
+    const now = this.clock.nowIso();
+    await this.db.run('UPDATE session SET started_at = ?, paused_seconds = 0, updated_at = ?, device_id = ? WHERE id = ?', [atIso ?? now, now, this.deviceId, id]);
+    return (await this.get(id))!;
+  }
+
   async updateDetails(id: string, input: SessionDetailsInput): Promise<Session> {
     await this.assertExists(id);
     const now = this.clock.nowIso();

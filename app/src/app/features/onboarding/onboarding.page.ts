@@ -25,7 +25,7 @@ import { BODY_METRIC_REPOSITORY } from '../../data/repositories/providers';
         @switch (step()) {
           @case (0) {
             <h1>Isto é teu.</h1>
-            <p>Gym Tracker guarda os teus treinos de força, mobilidade e cardio neste dispositivo. Funciona sem internet e podes exportar tudo quando quiseres.</p>
+            <p>Gym Tracker guarda os teus treinos de musculação, mobilidade e cardio neste dispositivo. Funciona sem internet e podes exportar tudo quando quiseres.</p>
             <ion-list>
               <ion-item>
                 <ion-input label="Como te chamas?" labelPlacement="stacked" placeholder="Opcional" [value]="name()"
@@ -51,14 +51,14 @@ import { BODY_METRIC_REPOSITORY } from '../../data/repositories/providers';
           }
           @case (2) {
             <h1>Descanso entre séries</h1>
-            <p>O temporizador arranca sozinho quando registas uma série de força. Podes mudar o tempo por exercício ou por treino. Mobilidade e cardio não têm descanso por defeito.</p>
+            <p>O temporizador arranca sozinho quando registas uma série de musculação. Podes mudar o tempo por exercício ou por treino. Mobilidade e cardio não têm descanso por defeito.</p>
             <ion-list>
               <ion-item><ion-input label="Descanso por defeito (segundos)" labelPlacement="stacked" type="number" inputmode="numeric" [value]="rest()" (ionInput)="rest.set($any($event).detail.value ?? '')" /></ion-item>
             </ion-list>
           }
           @case (3) {
             <h1>Os teus exercícios</h1>
-            <p>A biblioteca tem mais de 400 exercícios de força, mobilidade e cardio. Adiciona os que usas com um toque e depois cria os teus treinos.</p>
+            <p>A biblioteca tem mais de 400 exercícios de musculação, mobilidade e cardio. Adiciona os que usas com um toque e depois cria os teus treinos.</p>
           }
         }
 

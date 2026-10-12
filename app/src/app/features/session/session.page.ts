@@ -1,5 +1,7 @@
 import { EffortScaleComponent } from '../../shared/effort-scale.component';
 import { StatTile, StatTilesComponent } from '../../shared/stat-tiles.component';
+import { MuscleMapComponent } from '../../shared/muscle-map.component';
+import { firstExercise } from './session-launcher';
 import { BodyProfileService } from '../../core/health/body-profile.service';
 import { HealthService } from '../../core/health/health.service';
 import { paceOf, sessionStats } from '../../core/metrics/session-stats';
@@ -81,7 +83,7 @@ import { ToastService } from '../../core/ui/toast.service';
 
 @Component({
   selector: 'app-session',
-  imports: [EffortScaleComponent, StatTilesComponent, 
+  imports: [EffortScaleComponent, StatTilesComponent, MuscleMapComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonContent, IonFooter, IonList, IonItem,
     IonLabel, IonBadge, IonInput, IonTextarea, IonModal, IonSegment, IonSegmentButton, IonSpinner,
   ],
@@ -114,9 +116,17 @@ import { ToastService } from '../../core/ui/toast.service';
           @if (historical()) {
             <p class="day">{{ dayLabel() }}</p>
           }
+          @if (startIn() !== null) { <p class="start-pill" aria-live="polite">A começar em {{ startIn() }}…</p> }
           <app-stat-tiles size="compact" [cols]="4" [tiles]="mainTiles()" />
           @if (extraTiles().length) {
             <div class="gap"><app-stat-tiles size="compact" [cols]="extraTiles().length > 3 ? 4 : extraTiles().length" [tiles]="extraTiles()" /></div>
+          }
+          @if (hasStrength()) {
+            <section class="muscles" aria-label="Músculos trabalhados">
+              <h3>Músculos trabalhados</h3>
+              <app-muscle-map [primary]="trained().primary" [secondary]="trained().support" primaryLabel="Principais" secondaryLabel="Apoio" [compact]="true" />
+              @if (!trained().primary.length) { <p class="muted">Aparecem aqui à medida que registas séries.</p> }
+            </section>
           }
           @if (liveRun(); as r) {
             <button type="button" class="live" (click)="openLive(r.exerciseId)">
@@ -171,7 +181,7 @@ import { ToastService } from '../../core/ui/toast.service';
             }
           }
           @if (!session()!.exercises.length) {
-            <p class="hint">Sessão livre: adiciona os exercícios que fores fazendo.</p>
+            <p class="hint">Sessão livre: escolhe o primeiro exercício e o relógio começa a contar. Depois vais juntando os outros.</p>
           }
         </div>
       }
@@ -333,6 +343,11 @@ import { ToastService } from '../../core/ui/toast.service';
       background: var(--ion-color-warning-tint, #fff3cd); color: var(--ion-color-warning-shade, #6b5200); }
     .hint { text-align: center; color: var(--ion-color-medium); margin: 24px 0; }
     .footer { max-width: 760px; margin: 0 auto; padding: 4px 12px; }
+    .start-pill { margin: 0 auto 8px; width: fit-content; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem;
+      background: rgba(var(--ion-color-primary-rgb), 0.12); color: var(--ion-color-primary); }
+    .muscles { margin-top: 12px; padding: 10px 12px 6px; border-radius: 14px; background: var(--ion-card-background, var(--ion-item-background)); }
+    .muscles h3 { margin: 0 0 4px; font-size: 0.95rem; }
+    .muscles .muted { margin: 0 0 6px; text-align: center; font-size: 0.8rem; color: var(--ion-color-medium); }
     .sheet { padding: 12px 16px 24px; display: grid; gap: 14px; max-width: 520px; margin: 0 auto; }
     .sheet-sub { margin: 0; color: var(--ion-color-medium); font-size: 0.9rem; }
     .side h4 { margin: 0 0 8px; font-size: 0.95rem; }
@@ -402,7 +417,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     const kcal = real ?? st.loggedKcal ?? st.estimatedKcal;
     const hint = real !== null ? 'ativas · relógio' : st.loggedKcal !== null ? 'registado' : st.estimatedKcal !== null ? 'estimado' : 'sem peso';
     return [
-      { label: 'Duração', value: formatClock(st.totalSeconds), tone: 'primary' },
+      { label: 'Duração', value: formatClock(this.waiting() ? 0 : st.totalSeconds), tone: 'primary' },
       { label: 'Calorias', value: kcal === null ? '—' : String(kcal), unit: kcal === null ? undefined : 'kcal', tone: 'danger', hint },
       { label: 'Ativo', value: formatClock(st.activeSeconds), tone: 'success' },
       { label: 'Descanso', value: formatClock(st.restSeconds), tone: 'secondary' },
@@ -445,13 +460,36 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   private readonly primaryMuscles = resource({
     params: () => [...new Set((this.session()?.exercises ?? []).map((e) => e.exerciseId))].sort().join(','),
     loader: async ({ params }) => {
-      const out = new Map<string, MetricExercise>();
+      const out = new Map<string, MetricExercise & { support: string[] }>();
       for (const id of params ? params.split(',') : []) {
         const ex = await this.exerciseRepo.get(id);
-        out.set(id, { id, primaryMuscles: specOfMuscleIds(ex?.primaryMuscleIds ?? []), secondaryMuscles: [] });
+        out.set(id, { id, primaryMuscles: specOfMuscleIds(ex?.primaryMuscleIds ?? []), secondaryMuscles: [], support: specOfMuscleIds(ex?.secondaryMuscleIds ?? []) });
       }
       return out;
     },
+  });
+  /** Músculos já trabalhados na sessão (exercícios de musculação com séries registadas), para o boneco. */
+  readonly trained = computed(() => {
+    const s = this.session();
+    const exs = this.primaryMuscles.value();
+    const primary = new Set<string>();
+    const support = new Set<string>();
+    if (s && exs) {
+      for (const e of s.exercises) {
+        if (e.kind !== 'STRENGTH' || !e.sets.length) continue;
+        const m = exs.get(e.exerciseId);
+        m?.primaryMuscles.forEach((x) => primary.add(x));
+        m?.support.forEach((x) => support.add(x));
+      }
+    }
+    return { primary: [...primary], support: [...support] };
+  });
+  readonly hasStrength = computed(() => (this.session()?.exercises ?? []).some((e) => e.kind === 'STRENGTH'));
+  /** Sessão livre que ainda não começou: sem exercícios, ou à espera do pequeno timer de arranque. */
+  readonly startIn = signal<number | null>(null);
+  readonly waiting = computed(() => {
+    const s = this.session();
+    return !!s && !s.endedAt && !s.templateId && (!s.exercises.length || this.startIn() !== null);
   });
   /** Aviso quando uma sessão passa das séries diretas úteis por músculo (só em sessão em curso). */
   readonly warnings = computed<string[]>(() => {
@@ -496,6 +534,12 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
 
   ngOnDestroy(): void {
     clearInterval(this.ticker);
+    if (this.startTimer) {
+      clearInterval(this.startTimer);
+      this.startTimer = null;
+      const id = this.session()?.id;
+      if (id) void this.repo.restartClock(id).catch(() => undefined);
+    }
   }
 
   async ionViewWillEnter(): Promise<void> {
@@ -509,6 +553,11 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     this.session.set(found);
     if (this.fim() === '1' && !found.endedAt) this.openDetails();
     else if (this.add() === '1' && !found.endedAt) void this.addExercises();
+    else if (!id && !found.templateId && !found.exercises.length && !this.autoPicked) {
+      // Sessão livre acabada de abrir: vai direto à escolha do primeiro exercício.
+      this.autoPicked = true;
+      void this.addExercises();
+    }
   }
 
   startCardio(ex: SessionExercise): void {
@@ -540,8 +589,40 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     await modal.present();
     const { data, role } = await modal.onDidDismiss<Exercise[]>();
     if (role !== 'confirm' || !data?.length) return;
+    const wasEmpty = !s.exercises.length && !s.templateId;
     for (const e of data) await this.repo.addExercise(s.id, e.id, 'MAIN');
-    this.session.set((await this.repo.get(s.id)) ?? s);
+    const updated = (await this.repo.get(s.id)) ?? s;
+    this.session.set(updated);
+    if (wasEmpty) this.beginFreeSession(updated);
+  }
+
+  private startTimer: ReturnType<typeof setInterval> | null = null;
+  private autoPicked = false;
+
+  /**
+   * Sessão livre: o relógio só arranca depois de escolheres o primeiro exercício, com uma contagem curta e discreta (3 s).
+   * Se esse exercício é de cardio, é o próprio ecrã da atividade (botão «Começar» e contagem de 5 s) que arranca o relógio.
+   */
+  private beginFreeSession(s: Session): void {
+    const first = firstExercise(s);
+    if (first?.kind === 'CARDIO') {
+      this.startCardio(first);
+      return;
+    }
+    this.startIn.set(3);
+    this.startTimer = setInterval(() => {
+      const n = (this.startIn() ?? 1) - 1;
+      if (n > 0) {
+        this.startIn.set(n);
+        return;
+      }
+      clearInterval(this.startTimer!);
+      this.startTimer = null;
+      void this.repo.restartClock(s.id).then(async () => {
+        this.session.set((await this.repo.get(s.id)) ?? s);
+        this.startIn.set(null);
+      });
+    }, 1000);
   }
 
   async removeExercise(ex: SessionExercise): Promise<void> {

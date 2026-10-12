@@ -48,7 +48,7 @@ const BACK: Shape[] = [
 @Component({
   selector: 'app-muscle-map',
   template: `
-    <div class="wrap">
+    <div class="wrap" [class.compact]="compact()">
       @for (v of views; track v.name) {
         <figure>
           <svg viewBox="0 0 100 205" role="img" [attr.aria-label]="v.name + ': ' + summary()">
@@ -67,16 +67,17 @@ const BACK: Shape[] = [
       }
     </div>
     <p class="legend">
-      <span class="key p"></span> Principal
-      <span class="key s"></span> Secundário
+      <span class="key p"></span> {{ primaryLabel() }}
+      <span class="key s"></span> {{ secondaryLabel() }}
     </p>
-    <p class="text">{{ summary() }}</p>
+    @if (!compact()) { <p class="text">{{ summary() }}</p> }
   `,
   styles: `
     :host { display: block; --mm-p: var(--ion-color-primary); --mm-body: rgba(128,128,128,0.2); }
     .wrap { display: flex; justify-content: center; gap: 12px; }
     figure { margin: 0; text-align: center; flex: 0 1 140px; }
     svg { width: 100%; height: auto; display: block; }
+    .wrap.compact figure { flex-basis: 96px; }
     figcaption { font-size: 0.75rem; color: var(--ion-color-medium); }
     .body { fill: var(--mm-body); }
     .m { fill: rgba(128,128,128,0.1); stroke: rgba(128,128,128,0.35); stroke-width: 0.4; }
@@ -92,6 +93,10 @@ export class MuscleMapComponent {
   /** Ids do spec (ver core/metrics/muscles.ts). */
   readonly primary = input<readonly string[]>([]);
   readonly secondary = input<readonly string[]>([]);
+  readonly primaryLabel = input('Principal');
+  readonly secondaryLabel = input('Secundário');
+  /** Figuras mais pequenas e sem o texto por baixo (para ecrãs que já têm muito conteúdo). */
+  readonly compact = input(false);
 
   readonly body = BODY;
   readonly sides = ['', 'translate(100 0) scale(-1 1)'];

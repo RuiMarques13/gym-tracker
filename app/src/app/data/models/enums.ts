@@ -1,6 +1,6 @@
 export type Kind = 'STRENGTH' | 'MOBILITY' | 'CARDIO';
 /**
- * Categoria: a divisão fina que se vê na app (força, potência, cardio, HIIT, mobilidade, alongamento,
+ * Categoria: a divisão fina que se vê na app (musculação, potência, cardio, HIIT, mobilidade, alongamento,
  * equilíbrio, yoga/pilates). Cada uma pertence a um `Kind`, que é quem decide o comportamento
  * (RIR, descanso, mapa muscular, medidas permitidas) e as restrições da base de dados.
  */
@@ -29,7 +29,7 @@ export const REGION_LABEL: Record<Region, string> = {
 };
 
 export const KIND_LABEL: Record<Kind, string> = {
-  STRENGTH: 'Força',
+  STRENGTH: 'Musculação',
   MOBILITY: 'Mobilidade',
   CARDIO: 'Cardio',
 };
@@ -50,7 +50,7 @@ export const METRIC_LABEL: Record<MetricType, string> = {
 };
 
 export const CATEGORY_LABEL: Record<Category, string> = {
-  STRENGTH: 'Força',
+  STRENGTH: 'Musculação',
   POWER: 'Potência',
   CARDIO: 'Cardio contínuo',
   HIIT: 'HIIT / intervalos',

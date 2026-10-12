@@ -51,7 +51,7 @@ import { ToastService } from '../../core/ui/toast.service';
           <div class="empty">
             <ion-icon name="clipboard-outline" />
             <h2>Ainda não tens treinos</h2>
-            <p>Cria um treino com aquecimento e parte principal; mobilidade, força ou cardio, em qualquer um. Depois é só começar a sessão a partir dele.</p>
+            <p>Cria um treino com aquecimento e parte principal; mobilidade, musculação ou cardio, em qualquer um. Depois é só começar a sessão a partir dele.</p>
             <ion-button routerLink="/treinos/novo">Criar o primeiro treino</ion-button>
           </div>
         } @else {

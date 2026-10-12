@@ -10,7 +10,7 @@ import { RecoveryService } from '../core/metrics/recovery.service';
     @if (view.isLoading()) {
       <p class="muted">A calcular…</p>
     } @else if (!rows().length) {
-      <p class="muted">Sem treinos de força nos últimos 7 dias.</p>
+      <p class="muted">Sem treinos de musculação nos últimos 7 dias.</p>
     } @else {
       @for (r of rows(); track r.muscle) {
         <div class="row">
