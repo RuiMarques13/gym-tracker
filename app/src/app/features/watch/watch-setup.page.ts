@@ -51,11 +51,11 @@ const STEPS: Step[] = [
           <p class="note">Põe o telemóvel a dormir antes de acabar os 5 segundos. No browser só toca e vibra dentro da app; a notificação para o relógio só existe na app Android.</p>
         </div>
         <ion-list lines="full">
-          <ion-list-header><ion-label>Frequência cardíaca e calorias</ion-label></ion-list-header>
+          <ion-list-header><ion-label>Frequência cardíaca, calorias e passos</ion-label></ion-list-header>
           <ion-item lines="none">
             <ion-label class="ion-text-wrap">
-              <p>1) No Samsung Health: Definições → Health Connect (ou «Dados e privacidade») → permite que o Samsung Health escreva frequência cardíaca e calorias.
-                2) Aqui: autoriza o Gym Tracker a ler. 3) No detalhe de cada treino, toca em «Importar do relógio».</p>
+              <p>1) No Samsung Health: Definições → Health Connect (ou «Dados e privacidade») → permite que o Samsung Health escreva no Health Connect (frequência cardíaca, calorias, passos, distância, exercício).
+                2) Aqui: autoriza o Gym Tracker a ler tudo (se já tinhas autorizado antes, volta a tocar para aceitar as leituras novas: calorias totais, repouso, passos, distância). 3) No detalhe de cada treino, toca em «Importar do relógio». O relógio demora a sincronizar: abre o Samsung Health no telemóvel antes de importar.</p>
               <p class="note">{{ healthStatus() }}</p>
             </ion-label>
           </ion-item>

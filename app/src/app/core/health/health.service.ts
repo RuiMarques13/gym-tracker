@@ -2,34 +2,65 @@ import { Injectable, inject } from '@angular/core';
 import { DatabaseService } from '../db/database.service';
 import { CLOCK } from '../util/clock';
 import { HEALTH_PROVIDER, type HealthProvider } from './health-provider';
-import { downsample, summarize } from './health.logic';
+import { deriveCalories, downsample, energyWithin, heartRateRecovery, latestBmr, mifflinBmr, summarize } from './health.logic';
+import { BodyProfileService } from './body-profile.service';
+import type { BodyProfile } from './calories';
 import { SqliteHealthRepository, type SessionHealth } from '../../data/repositories/health.repository';
-import type { HealthRepository } from '../../data/repositories/health.repository';
+import type { HealthExtras, HealthRepository } from '../../data/repositories/health.repository';
 
 export type ImportResult =
   | { ok: true; health: SessionHealth }
   | { ok: false; reason: string };
 
-/** Importa a frequência cardíaca e as calorias de uma sessão a partir do relógio (via Health Connect). */
+/** Importa do relógio (via Health Connect) tudo o que há do treino: FC, calorias totais/basais/ativas, passos, distância, VO₂ máx. */
 export async function importSessionHealth(
   provider: HealthProvider,
   repo: HealthRepository,
   session: { id: string; startedAt: string; endedAt: string | null },
   nowIso: string,
+  body: BodyProfile | null = null,
 ): Promise<ImportResult> {
   const av = await provider.availability();
   if (!av.available) return { ok: false, reason: av.reason };
-  if (!(await provider.hasAccess()) && !(await provider.requestAccess())) {
-    return { ok: false, reason: 'Sem permissão. Autoriza a leitura de frequência cardíaca no Health Connect.' };
+  if (!(await provider.hasFullAccess())) await provider.requestAccess();
+  if (!(await provider.hasAccess())) {
+    return { ok: false, reason: 'Sem permissão. Autoriza a leitura de frequência cardíaca e calorias no Health Connect.' };
   }
   const end = session.endedAt ?? nowIso;
-  const raw = await provider.heartRate(session.startedAt, end);
-  const points = downsample(raw);
-  const kcal = await provider.activeCalories(session.startedAt, end);
-  if (!points.length && kcal === null) {
-    return { ok: false, reason: 'O relógio ainda não enviou dados deste treino. A sincronização do Samsung Health pode demorar; tenta daqui a pouco.' };
+  const raw = await provider.readWorkout(session.startedAt, end);
+
+  const inside = raw.heartRate.filter((p) => Date.parse(p.ts) <= Date.parse(end));
+  const summary = summarize(downsample(inside));
+  const points = downsample(raw.heartRate);
+  const recovery = session.endedAt ? heartRateRecovery(raw.heartRate, end) : null;
+
+  const bmr = latestBmr(raw.basal, end) ?? (body ? mifflinBmr(body) : null);
+  let cal = deriveCalories({ activeRecords: raw.activeRecords, totalRecords: raw.totalRecords, bmrKcalPerDay: bmr, startIso: session.startedAt, endIso: end });
+  // sem registos de energia: o total que o exercício do relógio traz
+  if (cal.activeKcal === null && cal.totalKcal === null && raw.exercise?.energyKcal) {
+    cal = { totalKcal: null, activeKcal: Math.round(raw.exercise.energyKcal), basalKcal: null, basis: 'watch-active' };
   }
-  await repo.save(session.id, points, summarize(points), kcal, provider.sourceName, nowIso);
+  const steps = Math.round(energyWithin(raw.steps, session.startedAt, end));
+  const distance = Math.round(energyWithin(raw.distance, session.startedAt, end));
+
+  const nothing = !points.length && cal.activeKcal === null && cal.totalKcal === null && !steps && !distance;
+  if (nothing) {
+    return { ok: false, reason: 'O relógio ainda não enviou dados deste treino. A sincronização do Samsung Health pode demorar: abre a app Samsung Health no telemóvel e tenta de novo.' };
+  }
+  const extras: HealthExtras = {
+    caloriesTotalKcal: cal.totalKcal,
+    caloriesBasalKcal: cal.basalKcal,
+    caloriesBasis: cal.basis,
+    steps: steps > 0 ? steps : null,
+    distanceM: distance > 0 ? distance : raw.exercise?.distanceM ? Math.round(raw.exercise.distanceM) : null,
+    hrEndBpm: recovery?.atEnd ?? null,
+    hrRecoveryBpm: recovery?.drop ?? null,
+    exerciseType: raw.exercise?.type ?? null,
+    exerciseSeconds: raw.exercise?.durationSec ?? null,
+    vo2max: raw.vo2Max ? Math.round(raw.vo2Max * 10) / 10 : null,
+  };
+  const source = raw.exercise?.sourceName ?? provider.sourceName;
+  await repo.save(session.id, points, summary, cal.activeKcal, extras, source, nowIso);
   const health = (await repo.summary(session.id))!;
   return { ok: true, health };
 }
@@ -39,6 +70,7 @@ export class HealthService {
   private readonly provider = inject(HEALTH_PROVIDER);
   private readonly clock = inject(CLOCK);
   private readonly database = inject(DatabaseService);
+  private readonly body = inject(BodyProfileService);
   private repoCache?: HealthRepository;
 
   private get repo(): HealthRepository {
@@ -67,6 +99,6 @@ export class HealthService {
   }
 
   importForSession(session: { id: string; startedAt: string; endedAt: string | null }): Promise<ImportResult> {
-    return importSessionHealth(this.provider, this.repo, session, this.clock.nowIso());
+    return importSessionHealth(this.provider, this.repo, session, this.clock.nowIso(), this.body.profile());
   }
 }

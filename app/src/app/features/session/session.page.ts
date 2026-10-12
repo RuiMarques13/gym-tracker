@@ -398,7 +398,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     if (!st) return [];
     const real = this.health.value()?.caloriesKcal ?? null;
     const kcal = real ?? st.loggedKcal ?? st.estimatedKcal;
-    const hint = real !== null ? 'do relógio' : st.loggedKcal !== null ? 'registado' : st.estimatedKcal !== null ? 'estimado' : 'sem peso';
+    const hint = real !== null ? 'ativas · relógio' : st.loggedKcal !== null ? 'registado' : st.estimatedKcal !== null ? 'estimado' : 'sem peso';
     return [
       { label: 'Duração', value: formatClock(st.totalSeconds), tone: 'primary' },
       { label: 'Calorias', value: kcal === null ? '—' : String(kcal), unit: kcal === null ? undefined : 'kcal', tone: 'danger', hint },
@@ -417,10 +417,13 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       const p = paceOf(st.distanceM, st.activeSeconds);
       if (p && p.kmh <= 60) out.push({ label: 'Vel. média', value: p.kmh.toLocaleString('pt-PT', { maximumFractionDigits: 1 }), unit: 'km/h', tone: 'medium' });
     }
-    const hr = this.health.value()?.avg;
-    if (hr) out.push({ label: 'FC média', value: String(hr), unit: 'bpm', tone: 'danger' });
+    const h = this.health.value();
+    if (h?.avg) out.push({ label: 'FC média', value: String(h.avg), unit: 'bpm', tone: 'danger' });
+    if (h?.max) out.push({ label: 'FC máx.', value: String(h.max), unit: 'bpm', tone: 'danger' });
+    if (h?.caloriesTotalKcal) out.push({ label: 'Cal. totais', value: String(h.caloriesTotalKcal), unit: 'kcal', tone: 'medium', hint: 'com repouso' });
+    if (h?.hrRecoveryBpm) out.push({ label: 'Recuperação', value: `−${h.hrRecoveryBpm}`, unit: 'bpm', tone: 'medium', hint: 'em 1 min' });
     if (!out.some((t) => t.label === 'Distância') && !out.some((t) => t.label === 'Volume')) out.push({ label: 'Exercícios', value: String(st.exercises), tone: 'medium' });
-    return out.slice(0, 4);
+    return out.slice(0, 8);
   });
   /** Atividade de cardio a decorrer num exercício desta sessão. */
   readonly liveRun = computed(() => {

@@ -86,7 +86,8 @@ export class HealthPage implements ViewWillEnter {
       const parts: string[] = [];
       if (h?.avg != null) parts.push(`${h.avg} bpm médios`);
       if (h?.max != null) parts.push(`máx. ${h.max}`);
-      if (h?.caloriesKcal != null) parts.push(`${h.caloriesKcal} kcal`);
+      if (h?.caloriesTotalKcal != null) parts.push(`${h.caloriesTotalKcal} kcal`);
+      else if (h?.caloriesKcal != null) parts.push(`${h.caloriesKcal} kcal ativas`);
       return {
         id: s.id, name: s.templateName ?? 'Sessão livre', day: formatDay(s.startedAt), span: formatSpan(s.startedAt, s.endedAt),
         stats: parts.length ? parts.join(' · ') : null,
@@ -112,7 +113,8 @@ export class HealthPage implements ViewWillEnter {
     this.message.set(null);
     try {
       const have = this.summaries.value() ?? new Map();
-      const todo = (this.list.value() ?? []).filter((s) => !have.has(s.id)).slice(0, 10);
+      // sem dados, ou importados antes de se ler o total/repouso (calorias incompletas)
+      const todo = (this.list.value() ?? []).filter((s) => { const h = have.get(s.id); return !h || (h.caloriesTotalKcal === null && h.caloriesBasis === null); }).slice(0, 10);
       if (!todo.length) {
         this.message.set('Todos os treinos recentes já têm dados.');
         return;
