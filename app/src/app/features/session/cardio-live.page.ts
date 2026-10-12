@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, input, OnDestroy, signal, untracked } from '@angular/core';
 import {
-  AlertController, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonTitle, IonToolbar,
+  IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonModal, IonTitle, IonToolbar,
   NavController, ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -24,7 +24,7 @@ const RING = 2 * Math.PI * 92;
  */
 @Component({
   selector: 'app-cardio-live',
-  imports: [IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent, IonButton, IonIcon, StatTilesComponent],
+  imports: [IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent, IonButton, IonIcon, IonModal, StatTilesComponent],
   template: `
     <ion-header>
       <ion-toolbar>
@@ -74,8 +74,31 @@ const RING = 2 * Math.PI * 92;
         }
       </div>
     </ion-content>
+
+    <!-- Parar: confirma o que fazer a seguir. Fechar ou «Cancelar» não pára nada: a atividade continua. -->
+    <ion-modal class="confirm" [isOpen]="askOpen()" (didDismiss)="askOpen.set(false)" [backdropDismiss]="true">
+      <ng-template>
+        <div class="ask">
+          <h2>{{ allDone() ? 'Terminar a atividade?' : 'Parar a atividade?' }}</h2>
+          <p class="ask-sub"><strong>{{ run()?.name }}</strong> · {{ clock(frozen()) }}</p>
+          <p class="ask-sub">{{ allDone() ? 'Queres terminar o treino ou adicionar mais exercícios?' : 'Guardamos o tempo e voltas ao treino.' }}</p>
+          @if (allDone()) {
+            <ion-button expand="block" size="large" (click)="confirm('finish')" [disabled]="saving()">Terminar treino</ion-button>
+            <ion-button expand="block" size="large" fill="outline" (click)="confirm('add')" [disabled]="saving()">Adicionar exercício</ion-button>
+          } @else {
+            <ion-button expand="block" size="large" (click)="confirm('menu')" [disabled]="saving()">Guardar e continuar o treino</ion-button>
+          }
+          <ion-button expand="block" size="large" fill="clear" color="medium" (click)="askOpen.set(false)" [disabled]="saving()">Cancelar</ion-button>
+        </div>
+      </ng-template>
+    </ion-modal>
   `,
   styles: `
+    ion-modal.confirm { --width: min(90vw, 400px); --height: auto; --border-radius: 24px; --box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35); }
+    .ask { padding: 24px 20px 12px; display: grid; gap: 8px; text-align: center; }
+    .ask h2 { margin: 0 0 2px; font-size: 1.3rem; font-weight: 700; }
+    .ask-sub { margin: 0; color: var(--ion-color-medium); }
+    .ask ion-button { --border-radius: 14px; margin: 4px 0 0; }
     .page { max-width: 520px; margin: 0 auto; padding: 16px 16px 32px; display: grid; gap: 16px; justify-items: center; text-align: center; }
     .count { position: relative; width: min(72vw, 300px); aspect-ratio: 1; margin-top: 8vh; }
     .count svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -113,7 +136,6 @@ export class CardioLivePage implements ViewWillEnter, OnDestroy {
   private readonly clockSvc = inject(CLOCK);
   private readonly repo = inject(SESSION_REPOSITORY);
   private readonly nav = inject(NavController);
-  private readonly alerts = inject(AlertController);
   private readonly toasts = inject(ToastService);
   private readonly body = inject(BodyProfileService);
   private readonly health = inject(HealthService);
@@ -173,6 +195,10 @@ export class CardioLivePage implements ViewWillEnter, OnDestroy {
   });
 
   readonly saving = signal(false);
+  readonly askOpen = signal(false);
+  readonly frozen = signal(0);
+  /** Todos os outros exercícios do treino já têm registo (senão, ao parar volta-se ao menu do treino). */
+  readonly allDone = signal(true);
   private clockToRestart = false;
 
   constructor() {
@@ -258,16 +284,26 @@ export class CardioLivePage implements ViewWillEnter, OnDestroy {
     this.clockToRestart = false;
   }
 
-  /** Parar: guarda a duração (sem pedir mais valores) e pergunta se é para terminar o treino. */
+  /** Parar: abre a confirmação (a atividade só pára e guarda depois de escolheres). */
   async stop(): Promise<void> {
     const r = this.run();
     const p = this.phase();
     if (!r || p?.phase !== 'running' || this.saving()) return;
-    const seconds = p.elapsedSeconds;
-    if (seconds < 1) {
+    if (p.elapsedSeconds < 1) {
       this.cancel();
       return;
     }
+    this.frozen.set(p.elapsedSeconds);
+    const s = await this.repo.getActive();
+    this.allDone.set(!!s && s.exercises.every((e) => e.id === r.exerciseId || e.sets.length > 0));
+    this.askOpen.set(true);
+  }
+
+  /** Guarda a duração (sem pedir mais valores) e segue o caminho escolhido. */
+  async confirm(choice: 'finish' | 'add' | 'menu'): Promise<void> {
+    const r = this.run();
+    if (!r || this.saving()) return;
+    const seconds = this.frozen();
     this.saving.set(true);
     try {
       await this.repo.saveSet({
@@ -275,37 +311,14 @@ export class CardioLivePage implements ViewWillEnter, OnDestroy {
         type: 'WORKING',
         entries: [{ side: 'BOTH', durationSeconds: seconds, distanceM: null, caloriesKcal: null }],
       });
-      const s = await this.repo.getActive();
       this.runs.clear();
-      // Todos os exercícios já têm registo: pergunta se é para terminar ou juntar mais. Senão, volta ao menu do treino.
-      const allDone = !!s && s.exercises.every((e) => e.sets.length > 0);
-      if (!allDone) {
-        await this.toasts.success(`«${r.name}» guardado: ${formatClock(seconds)}.`, 1800);
-        this.nav.navigateRoot('/sessao');
-        return;
-      }
-      const choice = await this.askFinishOrAdd(r.name, seconds);
+      this.askOpen.set(false);
+      if (choice === 'menu') await this.toasts.success(`«${r.name}» guardado: ${formatClock(seconds)}.`, 1800);
       this.nav.navigateRoot(choice === 'add' ? '/sessao?add=1' : choice === 'finish' ? '/sessao?fim=1' : '/sessao');
     } catch (err) {
       await this.toasts.error(err instanceof Error ? err.message : 'Não foi possível guardar.');
     } finally {
       this.saving.set(false);
     }
-  }
-
-  /** «Terminar o treino?»: devolve a escolha, ou 'menu' se fechar sem escolher. */
-  private async askFinishOrAdd(name: string, seconds: number): Promise<'finish' | 'add' | 'menu'> {
-    let choice: 'finish' | 'add' | 'menu' = 'menu';
-    const a = await this.alerts.create({
-      header: 'Terminar o treino?',
-      message: `«${name}» guardado (${formatClock(seconds)}). Queres adicionar mais exercícios ou terminar o treino?`,
-      buttons: [
-        { text: 'Adicionar exercício', handler: () => { choice = 'add'; } },
-        { text: 'Terminar treino', role: 'confirm', cssClass: 'alert-primary', handler: () => { choice = 'finish'; } },
-      ],
-    });
-    await a.present();
-    await a.onDidDismiss();
-    return choice;
   }
 }

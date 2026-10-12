@@ -124,7 +124,7 @@ import { ToastService } from '../../core/ui/toast.service';
           @if (hasStrength()) {
             <section class="muscles" aria-label="Músculos trabalhados">
               <h3>Músculos trabalhados</h3>
-              <app-muscle-map [primary]="trained().primary" [secondary]="trained().support" primaryLabel="Principais" secondaryLabel="Apoio" [compact]="true" />
+              <app-muscle-map [primary]="trained().primary" [secondary]="trained().support" [bySide]="trained().bySide" primaryLabel="Principais" secondaryLabel="Apoio" [compact]="true" />
               @if (!trained().primary.length) { <p class="muted">Aparecem aqui à medida que registas séries.</p> }
             </section>
           }
@@ -472,17 +472,31 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   readonly trained = computed(() => {
     const s = this.session();
     const exs = this.primaryMuscles.value();
-    const primary = new Set<string>();
-    const support = new Set<string>();
+    type Sets = { primary: Set<string>; support: Set<string> };
+    const mk = (): Sets => ({ primary: new Set(), support: new Set() });
+    const both = mk(), left = mk(), right = mk();
+    let split = false;
     if (s && exs) {
       for (const e of s.exercises) {
         if (e.kind !== 'STRENGTH' || !e.sets.length) continue;
         const m = exs.get(e.exerciseId);
-        m?.primaryMuscles.forEach((x) => primary.add(x));
-        m?.support.forEach((x) => support.add(x));
+        if (!m) continue;
+        // lados com séries registadas: BOTH conta para os dois
+        const sides = new Set(e.sets.map((x) => x.side));
+        const l = sides.has('BOTH') || sides.has('LEFT');
+        const r = sides.has('BOTH') || sides.has('RIGHT');
+        if (l !== r) split = true;
+        for (const [on, tgt] of [[l, left], [r, right]] as const) {
+          if (!on) continue;
+          m.primaryMuscles.forEach((x) => tgt.primary.add(x));
+          m.support.forEach((x) => tgt.support.add(x));
+        }
+        m.primaryMuscles.forEach((x) => both.primary.add(x));
+        m.support.forEach((x) => both.support.add(x));
       }
     }
-    return { primary: [...primary], support: [...support] };
+    const out = (x: Sets) => ({ primary: [...x.primary], secondary: [...x.support] });
+    return { primary: [...both.primary], support: [...both.support], bySide: split ? { left: out(left), right: out(right) } : null };
   });
   readonly hasStrength = computed(() => (this.session()?.exercises ?? []).some((e) => e.kind === 'STRENGTH'));
   /** Sessão livre que ainda não começou: sem exercícios, ou à espera do pequeno timer de arranque. */

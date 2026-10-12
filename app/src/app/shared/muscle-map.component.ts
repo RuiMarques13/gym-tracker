@@ -1,6 +1,11 @@
 import { Component, computed, input } from '@angular/core';
 import { MUSCLE_LABEL } from '../core/metrics/muscles';
 
+export interface SideMuscles {
+  primary: readonly string[];
+  secondary: readonly string[];
+}
+
 interface Shape {
   id: string;
   d: string;
@@ -52,15 +57,19 @@ const BACK: Shape[] = [
       @for (v of views; track v.name) {
         <figure>
           <svg viewBox="0 0 100 205" role="img" [attr.aria-label]="v.name + ': ' + summary()">
-            @for (side of sides; track side) {
+            @for (side of sides; track side; let i = $index) {
               <g [attr.transform]="side">
                 @for (d of body; track d) { <path class="body" [attr.d]="d" /> }
                 @for (m of v.shapes; track m.id) {
-                  <path class="m" [class.p]="isPrimary(m.id)" [class.s]="isSecondary(m.id)" [attr.d]="m.d" />
+                  <path class="m" [class.p]="isPrimary(m.id, sideOf(v.name, i))" [class.s]="isSecondary(m.id, sideOf(v.name, i))" [attr.d]="m.d" />
                 }
               </g>
             }
             <circle class="body" cx="50" cy="14" r="9" />
+            @if (bySide()) {
+              <text class="lr" x="6" y="200" text-anchor="middle">{{ v.name === 'Frente' ? 'D' : 'E' }}</text>
+              <text class="lr" x="94" y="200" text-anchor="middle">{{ v.name === 'Frente' ? 'E' : 'D' }}</text>
+            }
           </svg>
           <figcaption>{{ v.name }}</figcaption>
         </figure>
@@ -78,6 +87,7 @@ const BACK: Shape[] = [
     figure { margin: 0; text-align: center; flex: 0 1 140px; }
     svg { width: 100%; height: auto; display: block; }
     .wrap.compact figure { flex-basis: 96px; }
+    .lr { font-size: 9px; font-weight: 700; fill: var(--ion-color-medium); }
     figcaption { font-size: 0.75rem; color: var(--ion-color-medium); }
     .body { fill: var(--mm-body); }
     .m { fill: rgba(128,128,128,0.1); stroke: rgba(128,128,128,0.35); stroke-width: 0.4; }
@@ -93,6 +103,11 @@ export class MuscleMapComponent {
   /** Ids do spec (ver core/metrics/muscles.ts). */
   readonly primary = input<readonly string[]>([]);
   readonly secondary = input<readonly string[]>([]);
+  /**
+   * Músculos por lado do corpo (esquerdo/direito), para exercícios unilaterais. Sem isto, os dois lados são iguais.
+   * Na frente, o lado direito da pessoa fica à esquerda da imagem; nas costas, ao contrário.
+   */
+  readonly bySide = input<{ left: SideMuscles; right: SideMuscles } | null>(null);
   readonly primaryLabel = input('Principal');
   readonly secondaryLabel = input('Secundário');
   /** Figuras mais pequenas e sem o texto por baixo (para ecrãs que já têm muito conteúdo). */
@@ -105,8 +120,15 @@ export class MuscleMapComponent {
     { name: 'Costas', shapes: BACK },
   ];
 
-  isPrimary = (id: string) => this.primary().includes(id);
-  isSecondary = (id: string) => !this.isPrimary(id) && this.secondary().includes(id);
+  /** Lado da pessoa que cada metade da figura mostra (i = 0 é a metade desenhada à esquerda da imagem). */
+  sideOf = (view: string, i: number): 'left' | 'right' => ((view === 'Frente') === (i === 0) ? 'right' : 'left');
+
+  private muscles(side?: 'left' | 'right'): SideMuscles {
+    const b = this.bySide();
+    return b && side ? b[side] : { primary: this.primary(), secondary: this.secondary() };
+  }
+  isPrimary = (id: string, side?: 'left' | 'right') => this.muscles(side).primary.includes(id);
+  isSecondary = (id: string, side?: 'left' | 'right') => !this.isPrimary(id, side) && this.muscles(side).secondary.includes(id);
 
   readonly summary = computed(() => {
     const names = (l: readonly string[]) => l.map((m) => MUSCLE_LABEL[m] ?? m).join(', ');
