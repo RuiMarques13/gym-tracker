@@ -36,14 +36,14 @@ import { RecoveryService } from '../core/metrics/recovery.service';
     .row { padding: 10px 0; border-bottom: 1px solid var(--ion-border-color, rgba(128,128,128,0.2)); }
     .row:last-of-type { border-bottom: 0; }
     .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-    .state { font-size: 0.82rem; font-weight: 600; color: #0f766e; }
+    .state { font-size: 0.82rem; font-weight: 600; color: var(--ion-color-primary); }
     .state.wait { color: #b45309; }
     .why { margin: 2px 0 6px; font-size: 0.8rem; color: var(--ion-color-medium); }
     .sore { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--ion-color-medium); flex-wrap: wrap; }
     .sore button { min-width: 30px; height: 30px; border-radius: 15px; border: 1px solid var(--ion-border-color, rgba(128,128,128,0.45)); background: transparent; color: inherit; font: inherit; cursor: pointer; }
     .sore button.on { background: var(--ion-color-primary); color: var(--ion-color-primary-contrast); border-color: var(--ion-color-primary); }
     .legal { color: var(--ion-color-medium); font-size: 0.76rem; margin: 10px 0 0; }
-    @media (prefers-color-scheme: dark) { .state { color: #2cb5a8; } .state.wait { color: #f59e0b; } }
+    @media (prefers-color-scheme: dark) { .state.wait { color: #f59e0b; } }
   `,
 })
 export class RecoveryCardComponent {

@@ -80,13 +80,13 @@ const FOOT = 'M0 -9 C3.2 -9 4.2 -4 3.4 2 C3 6 1.8 9 0 9 C-2.2 9 -3.4 6.6 -3.4 3 
     </section>
   `,
   styles: `
-    :host { display: block; margin-top: 10px; --g-c: var(--ion-color-medium, #888); --g-rec: #0f766e; }
+    :host { display: block; margin-top: 10px; --g-c: var(--ion-color-medium, #888); --g-rec: var(--ion-color-primary); }
     section { max-width: 280px; margin: 0 auto; text-align: center; }
     h4 { margin: 0 0 4px; font-size: 0.82rem; font-weight: 600; }
     .cap { margin: 8px 0 2px; font-size: 0.7rem; color: var(--ion-color-medium); text-align: left; }
     .row { display: flex; gap: 6px; }
     figure { flex: 1; margin: 0; padding: 4px 2px; border-radius: 10px; border: 1.5px solid transparent; background: rgba(128,128,128,0.1); }
-    figure.rec { border-color: var(--g-rec); background: rgba(15,118,110,0.14); }
+    figure.rec { border-color: var(--g-rec); background: rgba(var(--ion-color-primary-rgb), 0.14); }
     svg { width: 100%; height: auto; display: block; }
     path { fill: var(--g-c); }
     figure.rec path { fill: var(--g-rec); }

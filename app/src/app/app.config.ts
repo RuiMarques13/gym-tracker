@@ -24,7 +24,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideIonicAngular({ mode: 'md' }),
+    provideIonicAngular({ mode: 'md', innerHTMLTemplatesEnabled: true }),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideRouter(routes, withComponentInputBinding()),
     // PWA: só na web em produção. No APK (Capacitor) os ficheiros já vão dentro da app.

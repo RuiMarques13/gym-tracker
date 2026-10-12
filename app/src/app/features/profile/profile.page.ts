@@ -2,7 +2,7 @@ import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import {
   IonButton, IonContent, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonListHeader, IonNote, IonSegment, IonSegmentButton,
-  IonSelect, IonSelectOption, IonTitle, IonToolbar, ToastController,
+  IonSelect, IonSelectOption, IonTitle, IonToolbar,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { trashOutline } from 'ionicons/icons';
@@ -14,6 +14,8 @@ import { BODY_TYPES, BodyMetric, BodyMetricError } from '../../data/models/body'
 import { BODY_METRIC_REPOSITORY } from '../../data/repositories/providers';
 
 /** Perfil (nome, nascimento, sexo, altura) e medições corporais ao longo do tempo. */
+import { ToastService } from '../../core/ui/toast.service';
+
 @Component({
   selector: 'app-profile',
   imports: [NavButtonComponent, 
@@ -126,7 +128,7 @@ import { BODY_METRIC_REPOSITORY } from '../../data/repositories/providers';
 export class ProfilePage {
   protected readonly settings = inject(SettingsService);
   private readonly bodyRepo = inject(BODY_METRIC_REPOSITORY);
-  private readonly toasts = inject(ToastController);
+  private readonly toasts = inject(ToastService);
   private readonly clock = inject(CLOCK);
 
   readonly types = BODY_TYPES;
@@ -198,7 +200,6 @@ export class ProfilePage {
     await this.bodyRepo.remove(m.id);
     this.history.reload();
     this.weights.reload();
-    const t = await this.toasts.create({ message: 'Medição apagada.', duration: 1500 });
-    await t.present();
+    await this.toasts.info('Medição apagada.', 1500);
   }
 }

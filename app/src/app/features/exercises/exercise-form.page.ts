@@ -25,9 +25,9 @@ import {
   IonToggle,
   IonToolbar,
   NavController,
-  ToastController,
 } from '@ionic/angular';
 import { RouterLink } from '@angular/router';
+import { ToastService } from '../../core/ui/toast.service';
 import { SettingsService } from '../../core/settings/settings.service';
 import {
   Kind,
@@ -48,11 +48,13 @@ import {
 import { Exercise, ExerciseInput, ExerciseValidationError } from '../../data/models/exercise';
 import { specOfMuscleIds } from '../../core/metrics/muscles';
 import { motionFor } from '../../core/motion/motion';
+import { SHOW_MOTION } from '../../core/motion/motion-flag';
 import { ids } from '../../core/util/uuid';
 import { ExerciseMotionComponent } from '../../shared/exercise-motion.component';
 import { MuscleMapComponent } from '../../shared/muscle-map.component';
-import { MuscleGroup, NamedItem } from '../../data/repositories/lookup.repository';
+import { EquipmentError, MuscleGroup, NamedItem } from '../../data/repositories/lookup.repository';
 import { EXERCISE_REPOSITORY, LOOKUP_REPOSITORY } from '../../data/repositories/providers';
+import { toastHtml } from '../../core/ui/toast-text';
 const EQUIPMENT_KEYS = ['machine', 'cable', 'dumbbell', 'barbell', 'bodyweight', 'band', 'kettlebell', 'other', 'treadmill', 'bike', 'elliptical', 'rower', 'stair', 'skierg'];
 
 type MuscleRole = 'primary' | 'secondary';
@@ -157,11 +159,12 @@ const REGIONS: Region[] = ['UPPER', 'LOWER', 'CORE', 'FULL_BODY'];
 
             <ion-item>
               <ion-select label="Equipamento" interface="popover" placeholder="Nenhum" [value]="equipmentId()"
-                (ionChange)="equipmentId.set($any($event).detail.value)">
+                (ionChange)="onEquipment($event)">
                 <ion-select-option [value]="null">Nenhum</ion-select-option>
                 @for (e of equipment(); track e.id) {
                   <ion-select-option [value]="e.id">{{ e.name }}</ion-select-option>
                 }
+                <ion-select-option [value]="NEW_EQUIPMENT">+ Novo equipamento…</ion-select-option>
               </ion-select>
             </ion-item>
 
@@ -285,7 +288,7 @@ export class ExerciseFormPage implements OnInit {
   private readonly lookups = inject(LOOKUP_REPOSITORY);
   private readonly settings = inject(SettingsService);
   private readonly nav = inject(NavController);
-  private readonly toasts = inject(ToastController);
+  private readonly toasts = inject(ToastService);
   private readonly alerts = inject(AlertController);
 
   /** Vem da rota: /exercicios/novo (sem id) ou /exercicios/:id. */
@@ -332,7 +335,7 @@ export class ExerciseFormPage implements OnInit {
   readonly validVideoUrl = computed(() => (/^https?:\/\/\S+$/i.test(this.videoUrl().trim()) ? this.videoUrl().trim() : null));
   /** Chave do equipamento escolhido (os IDs são determinísticos), para desenhar o implemento certo. */
   readonly equipmentKey = computed(() => EQUIPMENT_KEYS.find((k) => ids.equipment(k) === this.equipmentId()) ?? 'none');
-  readonly motion = computed(() => motionFor(this.name(), this.specPrimary(), this.kind()));
+  readonly motion = computed(() => (SHOW_MOTION ? motionFor(this.name(), this.specPrimary(), this.kind()) : null));
   readonly specPrimary = computed(() =>
     specOfMuscleIds([...this.muscleRoles()].filter(([, r]) => r === 'primary').map(([id]) => id)),
   );
@@ -398,6 +401,35 @@ export class ExerciseFormPage implements OnInit {
     if (KIND_OF_CATEGORY[this.category()] !== kind) this.category.set(defaultCategory(kind));
     if (!METRICS_BY_KIND[kind].includes(this.metricType())) this.metricType.set(METRICS_BY_KIND[kind][0]);
     if (kind === 'CARDIO' && !this.region()) this.region.set('FULL_BODY');
+  }
+
+  readonly NEW_EQUIPMENT = '__novo__';
+
+  async onEquipment(ev: Event): Promise<void> {
+    const select = ev.target as HTMLIonSelectElement;
+    const value = (ev as CustomEvent).detail.value as string | null;
+    if (value !== this.NEW_EQUIPMENT) {
+      this.equipmentId.set(value);
+      return;
+    }
+    select.value = this.equipmentId(); // volta ao que estava enquanto pergunta o nome
+    const alert = await this.alerts.create({
+      header: 'Novo equipamento',
+      inputs: [{ name: 'name', type: 'text', placeholder: 'Ex.: Bosu, Anilhas, Trenó', attributes: { maxlength: 40 } }],
+      buttons: [{ text: 'Cancelar', role: 'cancel' }, { text: 'Adicionar', role: 'confirm' }],
+    });
+    await alert.present();
+    const { role, data } = await alert.onDidDismiss();
+    if (role !== 'confirm') return;
+    try {
+      const item = await this.lookups.addEquipment(String(data?.values?.name ?? ''));
+      this.equipment.set(await this.lookups.equipment());
+      this.equipmentId.set(item.id);
+      select.value = item.id;
+      await this.toast(`«${item.name}» está nos teus equipamentos.`, 'success');
+    } catch (err) {
+      await this.toast(err instanceof EquipmentError ? err.message : 'Não foi possível adicionar o equipamento.', 'danger');
+    }
   }
 
   setMovement(value: string): void {
@@ -490,7 +522,7 @@ export class ExerciseFormPage implements OnInit {
   async remove(): Promise<void> {
     const alert = await this.alerts.create({
       header: 'Apagar exercício?',
-      message: `«${this.name()}» vai ser apagado de vez. Esta ação não se desfaz.`,
+      message: toastHtml(`«${this.name()}» vai ser apagado de vez. Esta ação não se desfaz.`),
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         { text: 'Apagar', role: 'destructive' },
@@ -509,7 +541,6 @@ export class ExerciseFormPage implements OnInit {
   }
 
   private async toast(message: string, color: 'success' | 'danger'): Promise<void> {
-    const t = await this.toasts.create({ message, color, duration: 2200, position: 'bottom' });
-    await t.present();
+    await this.toasts.show(message, color === 'danger' ? 'error' : 'success');
   }
 }

@@ -16,7 +16,6 @@ import {
   IonSpinner,
   IonTitle,
   IonToolbar,
-  ToastController,
   ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -25,6 +24,7 @@ import { libraryItemToInput, LibraryItemState } from '../../core/library/library
 import type { LibraryItem } from '../../core/library/library-types';
 import { specOfKeys } from '../../core/metrics/muscles';
 import { motionFor } from '../../core/motion/motion';
+import { SHOW_MOTION } from '../../core/motion/motion-flag';
 import { ExerciseMotionComponent } from '../../shared/exercise-motion.component';
 import { MuscleMapComponent } from '../../shared/muscle-map.component';
 import { SEED } from '../../core/seed/seed.generated';
@@ -43,6 +43,8 @@ const PAGE = 60;
  * Biblioteca de exercícios (só consulta). Tocar em «Adicionar» copia o item
  * para os teus exercícios, onde o podes editar como quiseres.
  */
+import { ToastService } from '../../core/ui/toast.service';
+
 @Component({
   selector: 'app-library',
   imports: [MuscleMapComponent, ExerciseMotionComponent, 
@@ -148,7 +150,7 @@ const PAGE = 60;
 })
 export class LibraryPage implements ViewWillEnter {
   private readonly repo = inject(EXERCISE_REPOSITORY);
-  private readonly toasts = inject(ToastController);
+  private readonly toasts = inject(ToastService);
   readonly PAGE = PAGE;
 
   readonly query = signal('');
@@ -159,7 +161,7 @@ export class LibraryPage implements ViewWillEnter {
   readonly openKey = signal<string | null>(null);
   readonly specOf = specOfKeys;
   readonly categoryLabel = CATEGORY_LABEL;
-  motionOf = (item: LibraryItem) => motionFor(item.name, specOfKeys(item.primary), item.kind);
+  motionOf = (item: LibraryItem) => (SHOW_MOTION ? motionFor(item.name, specOfKeys(item.primary), item.kind) : null);
   toggleOpen(key: string): void {
     this.openKey.update((k) => (k === key ? null : key));
   }
@@ -238,7 +240,6 @@ export class LibraryPage implements ViewWillEnter {
   }
 
   private async toast(message: string, color: 'success' | 'danger'): Promise<void> {
-    const t = await this.toasts.create({ message, color, duration: 2200, position: 'bottom' });
-    await t.present();
+    await this.toasts.show(message, color === 'danger' ? 'error' : 'success');
   }
 }

@@ -73,7 +73,7 @@ const BACK: Shape[] = [
     <p class="text">{{ summary() }}</p>
   `,
   styles: `
-    :host { display: block; --mm-p: #0f766e; --mm-body: rgba(128,128,128,0.2); }
+    :host { display: block; --mm-p: var(--ion-color-primary); --mm-body: rgba(128,128,128,0.2); }
     .wrap { display: flex; justify-content: center; gap: 12px; }
     figure { margin: 0; text-align: center; flex: 0 1 140px; }
     svg { width: 100%; height: auto; display: block; }
@@ -86,7 +86,6 @@ const BACK: Shape[] = [
     .key { width: 14px; height: 10px; border-radius: 2px; display: inline-block; background: var(--mm-p); margin-left: 8px; }
     .key.s { opacity: 0.38; border: 1px dashed var(--mm-p); box-sizing: border-box; }
     .text { text-align: center; font-size: 0.85rem; margin: 2px 0 0; }
-    @media (prefers-color-scheme: dark) { :host { --mm-p: #2cb5a8; } }
   `,
 })
 export class MuscleMapComponent {

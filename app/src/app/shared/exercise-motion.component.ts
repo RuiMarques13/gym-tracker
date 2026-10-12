@@ -139,7 +139,7 @@ interface Track { x: number[]; y: number[]; t: string }
     }
   `,
   styles: `
-    :host { display: block; --em-c: #0f766e; --em-bg: rgba(128,128,128,0.12); --c-bar: #f97316; --c-db: #3b82f6; --c-kb: #d946ef; --c-cable: #0ea5e9; --c-band: #65a30d; --c-machine: #8b5cf6; --c-bench: #06b6d4; --c-traj: #eab308; }
+    :host { display: block; --em-c: var(--ion-color-primary); --em-bg: rgba(128,128,128,0.12); --c-bar: #f97316; --c-db: #3b82f6; --c-kb: #d946ef; --c-cable: #0ea5e9; --c-band: #65a30d; --c-machine: #8b5cf6; --c-bench: #06b6d4; --c-traj: #eab308; }
     figure { margin: 0; text-align: center; }
     svg { width: 100%; max-width: 200px; height: auto; background: var(--em-bg); border-radius: 12px; display: block; margin: 0 auto; }
     .floor { stroke: rgba(128,128,128,0.5); stroke-width: 1; fill: none; }
@@ -170,7 +170,7 @@ interface Track { x: number[]; y: number[]; t: string }
     .chip { display: inline-block; padding: 0 6px; border-radius: 8px; color: #fff; font-weight: 600; }
     .chip.bar { background: var(--c-bar); } .chip.db { background: var(--c-db); } .chip.kb { background: var(--c-kb); }
     .chip.cable { background: var(--c-cable); } .chip.band { background: var(--c-band); } .chip.machine { background: var(--c-machine); }
-    @media (prefers-color-scheme: dark) { :host { --em-c: #2cb5a8; } .prop.bar, .barline { stroke: #ccc; } }
+    @media (prefers-color-scheme: dark) { .prop.bar, .barline { stroke: #ccc; } }
   `,
   host: { '[class.machine]': "impl() === 'machine'" },
 })

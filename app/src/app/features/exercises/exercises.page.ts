@@ -319,6 +319,7 @@ export class ExercisesPage implements ViewWillEnter {
   /** Ao voltar do formulário ou da biblioteca, mostra as alterações. */
   ionViewWillEnter(): void {
     this.exercises.reload();
+    this.lookups.reload();
   }
 
   clearFilters(): void {

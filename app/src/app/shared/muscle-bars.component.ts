@@ -31,18 +31,17 @@ import type { VolumeRow } from '../core/metrics/volume.service';
     .head, .foot { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
     .num { font-variant-numeric: tabular-nums; color: var(--ion-color-medium); font-size: 0.88rem; }
     .bar { position: relative; height: 10px; border-radius: 5px; background: rgba(128,128,128,0.18); margin: 8px 0 6px; overflow: hidden; }
-    .zone { position: absolute; top: 0; bottom: 0; background: rgba(15,118,110,0.22); }
-    .fill { position: absolute; left: 0; top: 2px; bottom: 2px; border-radius: 3px; background: #0f766e; }
+    .zone { position: absolute; top: 0; bottom: 0; background: rgba(var(--ion-color-primary-rgb), 0.22); }
+    .fill { position: absolute; left: 0; top: 2px; bottom: 2px; border-radius: 3px; background: var(--ion-color-primary); }
     .fill.below { background: #b45309; }
     .fill.above { background: #b91c1c; }
     .tick { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ion-text-color, #000); opacity: 0.55; }
-    .chipst { font-size: 0.78rem; font-weight: 600; color: #0f766e; }
+    .chipst { font-size: 0.78rem; font-weight: 600; color: var(--ion-color-primary); }
     .chipst.below { color: #b45309; }
     .chipst.above { color: #b91c1c; }
     @media (prefers-color-scheme: dark) {
-      .fill { background: #2cb5a8; } .fill.below { background: #f59e0b; } .fill.above { background: #f87171; }
-      .chipst { color: #2cb5a8; } .chipst.below { color: #f59e0b; } .chipst.above { color: #f87171; }
-      .zone { background: rgba(44,181,168,0.25); }
+      .fill.below { background: #f59e0b; } .fill.above { background: #f87171; }
+      .chipst.below { color: #f59e0b; } .chipst.above { color: #f87171; }
     }
   `,
 })

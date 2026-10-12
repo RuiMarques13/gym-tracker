@@ -6,6 +6,7 @@ import {
   IonButton,
   IonContent,
   IonHeader,
+  IonIcon,
   IonItem,
   IonLabel,
   IonList,
@@ -16,19 +17,23 @@ import {
   IonTitle,
   IonToggle,
   IonToolbar,
-  ToastController,
 } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { checkmarkCircle } from 'ionicons/icons';
 import { AuthService } from '../../core/cloud/auth.service';
 import { SyncService } from '../../core/sync/sync.service';
 import { BackupService } from '../../core/backup/backup.service';
 import { MERGE_TABLES, MergeError, MergeReport } from '../../core/merge/merge';
 import { SettingsService } from '../../core/settings/settings.service';
+import { PALETTES, PaletteId, PaletteInfo } from '../../core/theme/palettes';
+import { ThemeService } from '../../core/theme/theme.service';
+import { ToastService } from '../../core/ui/toast.service';
 
 @Component({
   selector: 'app-settings',
   imports: [NavButtonComponent, 
     IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonNote,
-    IonSegment, IonSegmentButton, IonButton, RouterLink,
+    IonSegment, IonSegmentButton, IonButton, RouterLink, IonIcon,
   ],
   template: `
     <ion-header>
@@ -56,6 +61,22 @@ import { SettingsService } from '../../core/settings/settings.service';
               <ion-segment-button value="dark"><ion-label>Escuro</ion-label></ion-segment-button>
             </ion-segment>
           </ion-item>
+
+          <ion-item lines="none">
+            <ion-label>Paleta de cores</ion-label>
+          </ion-item>
+          <div class="palettes" role="radiogroup" aria-label="Paleta de cores">
+            @for (p of palettes; track p.id) {
+              <button type="button" class="pal" role="radio" [attr.aria-checked]="palette() === p.id"
+                [class.on]="palette() === p.id" (click)="setPalette(p.id)">
+                <span class="sw" aria-hidden="true">
+                  @for (c of swatch(p); track $index) { <i [style.background]="c"></i> }
+                </span>
+                <span class="txt"><strong>{{ p.name }}</strong><small>{{ p.tagline }}</small></span>
+                @if (palette() === p.id) { <ion-icon name="checkmark-circle" class="tick" aria-label="Selecionada" /> }
+              </button>
+            }
+          </div>
 
           <ion-item button detail routerLink="/definicoes/menu">
             <ion-label class="ion-text-wrap">
@@ -102,7 +123,18 @@ import { SettingsService } from '../../core/settings/settings.service';
       </div>
     </ion-content>
   `,
-  styles: `.page { max-width: 760px; margin: 0 auto; } ion-segment { margin: 4px 0 12px; } .last { margin-top: 6px; } .msg { color: var(--ion-color-success-shade); } .msg.error { color: var(--ion-color-danger); }`,
+  styles: `
+    .palettes { display: grid; gap: 8px; padding: 0 16px 14px; }
+    .pal { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 12px 14px; cursor: pointer;
+      border-radius: 14px; border: 1.5px solid var(--ion-border-color, rgba(127,127,127,0.3)); background: transparent; color: inherit; font: inherit; }
+    .pal.on { border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.08); }
+    .sw { display: flex; flex: none; }
+    .sw i { width: 26px; height: 26px; border-radius: 50%; margin-left: -8px; border: 2px solid var(--ion-background-color, #fff); }
+    .sw i:first-child { margin-left: 0; }
+    .txt { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .txt small { color: var(--ion-color-medium); font-size: 0.8rem; }
+    .tick { font-size: 1.4rem; color: var(--ion-color-primary); flex: none; }
+    .page { max-width: 760px; margin: 0 auto; } ion-segment { margin: 4px 0 12px; } .last { margin-top: 6px; } .msg { color: var(--ion-color-success-shade); } .msg.error { color: var(--ion-color-danger); }`,
 })
 export class SettingsPage {
   protected readonly auth = inject(AuthService);
@@ -120,8 +152,16 @@ export class SettingsPage {
   private readonly settings = inject(SettingsService);
   private readonly backup = inject(BackupService);
   private readonly alerts = inject(AlertController);
-  private readonly toasts = inject(ToastController);
+  private readonly toasts = inject(ToastService);
+  private readonly themeService = inject(ThemeService);
+  constructor() {
+    addIcons({ checkmarkCircle });
+  }
+
   readonly theme = this.settings.get('theme');
+  readonly palette = this.settings.get('palette');
+  readonly palettes = PALETTES;
+  swatch = (p: PaletteInfo) => (this.themeService.isDark() ? p.dark : p.light);
   readonly rest = this.settings.get('defaultRestSeconds');
   readonly secondary = this.settings.get('secondaryMuscleWeight');
   private readonly lastExportAt = this.settings.get('lastExportAt');
@@ -134,6 +174,10 @@ export class SettingsPage {
     const at = this.lastExportAt();
     return at ? new Date(at).toLocaleString('pt-PT', { dateStyle: 'long', timeStyle: 'short' }) : 'nunca';
   });
+
+  setPalette(id: PaletteId): void {
+    void this.settings.set('palette', id);
+  }
 
   setTheme(value: 'system' | 'light' | 'dark'): void {
     void this.settings.set('theme', value);
@@ -185,8 +229,7 @@ export class SettingsPage {
     try {
       const report = await this.backup.apply(data);
       this.show(`Importado. ${describe(report)}`);
-      const t = await this.toasts.create({ message: 'Importação concluída.', color: 'success', duration: 2000 });
-      await t.present();
+      await this.toasts.success('Importação concluída.', 2000);
     } catch (err) {
       this.show(err instanceof MergeError ? err.message : 'Não foi possível importar.', true);
     } finally {

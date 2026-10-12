@@ -11,6 +11,7 @@ import type { SessionSummary } from '../../data/models/session';
 import { SESSION_REPOSITORY } from '../../data/repositories/providers';
 import { effortLabel } from '../../shared/effort-scale';
 import { formatDay, formatMonth, formatSpan, formatVolume } from './history-format';
+import { toastHtml } from '../../core/ui/toast-text';
 
 /** Sessões terminadas, da mais recente para a mais antiga, agrupadas por mês. */
 @Component({
@@ -93,7 +94,7 @@ export class HistoryPage implements ViewWillEnter {
     await slide.close();
     const alert = await this.alerts.create({
       header: 'Apagar a sessão?',
-      message: `«${s.templateName ?? 'Sessão livre'}» · ${this.day(s.startedAt)}. Sai do histórico, da home e das estatísticas. Não dá para desfazer.`,
+      message: toastHtml(`«${s.templateName ?? 'Sessão livre'}» · ${this.day(s.startedAt)}. Sai do histórico, da home e das estatísticas. Não dá para desfazer.`),
       buttons: [{ text: 'Cancelar', role: 'cancel' }, { text: 'Apagar', role: 'destructive' }],
     });
     await alert.present();

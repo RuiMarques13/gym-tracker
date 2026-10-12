@@ -24,7 +24,6 @@ import {
   IonToolbar,
   ModalController,
   NavController,
-  ToastController,
   ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -73,6 +72,8 @@ const toNum = (v: string | null | undefined): number | null => {
 const str = (n: number | null | undefined, digits = 2): string => (n === null || n === undefined ? '' : String(Math.round(n * 10 ** digits) / 10 ** digits));
 
 /** Sessão em curso: registar séries, descanso e duração com o temporizador, terminar. */
+import { ToastService } from '../../core/ui/toast.service';
+
 @Component({
   selector: 'app-session',
   imports: [EffortScaleComponent, 
@@ -331,7 +332,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   private readonly clock = inject(CLOCK);
   private readonly modals = inject(ModalController);
   private readonly alerts = inject(AlertController);
-  private readonly toasts = inject(ToastController);
+  private readonly toasts = inject(ToastService);
   private readonly nav = inject(NavController);
 
   /** Id na rota (/historico/:id): abre uma sessão já terminada para corrigir. Sem id, é a sessão em curso. */
@@ -719,7 +720,6 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   }
 
   private async toast(message: string): Promise<void> {
-    const t = await this.toasts.create({ message, color: 'success', duration: 1800, position: 'bottom' });
-    await t.present();
+    await this.toasts.show(message, 'success', 1800);
   }
 }

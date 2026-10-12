@@ -1,7 +1,7 @@
 import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import {
-  AlertController, IonBadge, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonTitle, IonToolbar, ToastController, ViewWillEnter,
+  AlertController, IonBadge, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonTitle, IonToolbar, ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add, chevronBack, chevronForward, closeCircleOutline, play, trashOutline } from 'ionicons/icons';
@@ -12,6 +12,8 @@ import { SCHEDULED_REPOSITORY, WORKOUT_REPOSITORY } from '../../data/repositorie
 import { SessionLauncher } from '../session/session-launcher';
 
 /** Semana de treinos planeados: planear um treino num dia, iniciar, saltar ou tirar. */
+import { ToastService } from '../../core/ui/toast.service';
+
 @Component({
   selector: 'app-planned',
   imports: [NavButtonComponent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonBadge],
@@ -84,7 +86,7 @@ export class PlannedPage implements ViewWillEnter {
   private readonly repo = inject(SCHEDULED_REPOSITORY);
   private readonly workouts = inject(WORKOUT_REPOSITORY);
   private readonly alerts = inject(AlertController);
-  private readonly toasts = inject(ToastController);
+  private readonly toasts = inject(ToastService);
   private readonly clock = inject(CLOCK);
   private readonly launcher = inject(SessionLauncher);
 
@@ -167,7 +169,6 @@ export class PlannedPage implements ViewWillEnter {
   }
 
   private async toast(message: string): Promise<void> {
-    const t = await this.toasts.create({ message, duration: 2200, position: 'bottom' });
-    await t.present();
+    await this.toasts.show(message, 'info');
   }
 }

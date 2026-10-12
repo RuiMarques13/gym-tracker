@@ -44,6 +44,10 @@ export const SETTINGS = {
     key: 'ui.theme', scope: 'DEVICE', schemaVersion: 1, defaultValue: 'system',
     validate: isOneOf('system', 'light', 'dark'), label: 'Tema',
   }),
+  palette: def<'esmeralda' | 'eletrico' | 'brasa'>({
+    key: 'ui.palette', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 'esmeralda',
+    validate: isOneOf('esmeralda', 'eletrico', 'brasa'), label: 'Paleta de cores',
+  }),
   weightUnit: def<'kg' | 'lb'>({
     key: 'units.weight', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 'kg',
     validate: isOneOf('kg', 'lb'), label: 'Unidade de peso',

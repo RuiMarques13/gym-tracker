@@ -25,7 +25,6 @@ import {
   IonToolbar,
   ModalController,
   NavController,
-  ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add, copyOutline, linkOutline, trashOutline } from 'ionicons/icons';
@@ -58,6 +57,8 @@ const BLOCK_HINT: Record<Block, string> = {
   WARMUP: 'Ativação, mobilidade, cardio leve',
   MAIN: 'O resto do treino, pela ordem que fizeres (mobilidade no fim também)',
 };
+import { ToastService } from '../../core/ui/toast.service';
+import { toastHtml } from '../../core/ui/toast-text';
 
 @Component({
   selector: 'app-workout-editor',
@@ -264,7 +265,7 @@ export class WorkoutEditorPage {
   private readonly repo = inject(WORKOUT_REPOSITORY);
   private readonly modals = inject(ModalController);
   private readonly nav = inject(NavController);
-  private readonly toasts = inject(ToastController);
+  private readonly toasts = inject(ToastService);
   private readonly alerts = inject(AlertController);
 
   readonly id = input<string | undefined>();
@@ -465,7 +466,7 @@ export class WorkoutEditorPage {
   async removeAll(): Promise<void> {
     const alert = await this.alerts.create({
       header: 'Apagar treino e histórico?',
-      message: `«${this.name()}» e todas as sessões feitas com ele vão ser apagados de vez (séries, volumes, dados de saúde). Deixam de contar na home, no histórico e nos gráficos. Esta ação não se desfaz.`,
+      message: toastHtml(`«${this.name()}» e todas as sessões feitas com ele vão ser apagados de vez (séries, volumes, dados de saúde). Deixam de contar na home, no histórico e nos gráficos. Esta ação não se desfaz.`),
       buttons: [{ text: 'Cancelar', role: 'cancel' }, { text: 'Apagar tudo', role: 'destructive' }],
     });
     await alert.present();
@@ -482,7 +483,7 @@ export class WorkoutEditorPage {
   async remove(): Promise<void> {
     const alert = await this.alerts.create({
       header: 'Apagar treino?',
-      message: `«${this.name()}» vai ser apagado de vez, com os planeados que tiver. Esta ação não se desfaz.`,
+      message: toastHtml(`«${this.name()}» vai ser apagado de vez, com os planeados que tiver. Esta ação não se desfaz.`),
       buttons: [{ text: 'Cancelar', role: 'cancel' }, { text: 'Apagar', role: 'destructive' }],
     });
     await alert.present();
@@ -497,7 +498,6 @@ export class WorkoutEditorPage {
   }
 
   private async toast(message: string, color: 'success' | 'danger'): Promise<void> {
-    const t = await this.toasts.create({ message, color, duration: 2200, position: 'bottom' });
-    await t.present();
+    await this.toasts.show(message, color === 'danger' ? 'error' : 'success');
   }
 }

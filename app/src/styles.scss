@@ -13,23 +13,145 @@
 
 :root {
   --ion-font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-
-  /* Cor principal: verde-azulado, legível em claro e escuro. */
-  --ion-color-primary: #0f766e;
-  --ion-color-primary-rgb: 15, 118, 110;
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #0d6861;
-  --ion-color-primary-tint: #27847c;
+  /* Verdes e vermelhos dos avisos (independentes da paleta): tom em RGB para compor fundos translúcidos. */
+  --gt-ok: 4, 120, 87;
+  --gt-bad: 185, 28, 28;
+  --gt-info: 71, 85, 105;
 }
 
 :root.ion-palette-dark {
-  --ion-color-primary: #2dd4bf;
-  --ion-color-primary-rgb: 45, 212, 191;
-  --ion-color-primary-contrast: #042f2e;
-  --ion-color-primary-contrast-rgb: 4, 47, 46;
-  --ion-color-primary-shade: #28baa8;
-  --ion-color-primary-tint: #42d8c5;
+  --gt-ok: 52, 211, 153;
+  --gt-bad: 248, 113, 113;
+  --gt-info: 148, 163, 184;
+}
+
+/* Paletas de cor (definição ui.palette, atributo data-palette no <html>). Cada uma tem versão clara e escura.
+   «esmeralda» é a por omissão e vale também sem atributo. Gerado a partir de core/theme/palettes.ts: manter em sintonia. */
+
+:root, :root[data-palette="esmeralda"] {
+  --ion-color-primary: #047857;
+  --ion-color-primary-rgb: 4, 120, 87;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #046a4d;
+  --ion-color-primary-tint: #22886b;
+  --ion-color-secondary: #0e7490;
+  --ion-color-secondary-rgb: 14, 116, 144;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #0c667f;
+  --ion-color-secondary-tint: #2b859d;
+  --ion-color-tertiary: #7c3aed;
+  --ion-color-tertiary-rgb: 124, 58, 237;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #6d33d1;
+  --ion-color-tertiary-tint: #8c52ef;
+}
+
+:root.ion-palette-dark, :root.ion-palette-dark[data-palette="esmeralda"] {
+  --ion-color-primary: #34d399;
+  --ion-color-primary-rgb: 52, 211, 153;
+  --ion-color-primary-contrast: #022c22;
+  --ion-color-primary-contrast-rgb: 2, 44, 34;
+  --ion-color-primary-shade: #2eba87;
+  --ion-color-primary-tint: #4cd8a5;
+  --ion-color-secondary: #22d3ee;
+  --ion-color-secondary-rgb: 34, 211, 238;
+  --ion-color-secondary-contrast: #083344;
+  --ion-color-secondary-contrast-rgb: 8, 51, 68;
+  --ion-color-secondary-shade: #1ebad1;
+  --ion-color-secondary-tint: #3dd8f0;
+  --ion-color-tertiary: #a78bfa;
+  --ion-color-tertiary-rgb: 167, 139, 250;
+  --ion-color-tertiary-contrast: #2e1065;
+  --ion-color-tertiary-contrast-rgb: 46, 16, 101;
+  --ion-color-tertiary-shade: #937adc;
+  --ion-color-tertiary-tint: #b299fb;
+}
+
+:root[data-palette="eletrico"] {
+  --ion-color-primary: #4f46e5;
+  --ion-color-primary-rgb: 79, 70, 229;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #463eca;
+  --ion-color-primary-tint: #645ce8;
+  --ion-color-secondary: #4d7c0f;
+  --ion-color-secondary-rgb: 77, 124, 15;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #446d0d;
+  --ion-color-secondary-tint: #628c2c;
+  --ion-color-tertiary: #c026d3;
+  --ion-color-tertiary-rgb: 192, 38, 211;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #a921ba;
+  --ion-color-tertiary-tint: #c840d8;
+}
+
+:root.ion-palette-dark[data-palette="eletrico"] {
+  --ion-color-primary: #818cf8;
+  --ion-color-primary-rgb: 129, 140, 248;
+  --ion-color-primary-contrast: #1e1b4b;
+  --ion-color-primary-contrast-rgb: 30, 27, 75;
+  --ion-color-primary-shade: #727bda;
+  --ion-color-primary-tint: #909af9;
+  --ion-color-secondary: #bef264;
+  --ion-color-secondary-rgb: 190, 242, 100;
+  --ion-color-secondary-contrast: #1a2e05;
+  --ion-color-secondary-contrast-rgb: 26, 46, 5;
+  --ion-color-secondary-shade: #a7d558;
+  --ion-color-secondary-tint: #c6f477;
+  --ion-color-tertiary: #e879f9;
+  --ion-color-tertiary-rgb: 232, 121, 249;
+  --ion-color-tertiary-contrast: #4a044e;
+  --ion-color-tertiary-contrast-rgb: 74, 4, 78;
+  --ion-color-tertiary-shade: #cc6adb;
+  --ion-color-tertiary-tint: #eb89fa;
+}
+
+:root[data-palette="brasa"] {
+  --ion-color-primary: #c2410c;
+  --ion-color-primary-rgb: 194, 65, 12;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #ab390b;
+  --ion-color-primary-tint: #c95829;
+  --ion-color-secondary: #be123c;
+  --ion-color-secondary-rgb: 190, 18, 60;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #a71035;
+  --ion-color-secondary-tint: #c62e53;
+  --ion-color-tertiary: #a16207;
+  --ion-color-tertiary-rgb: 161, 98, 7;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #8e5606;
+  --ion-color-tertiary-tint: #ac7525;
+}
+
+:root.ion-palette-dark[data-palette="brasa"] {
+  --ion-color-primary: #fb923c;
+  --ion-color-primary-rgb: 251, 146, 60;
+  --ion-color-primary-contrast: #431407;
+  --ion-color-primary-contrast-rgb: 67, 20, 7;
+  --ion-color-primary-shade: #dd8035;
+  --ion-color-primary-tint: #fb9f53;
+  --ion-color-secondary: #fb7185;
+  --ion-color-secondary-rgb: 251, 113, 133;
+  --ion-color-secondary-contrast: #4c0519;
+  --ion-color-secondary-contrast-rgb: 76, 5, 25;
+  --ion-color-secondary-shade: #dd6375;
+  --ion-color-secondary-tint: #fb8294;
+  --ion-color-tertiary: #fcd34d;
+  --ion-color-tertiary-rgb: 252, 211, 77;
+  --ion-color-tertiary-contrast: #422006;
+  --ion-color-tertiary-contrast-rgb: 66, 32, 6;
+  --ion-color-tertiary-shade: #deba44;
+  --ion-color-tertiary-tint: #fcd862;
 }
 
 ion-menu ion-content {
@@ -46,4 +168,64 @@ ion-segment-button {
 ion-segment-button {
   min-width: auto;
   font-size: 0.95rem;
+}
+
+/* Android com ecrã inteiro: os botões do sistema (Samsung, etc.) ficam por cima da app. O Capacitor mede-os e
+   o Ionic expõe-os em --ion-safe-area-*; o conteúdo que desliza ganha essa folga no fim e o menu lateral também. */
+ion-content::part(scroll) {
+  padding-bottom: calc(var(--padding-bottom, 0px) + var(--ion-safe-area-bottom, 0px));
+}
+
+ion-menu ion-footer {
+  padding-bottom: var(--ion-safe-area-bottom, 0px);
+  background: var(--ion-background-color-step-25, var(--ion-background-color));
+}
+
+/* Avisos (ToastService): ao centro, vidro suave com a cor do estado, a flutuar de leve. */
+ion-toast.gt-toast {
+  --max-width: min(88vw, 420px);
+  --min-width: 220px;
+  --border-radius: 20px;
+  --border-width: 1px;
+  --border-style: solid;
+  --border-color: rgba(var(--gt-tone), 0.4);
+  --background: color-mix(in srgb, rgb(var(--gt-tone)) 13%, var(--ion-background-color, #fff));
+  --color: var(--ion-text-color);
+  --box-shadow: 0 18px 44px -10px rgba(var(--gt-tone), 0.45), 0 4px 14px rgba(0, 0, 0, 0.18);
+  --button-color: rgb(var(--gt-tone));
+}
+
+ion-toast.gt-toast-success { --gt-tone: var(--gt-ok); }
+ion-toast.gt-toast-error { --gt-tone: var(--gt-bad); }
+ion-toast.gt-toast-info { --gt-tone: var(--gt-info); }
+
+ion-toast.gt-toast::part(container) {
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  animation: gt-toast-in 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.25) both, gt-toast-float 3.6s ease-in-out 0.42s infinite;
+}
+
+ion-toast.gt-toast::part(icon) {
+  color: rgb(var(--gt-tone));
+  font-size: 1.6rem;
+}
+
+ion-toast.gt-toast::part(message) {
+  font-size: 0.98rem;
+  line-height: 1.35;
+  text-align: left;
+}
+
+@keyframes gt-toast-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes gt-toast-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ion-toast.gt-toast::part(container) { animation: none; }
 }

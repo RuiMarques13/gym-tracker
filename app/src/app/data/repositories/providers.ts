@@ -28,7 +28,10 @@ export const EXERCISE_REPOSITORY = new InjectionToken<ExerciseRepository>('Exerc
 
 export const LOOKUP_REPOSITORY = new InjectionToken<LookupRepository>('LookupRepository', {
   providedIn: 'root',
-  factory: () => new SqliteLookupRepository(inject(DatabaseService).db),
+  factory: () => {
+    const database = inject(DatabaseService);
+    return new SqliteLookupRepository(database.db, inject(CLOCK), database.deviceId);
+  },
 });
 
 export const WORKOUT_REPOSITORY = new InjectionToken<WorkoutRepository>('WorkoutRepository', {

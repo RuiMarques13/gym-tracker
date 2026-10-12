@@ -18,7 +18,6 @@ import {
   IonTitle,
   IonToggle,
   IonToolbar,
-  ToastController,
   ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -28,6 +27,8 @@ import { WORKOUT_REPOSITORY } from '../../data/repositories/providers';
 import { SessionLauncher } from '../session/session-launcher';
 
 /** Os teus treinos (templates). Deslizar para copiar ou arquivar; tocar para editar. */
+import { ToastService } from '../../core/ui/toast.service';
+
 @Component({
   selector: 'app-workouts',
   imports: [NavButtonComponent, 
@@ -102,7 +103,7 @@ import { SessionLauncher } from '../session/session-launcher';
 })
 export class WorkoutsPage implements ViewWillEnter {
   private readonly repo = inject(WORKOUT_REPOSITORY);
-  private readonly toasts = inject(ToastController);
+  private readonly toasts = inject(ToastService);
   private readonly launcher = inject(SessionLauncher);
 
   readonly showArchived = signal(false);
@@ -148,7 +149,6 @@ export class WorkoutsPage implements ViewWillEnter {
   }
 
   private async toast(message: string, color: 'success' | 'danger'): Promise<void> {
-    const t = await this.toasts.create({ message, color, duration: 2000, position: 'bottom' });
-    await t.present();
+    await this.toasts.show(message, color === 'danger' ? 'error' : 'success');
   }
 }

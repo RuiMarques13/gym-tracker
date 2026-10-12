@@ -1,7 +1,7 @@
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import {
   AlertController, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonTitle,
-  IonToolbar, ToastController,
+  IonToolbar,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { cameraOutline, closeOutline, gitCompareOutline, trashOutline } from 'ionicons/icons';
@@ -15,6 +15,8 @@ import { NavButtonComponent } from '../../shared/nav-button.component';
 const POSES: PhotoPose[] = ['FRONT', 'SIDE', 'BACK', 'OTHER'];
 
 /** Fotos de progresso: guardar, ver por data e comparar duas lado a lado. */
+import { ToastService } from '../../core/ui/toast.service';
+
 @Component({
   selector: 'app-photos',
   imports: [NavButtonComponent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonSegment, IonSegmentButton, IonLabel],
@@ -121,7 +123,7 @@ const POSES: PhotoPose[] = ['FRONT', 'SIDE', 'BACK', 'OTHER'];
 export class PhotosPage {
   private readonly repo = inject(PHOTO_REPOSITORY);
   private readonly clock = inject(CLOCK);
-  private readonly toasts = inject(ToastController);
+  private readonly toasts = inject(ToastService);
   private readonly alerts = inject(AlertController);
 
   readonly poses = POSES;
@@ -192,6 +194,6 @@ export class PhotosPage {
   }
 
   private async toast(message: string): Promise<void> {
-    await (await this.toasts.create({ message, duration: 2200, position: 'bottom' })).present();
+    await this.toasts.show(message, 'info');
   }
 }

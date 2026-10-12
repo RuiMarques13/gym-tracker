@@ -77,13 +77,12 @@ const M = { left: 36, right: 10, top: 10, bottom: 24 };
   styles: `
     :host {
       display: block;
-      --viz-series: #0f766e;
+      --viz-series: var(--ion-color-primary);
       --viz-grid: rgba(0, 0, 0, 0.1);
       --viz-text: #52514e;
       --viz-surface: #ffffff;
     }
     :host-context(.ion-palette-dark) {
-      --viz-series: #2cb5a8;
       --viz-grid: rgba(255, 255, 255, 0.14);
       --viz-text: #c3c2b7;
       --viz-surface: #1e1e1e;

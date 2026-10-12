@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { AlertController, NavController } from '@ionic/angular';
 import { SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { toastHtml } from '../../core/ui/toast-text';
 
 /** Começa (ou retoma) uma sessão e abre o ecrã da sessão. Partilhado por Treinos e Home. */
 @Injectable({ providedIn: 'root' })
@@ -14,7 +15,7 @@ export class SessionLauncher {
     if (active) {
       const alert = await this.alerts.create({
         header: 'Já tens uma sessão em curso',
-        message: `«${active.templateName ?? 'Sessão livre'}» ainda não terminou. Termina-a ou descarta-a antes de começar outra.`,
+        message: toastHtml(`«${active.templateName ?? 'Sessão livre'}» ainda não terminou. Termina-a ou descarta-a antes de começar outra.`),
         buttons: [
           { text: 'Agora não', role: 'cancel' },
           { text: 'Continuar a sessão', handler: () => void this.nav.navigateForward('/sessao') },

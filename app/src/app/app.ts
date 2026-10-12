@@ -108,7 +108,7 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
     .shell ion-router-outlet { position: relative; flex: 1; }
     .user {
       display: flex; gap: 12px; align-items: center; padding: 20px 16px 12px; text-decoration: none; color: inherit;
-      padding-top: calc(20px + env(safe-area-inset-top));
+      padding-top: calc(20px + var(--ion-safe-area-top, 0px));
     }
     .avatar {
       display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%;
