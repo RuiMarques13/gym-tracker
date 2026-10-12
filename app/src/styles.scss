@@ -177,8 +177,12 @@ ion-content::part(scroll) {
 }
 
 ion-menu ion-footer {
-  padding-bottom: var(--ion-safe-area-bottom, 0px);
   background: var(--ion-background-color-step-25, var(--ion-background-color));
+}
+
+/* Rodapés sem ion-toolbar (o Ionic só dá a folga aos toolbars): sobem acima dos botões do sistema. */
+ion-footer:not(:has(ion-toolbar)) {
+  padding-bottom: var(--ion-safe-area-bottom, 0px);
 }
 
 /* Avisos (ToastService): ao centro, vidro suave com a cor do estado, a flutuar de leve. */

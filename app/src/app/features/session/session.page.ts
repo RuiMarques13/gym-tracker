@@ -1,4 +1,8 @@
 import { EffortScaleComponent } from '../../shared/effort-scale.component';
+import { StatTile, StatTilesComponent } from '../../shared/stat-tiles.component';
+import { BodyProfileService } from '../../core/health/body-profile.service';
+import { HealthService } from '../../core/health/health.service';
+import { paceOf, sessionStats } from '../../core/metrics/session-stats';
 import { Component, computed, effect, inject, input, OnDestroy, resource, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
@@ -27,7 +31,8 @@ import {
   ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, checkmarkCircle, ellipseOutline, stopwatchOutline, trashOutline } from 'ionicons/icons';
+import { add, checkmarkCircle, ellipseOutline, play, stopwatchOutline, trashOutline } from 'ionicons/icons';
+import { CardioRunService } from '../../core/timer/cardio-run.service';
 import { SettingsService } from '../../core/settings/settings.service';
 import { formatClock } from '../../core/timer/timer-math';
 import { EffortReminder } from '../../core/timer/effort-reminder';
@@ -76,7 +81,7 @@ import { ToastService } from '../../core/ui/toast.service';
 
 @Component({
   selector: 'app-session',
-  imports: [EffortScaleComponent, 
+  imports: [EffortScaleComponent, StatTilesComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonContent, IonFooter, IonList, IonItem,
     IonLabel, IonBadge, IonInput, IonTextarea, IonModal, IonSegment, IonSegmentButton, IonSpinner,
   ],
@@ -106,14 +111,18 @@ import { ToastService } from '../../core/ui/toast.service';
         <div class="center"><ion-spinner /></div>
       } @else {
         <div class="page">
-          <div class="summary">
-            @if (historical()) {
-              <span class="clock">{{ dayLabel() }}</span>
-            }
-            <span class="clock"><ion-icon name="stopwatch-outline" /> {{ elapsed() }}</span>
-            <span>{{ totalSets() }} {{ totalSets() === 1 ? 'série' : 'séries' }}</span>
-            <span>{{ session()!.exercises.length }} {{ session()!.exercises.length === 1 ? 'exercício' : 'exercícios' }}</span>
-          </div>
+          @if (historical()) {
+            <p class="day">{{ dayLabel() }}</p>
+          }
+          <app-stat-tiles size="compact" [cols]="4" [tiles]="mainTiles()" />
+          @if (extraTiles().length) {
+            <div class="gap"><app-stat-tiles size="compact" [cols]="extraTiles().length > 3 ? 4 : extraTiles().length" [tiles]="extraTiles()" /></div>
+          }
+          @if (liveRun(); as r) {
+            <button type="button" class="live" (click)="openLive(r.exerciseId)">
+              <span class="dot"></span> Atividade a decorrer: <strong>{{ r.name }}</strong> · voltar
+            </button>
+          }
           @for (w of warnings(); track w) {
             <p class="warn">{{ w }}</p>
           }
@@ -147,9 +156,16 @@ import { ToastService } from '../../core/ui/toast.service';
                   </ion-list>
                 }
                 <div class="actions">
-                  <ion-button expand="block" fill="outline" (click)="openSheet(ex, null)">
-                    <ion-icon slot="start" name="add" /> Registar série
-                  </ion-button>
+                  @if (ex.kind === 'CARDIO' && !historical()) {
+                    <ion-button expand="block" (click)="startCardio(ex)">
+                      <ion-icon slot="start" name="play" /> {{ liveRun()?.exerciseId === ex.id ? 'Voltar à atividade' : 'Iniciar atividade' }}
+                    </ion-button>
+                    <ion-button expand="block" fill="clear" size="small" (click)="openSheet(ex, null)">Registar à mão</ion-button>
+                  } @else {
+                    <ion-button expand="block" fill="outline" (click)="openSheet(ex, null)">
+                      <ion-icon slot="start" name="add" /> Registar série
+                    </ion-button>
+                  }
                 </div>
               </section>
             }
@@ -273,7 +289,7 @@ import { ToastService } from '../../core/ui/toast.service';
         </ion-header>
         <ion-content>
           <div class="sheet">
-            <p class="sheet-sub">{{ elapsed() }} · {{ totalSets() }} séries</p>
+            <app-stat-tiles [tiles]="allTiles()" />
             <app-effort-scale [text]="finishRpe()" (changed)="finishRpe.set($event)" />
             <ion-textarea label="Notas (opcional)" labelPlacement="stacked" fill="outline" [autoGrow]="true" placeholder="Como te sentiste, dor, sono, stress…"
               [value]="finishNotes()" (ionInput)="finishNotes.set($any($event).detail.value ?? '')" />
@@ -293,8 +309,12 @@ import { ToastService } from '../../core/ui/toast.service';
   styles: `
     .page { max-width: 760px; margin: 0 auto; padding: 8px 12px 24px; }
     .center { display: grid; place-items: center; height: 60vh; }
-    .summary { display: flex; gap: 14px; align-items: center; color: var(--ion-color-medium); font-size: 0.9rem; padding: 6px 4px 0; }
-    .clock { font-weight: 700; color: var(--ion-text-color); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+    .day { margin: 2px 4px 8px; color: var(--ion-color-medium); font-size: 0.9rem; }
+    .gap { margin-top: 8px; }
+    .live { display: flex; align-items: center; gap: 8px; width: 100%; margin: 10px 0 0; padding: 12px 14px; border: 0; border-radius: 14px; font: inherit; text-align: left;
+      background: rgba(var(--ion-color-primary-rgb), 0.14); color: var(--ion-color-primary); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: 0.25; } }
     .block-title { margin: 18px 4px 6px; font-size: 0.8rem; font-weight: 700; color: var(--ion-color-medium); }
     .card { background: var(--ion-card-background, var(--ion-item-background, #fff)); border-radius: 14px; margin-bottom: 12px;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); overflow: hidden; }
@@ -334,9 +354,14 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   private readonly alerts = inject(AlertController);
   private readonly toasts = inject(ToastService);
   private readonly nav = inject(NavController);
+  private readonly body = inject(BodyProfileService);
+  private readonly cardioRuns = inject(CardioRunService);
+  private readonly healthSvc = inject(HealthService);
 
   /** Id na rota (/historico/:id): abre uma sessão já terminada para corrigir. Sem id, é a sessão em curso. */
   readonly id = input<string | undefined>();
+  /** ?fim=1: chega do cardio ao vivo com um só exercício, e abre logo o painel de terminar. */
+  readonly fim = input<string | undefined>();
   readonly blockLabel = BLOCK_LABEL;
   readonly session = signal<Session | null>(null);
   readonly sheet = signal<SheetState | null>(null);
@@ -358,6 +383,52 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     const end = s.endedAt ? Date.parse(s.endedAt) : this.now();
     return formatClock((end - Date.parse(s.startedAt)) / 1000 - s.pausedSeconds);
   });
+  /** Dados do relógio de uma sessão terminada (FC média e calorias reais), se já foram importados. */
+  private readonly health = resource({
+    params: () => (this.session()?.endedAt ? this.session()!.id : undefined),
+    loader: ({ params }) => this.healthSvc.summary(params),
+  });
+  readonly stats = computed(() => {
+    const s = this.session();
+    return s ? sessionStats(s, this.now(), this.body.profile(), this.health.value()?.avg ?? null) : null;
+  });
+  /** Índices principais: tempo, calorias, tempo ativo e descanso. */
+  readonly mainTiles = computed<StatTile[]>(() => {
+    const st = this.stats();
+    if (!st) return [];
+    const real = this.health.value()?.caloriesKcal ?? null;
+    const kcal = real ?? st.loggedKcal ?? st.estimatedKcal;
+    const hint = real !== null ? 'do relógio' : st.loggedKcal !== null ? 'registado' : st.estimatedKcal !== null ? 'estimado' : 'sem peso';
+    return [
+      { label: 'Duração', value: formatClock(st.totalSeconds), tone: 'primary' },
+      { label: 'Calorias', value: kcal === null ? '—' : String(kcal), unit: kcal === null ? undefined : 'kcal', tone: 'danger', hint },
+      { label: 'Ativo', value: formatClock(st.activeSeconds), tone: 'success' },
+      { label: 'Descanso', value: formatClock(st.restSeconds), tone: 'secondary' },
+    ];
+  });
+  /** Índices secundários, só os que têm valor. */
+  readonly extraTiles = computed<StatTile[]>(() => {
+    const st = this.stats();
+    if (!st) return [];
+    const out: StatTile[] = [{ label: 'Séries', value: String(st.sets), tone: 'medium' }];
+    if (st.volumeKg > 0) out.push({ label: 'Volume', value: st.volumeKg.toLocaleString('pt-PT'), unit: 'kg', tone: 'medium' });
+    if (st.distanceM > 0) {
+      out.push({ label: 'Distância', value: (st.distanceM / 1000).toLocaleString('pt-PT', { maximumFractionDigits: 2 }), unit: 'km', tone: 'medium' });
+      const p = paceOf(st.distanceM, st.activeSeconds);
+      if (p && p.kmh <= 60) out.push({ label: 'Vel. média', value: p.kmh.toLocaleString('pt-PT', { maximumFractionDigits: 1 }), unit: 'km/h', tone: 'medium' });
+    }
+    const hr = this.health.value()?.avg;
+    if (hr) out.push({ label: 'FC média', value: String(hr), unit: 'bpm', tone: 'danger' });
+    if (!out.some((t) => t.label === 'Distância') && !out.some((t) => t.label === 'Volume')) out.push({ label: 'Exercícios', value: String(st.exercises), tone: 'medium' });
+    return out.slice(0, 4);
+  });
+  /** Atividade de cardio a decorrer num exercício desta sessão. */
+  readonly liveRun = computed(() => {
+    const r = this.cardioRuns.run();
+    const s = this.session();
+    return r && s && !s.endedAt && s.exercises.some((e) => e.id === r.exerciseId) ? r : null;
+  });
+  readonly allTiles = computed(() => [...this.mainTiles(), ...this.extraTiles()]);
   readonly blocks = computed(() => {
     const s = this.session();
     if (!s) return [];
@@ -403,7 +474,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   readonly sheetSides = computed<Side[]>(() => (this.sheetExercise()?.isUnilateral ? ['LEFT', 'RIGHT'] : ['BOTH']));
 
   constructor() {
-    addIcons({ add, checkmarkCircle, ellipseOutline, stopwatchOutline, trashOutline });
+    addIcons({ add, checkmarkCircle, ellipseOutline, play, stopwatchOutline, trashOutline });
     // Cronómetro de duração chegou ao fim: usa o tempo na série que está a ser registada.
     effect(() => {
       const f = this.timer.finished();
@@ -423,6 +494,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   }
 
   async ionViewWillEnter(): Promise<void> {
+    this.body.reload();
     const id = this.id();
     const found = id ? await this.repo.get(id) : await this.repo.getActive();
     if (!found) {
@@ -430,6 +502,14 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       return;
     }
     this.session.set(found);
+    if (this.fim() === '1' && !found.endedAt) this.openDetails();
+  }
+
+  startCardio(ex: SessionExercise): void {
+    void this.nav.navigateForward(['/sessao/cardio', ex.id]);
+  }
+  openLive(exerciseId: string): void {
+    void this.nav.navigateForward(['/sessao/cardio', exerciseId]);
   }
 
   groups = (ex: SessionExercise) => groupSets(ex.sets);

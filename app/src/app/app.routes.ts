@@ -46,6 +46,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/workouts/workout-editor.page').then((m) => m.WorkoutEditorPage),
   },
   { path: 'sessao', loadComponent: () => import('./features/session/session.page').then((m) => m.SessionPage) },
+  { path: 'sessao/cardio/:id', loadComponent: () => import('./features/session/cardio-live.page').then((m) => m.CardioLivePage) },
   { path: 'planeados', loadComponent: () => import('./features/planned/planned.page').then((m) => m.PlannedPage) },
   { path: 'historico', loadComponent: () => import('./features/history/history.page').then((m) => m.HistoryPage) },
   { path: 'historico/:id', loadComponent: () => import('./features/session/session.page').then((m) => m.SessionPage) },

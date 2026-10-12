@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import type { HealthAvailability, HealthProvider } from './health-provider';
-import type { HrPoint } from './health.logic';
+import { energyWithin, type HrPoint } from './health.logic';
 
 const READ = ['heartRate', 'calories'] as const;
 
@@ -44,11 +44,8 @@ export class CapacitorHealthProvider implements HealthProvider {
   async activeCalories(startIso: string, endIso: string): Promise<number | null> {
     const { h } = await this.plugin();
     const r = await h.readSamples({ dataType: 'calories', startDate: startIso, endDate: endIso, limit: 1000, ascending: true });
-    // só registos que cabem no treino (com 1 min de folga), para não contar calorias de antes ou depois
-    const lo = Date.parse(startIso) - 60_000, hi = Date.parse(endIso) + 60_000;
-    const total = r.samples
-      .filter((s) => Date.parse(s.startDate) >= lo && Date.parse(s.endDate) <= hi)
-      .reduce((acc, s) => acc + (s.value || 0), 0);
+    // proporcional à parte de cada registo que cai dentro do treino (o Samsung escreve em blocos que o ultrapassam)
+    const total = energyWithin(r.samples, startIso, endIso);
     return total > 0 ? Math.round(total) : null;
   }
 

@@ -70,3 +70,31 @@ export function chartSeries(points: readonly HrPoint[], startIso: string, maxPoi
   }
   return [...buckets.entries()].sort((a, b) => a[0] - b[0]).map(([k, b]) => ({ minute: Math.round(k * step + step / 2), bpm: Math.round(b.sum / b.n) }));
 }
+
+export interface EnergyRecord {
+  startDate: string;
+  endDate: string;
+  value: number;
+}
+
+/**
+ * Soma a energia dos registos que tocam o intervalo, **proporcional à parte que cai lá dentro**.
+ * O Samsung escreve em blocos que começam antes ou acabam depois do treino; descartá-los (como se fazia)
+ * dava menos calorias do que as reais. Registos sem duração contam inteiros se estiverem dentro.
+ */
+export function energyWithin(records: readonly EnergyRecord[], startIso: string, endIso: string): number {
+  const lo = Date.parse(startIso), hi = Date.parse(endIso);
+  if (Number.isNaN(lo) || Number.isNaN(hi) || hi <= lo) return 0;
+  let total = 0;
+  for (const r of records) {
+    const a = Date.parse(r.startDate), b = Date.parse(r.endDate);
+    if (!Number.isFinite(r.value) || r.value <= 0 || Number.isNaN(a) || Number.isNaN(b)) continue;
+    if (b <= a) {
+      if (a >= lo && a <= hi) total += r.value;
+      continue;
+    }
+    const overlap = Math.min(b, hi) - Math.max(a, lo);
+    if (overlap > 0) total += r.value * (overlap / (b - a));
+  }
+  return total;
+}

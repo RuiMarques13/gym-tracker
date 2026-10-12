@@ -3,6 +3,19 @@ import { AlertController, NavController } from '@ionic/angular';
 import { SESSION_REPOSITORY } from '../../data/repositories/providers';
 import { toastHtml } from '../../core/ui/toast-text';
 
+import { BLOCK_ORDER } from '../../data/models/workout';
+import type { Session, SessionExercise } from '../../data/models/session';
+
+/** O primeiro exercício pela ordem do treino (blocos e posição). */
+export function firstExercise(s: Session | null | undefined): SessionExercise | null {
+  if (!s) return null;
+  for (const block of BLOCK_ORDER) {
+    const inBlock = s.exercises.filter((e) => e.block === block).sort((a, b) => a.position - b.position);
+    if (inBlock.length) return inBlock[0];
+  }
+  return null;
+}
+
 /** Começa (ou retoma) uma sessão e abre o ecrã da sessão. Partilhado por Treinos e Home. */
 @Injectable({ providedIn: 'root' })
 export class SessionLauncher {
@@ -24,7 +37,10 @@ export class SessionLauncher {
       await alert.present();
       return;
     }
-    await this.repo.start({ templateId, scheduledId });
+    const started = await this.repo.start({ templateId, scheduledId });
     await this.nav.navigateForward('/sessao');
+    // Treino que abre com cardio: a atividade arranca já (contagem de 5 s), sem passar pelo menu.
+    const first = firstExercise(started);
+    if (first?.kind === 'CARDIO') await this.nav.navigateForward(['/sessao/cardio', first.id]);
   }
 }

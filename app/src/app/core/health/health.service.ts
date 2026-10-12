@@ -54,6 +54,18 @@ export class HealthService {
   clear(sessionId: string) { return this.repo.clear(sessionId); }
   all() { return this.repo.all(); }
 
+  /** FC recente do relógio durante uma atividade (sem pedir permissões). null se não houver leituras. */
+  async liveHeartRate(startIso: string): Promise<{ last: number; avg: number } | null> {
+    try {
+      if (!(await this.provider.availability()).available || !(await this.provider.hasAccess())) return null;
+      const pts = downsample(await this.provider.heartRate(startIso, this.clock.nowIso()), 5);
+      const s = summarize(pts);
+      return pts.length && s.avg !== null ? { last: pts[pts.length - 1].bpm, avg: s.avg } : null;
+    } catch {
+      return null;
+    }
+  }
+
   importForSession(session: { id: string; startedAt: string; endedAt: string | null }): Promise<ImportResult> {
     return importSessionHealth(this.provider, this.repo, session, this.clock.nowIso());
   }
