@@ -362,6 +362,8 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   readonly id = input<string | undefined>();
   /** ?fim=1: chega do cardio ao vivo com um só exercício, e abre logo o painel de terminar. */
   readonly fim = input<string | undefined>();
+  /** ?add=1: chega do cardio ao vivo depois de escolheres «Adicionar exercício», e abre logo a lista. */
+  readonly add = input<string | undefined>();
   readonly blockLabel = BLOCK_LABEL;
   readonly session = signal<Session | null>(null);
   readonly sheet = signal<SheetState | null>(null);
@@ -506,6 +508,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     }
     this.session.set(found);
     if (this.fim() === '1' && !found.endedAt) this.openDetails();
+    else if (this.add() === '1' && !found.endedAt) void this.addExercises();
   }
 
   startCardio(ex: SessionExercise): void {

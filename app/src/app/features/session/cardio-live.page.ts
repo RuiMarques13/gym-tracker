@@ -20,7 +20,7 @@ const RING = 2 * Math.PI * 92;
 
 /**
  * Atividade de cardio ao vivo: contagem de 5 s a regredir, depois o tempo corre até parares na app.
- * Ao parar, guarda a série (duração, distância, calorias) e volta ao menu do treino.
+ * Ao parar, guarda a série (duração, distância, calorias) e pergunta se queres terminar o treino ou adicionar mais.
  */
 @Component({
   selector: 'app-cardio-live',
@@ -46,8 +46,17 @@ const RING = 2 * Math.PI * 92;
             <p class="sub">Prepara-te…</p>
             <ion-button fill="clear" color="medium" (click)="cancel()">Cancelar</ion-button>
           } @else {
-            <p class="sub">A decorrer</p>
-            <div class="clock" aria-live="off">{{ clock(ph.elapsedSeconds) }}</div>
+            <div class="dial" [class.done]="targetReached()" aria-live="off">
+              <svg viewBox="0 0 200 200" aria-hidden="true">
+                <circle class="track" cx="100" cy="100" r="92" />
+                <circle class="arc" cx="100" cy="100" r="92" [attr.stroke-dasharray]="ring" [attr.stroke-dashoffset]="ring * (1 - dialFraction())" />
+              </svg>
+              <div class="inside">
+                <span class="lab">{{ targetReached() ? 'Meta atingida' : 'A decorrer' }}</span>
+                <span class="time">{{ clock(ph.elapsedSeconds) }}</span>
+                @if (target()) { <span class="lab">meta {{ clock(target()!) }}</span> }
+              </div>
+            </div>
             <app-stat-tiles size="big" [tiles]="tiles()" />
             @if (!hr()) { <p class="note">A frequência cardíaca aparece quando o relógio sincronizar com o Health Connect (pode demorar).</p> }
             @if (profileMissing()) { <p class="note">Para calorias mais certas, preenche {{ missingText() }} no Perfil.</p> }
@@ -96,7 +105,14 @@ const RING = 2 * Math.PI * 92;
     .n { position: absolute; inset: 0; display: grid; place-items: center; font-size: clamp(5rem, 28vw, 8rem); font-weight: 800;
       color: var(--ion-color-primary); font-variant-numeric: tabular-nums; }
     .sub { margin: 0; color: var(--ion-color-medium); font-size: 1rem; }
-    .clock { font-size: clamp(3.4rem, 18vw, 5rem); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+    .dial { position: relative; width: min(84vw, 340px); aspect-ratio: 1; margin: 2vh 0; }
+    .dial svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+    .dial .arc { transition: stroke-dashoffset 0.4s linear; }
+    .dial.done .arc { stroke: var(--ion-color-success); }
+    .dial.done .track { stroke: rgba(var(--ion-color-success-rgb), 0.18); }
+    .inside { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .time { font-size: clamp(3.2rem, 17vw, 4.6rem); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+    .lab { font-size: 0.85rem; color: var(--ion-color-medium); }
     app-stat-tiles { width: 100%; }
     .note { margin: 0; color: var(--ion-color-medium); font-size: 0.8rem; }
     .stop { width: 100%; margin-top: 8px; --border-radius: 18px; min-height: 64px; font-weight: 700; }
@@ -130,6 +146,20 @@ export class CardioLivePage implements ViewWillEnter, OnDestroy {
   readonly phase = computed(() => {
     const r = this.run();
     return r ? phaseOf(r, this.now()) : null;
+  });
+  /** Meta de duração do exercício no treino (s), se houver. */
+  readonly target = signal<number | null>(null);
+  readonly targetReached = computed(() => {
+    const t = this.target();
+    const p = this.phase();
+    return !!t && p?.phase === 'running' && p.elapsedSeconds >= t;
+  });
+  /** Anel: progresso para a meta; sem meta, dá uma volta por minuto. */
+  readonly dialFraction = computed(() => {
+    const p = this.phase();
+    if (p?.phase !== 'running') return 0;
+    const t = this.target();
+    return t ? Math.min(1, p.elapsedSeconds / t) : (p.elapsedSeconds % 60) / 60;
   });
   readonly hr = signal<{ last: number; avg: number } | null>(null);
   readonly profileMissing = computed(() => this.body.missing().length > 0);
@@ -176,15 +206,16 @@ export class CardioLivePage implements ViewWillEnter, OnDestroy {
 
   async ionViewWillEnter(): Promise<void> {
     this.body.reload();
+    const s = await this.repo.getActive();
+    const ex = s?.exercises.find((e) => e.id === this.id());
     if (!this.run() || this.run()!.exerciseId !== this.id()) {
-      const s = await this.repo.getActive();
-      const ex = s?.exercises.find((e) => e.id === this.id());
       if (!s || !ex) {
         this.nav.navigateRoot('/sessao');
         return;
       }
       this.runs.begin(ex.id, ex.exerciseName);
     }
+    this.target.set(ex?.targetDurationSeconds ?? null);
     void this.keepAwake();
     this.startHrPolling();
   }
@@ -252,14 +283,35 @@ export class CardioLivePage implements ViewWillEnter, OnDestroy {
       this.runs.clear();
       this.finishOpen.set(false);
       await this.toasts.success(`«${r.name}» guardado: ${formatClock(this.frozen())}.`, 1800);
-      // Só este exercício: vai direto a terminar a sessão. Com mais exercícios, volta ao menu do treino.
-      const only = (s?.exercises.length ?? 0) <= 1;
-      this.nav.navigateRoot(only ? '/sessao?fim=1' : '/sessao');
+      // Todos os exercícios já têm registo: pergunta se é para terminar ou juntar mais. Senão, volta ao menu do treino.
+      const allDone = !!s && s.exercises.every((e) => e.sets.length > 0);
+      if (!allDone) {
+        this.nav.navigateRoot('/sessao');
+        return;
+      }
+      const choice = await this.askFinishOrAdd(r.name);
+      this.nav.navigateRoot(choice === 'add' ? '/sessao?add=1' : choice === 'finish' ? '/sessao?fim=1' : '/sessao');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Não foi possível guardar.');
     } finally {
       this.saving.set(false);
     }
+  }
+
+  /** «Terminar o treino?»: devolve a escolha, ou 'menu' se fechar sem escolher. */
+  private async askFinishOrAdd(name: string): Promise<'finish' | 'add' | 'menu'> {
+    let choice: 'finish' | 'add' | 'menu' = 'menu';
+    const a = await this.alerts.create({
+      header: 'Terminar o treino?',
+      message: `«${name}» guardado. Queres terminar o treino ou adicionar mais exercícios?`,
+      buttons: [
+        { text: 'Adicionar exercício', handler: () => { choice = 'add'; } },
+        { text: 'Terminar treino', role: 'confirm', cssClass: 'alert-primary', handler: () => { choice = 'finish'; } },
+      ],
+    });
+    await a.present();
+    await a.onDidDismiss();
+    return choice;
   }
 
   async discard(): Promise<void> {
