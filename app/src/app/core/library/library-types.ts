@@ -27,4 +27,17 @@ export interface LibraryItem {
   mobilityAreas: string[];
   /** Variantes do catálogo (pega, inclinação…), guardadas nas notas ao adicionar. */
   variants: string | null;
+  /** Nome em português (itens do teu catálogo); null nos que vieram só do free-exercise-db. */
+  namePt: string | null;
+  /** De onde veio: o teu catálogo ou o free-exercise-db (domínio público). */
+  source: 'catalog' | 'fedb';
+  /** Id no free-exercise-db, quando o item existe lá. */
+  fedbId?: string;
+  /** Multiarticular ou monoarticular (free-exercise-db); null quando não se sabe. */
+  mechanic: 'COMPOUND' | 'ISOLATION' | null;
+  /** Nível indicado no free-exercise-db. */
+  level: 'beginner' | 'intermediate' | 'expert' | null;
 }
+
+/** Nome para regras que só conhecem português (perfis musculares, animações): o PT quando existe. */
+export const ruleName = (i: Pick<LibraryItem, 'name' | 'namePt'>): string => i.namePt ?? i.name;

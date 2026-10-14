@@ -20,8 +20,10 @@ describe('animações', () => {
     }
   });
 
-  it('cada exercício da biblioteca (força, mobilidade e cardio) tem animação', () => {
-    const miss = LIBRARY.items.filter((i) => !motionFor(i.name, specOfKeys(i.primary), i.kind)).map((i) => i.name);
+  it('cada exercício do teu catálogo (força, mobilidade e cardio) tem animação', () => {
+    const miss = LIBRARY.items
+      .filter((i) => i.source === 'catalog' && !motionFor(i.namePt ?? i.name, specOfKeys(i.primary), i.kind))
+      .map((i) => i.name);
     expect(miss).toEqual([]);
   });
 

@@ -1,0 +1,435 @@
+# Nome em inglês de cada item do catálogo (chave → nome). A chave e o id do exercício não mudam;
+# o nome em português continua guardado (namePt) para a tradução da app.
+supino-plano--dumbbell	Dumbbell Bench Press
+supino-inclinado--dumbbell	Incline Dumbbell Bench Press
+supino-declinado--dumbbell	Decline Dumbbell Bench Press
+supino-com-pega-neutra-squeeze-press--dumbbell	Dumbbell Squeeze Press
+aberturas-flyes-planas-inclinadas-declinadas--dumbbell	Dumbbell Fly
+pullover--dumbbell	Dumbbell Pullover
+supino-unilateral--dumbbell	Single-Arm Dumbbell Bench Press
+supino-no-chao-floor-press--dumbbell	Dumbbell Floor Press
+svend-press-com-disco--dumbbell	Svend Press
+supino-plano--barbell	Barbell Bench Press
+supino-inclinado--barbell	Incline Barbell Bench Press
+supino-declinado--barbell	Decline Barbell Bench Press
+supino-pega-fechada--barbell	Close-Grip Barbell Bench Press
+supino-guilhotina--barbell	Guillotine Press
+floor-press--barbell	Barbell Floor Press
+supino-com-pausa--barbell	Paused Bench Press
+landmine-press--barbell	Landmine Press
+chest-press-sentado--machine	Seated Chest Press Machine
+chest-press-inclinado--machine	Incline Chest Press Machine
+chest-press-declinado--machine	Decline Chest Press Machine
+peck-deck-butterfly--machine	Pec Deck Fly
+supino-na-smith--machine	Smith Machine Bench Press
+maquina-de-pullover--machine	Pullover Machine
+chest-press-de-alavanca-hammer-unilateral--machine	Single-Arm Lever Chest Press
+crossover-alto-baixo--cable	High-to-Low Cable Crossover
+crossover-medio--cable	Mid Cable Crossover
+crossover-baixo-alto--cable	Low-to-High Cable Crossover
+aberturas-no-banco-com-cabos--cable	Bench Cable Fly
+chest-press-com-cabos-de-pe--cable	Standing Cable Chest Press
+crossover-unilateral--cable	Single-Arm Cable Crossover
+chest-press-de-pe--band	Standing Band Chest Press
+aberturas--band	Band Chest Fly
+flexoes-com-elastico-nas-costas--band	Band-Resisted Push-Up
+crossover-com-elastico--band	Band Crossover
+flexoes--bodyweight	Push-Up
+dips-para-peito-tronco-inclinado--bodyweight	Chest Dip
+flexoes-nas-argolas--bodyweight	Ring Push-Up
+remada-unilateral-apoiada-no-banco--dumbbell	Single-Arm Dumbbell Row
+remada-curvada-bilateral--dumbbell	Bent-Over Dumbbell Row
+remada-no-banco-inclinado-chest-supported--dumbbell	Chest-Supported Dumbbell Row
+remada-kroc--dumbbell	Kroc Row
+remada-renegada--dumbbell	Renegade Row
+encolhimentos-trapezio--dumbbell	Dumbbell Shrug
+remada-alta--dumbbell	Dumbbell Upright Row
+remada-curvada--barbell	Bent-Over Barbell Row
+remada-pendlay--barbell	Pendlay Row
+remada-yates--barbell	Yates Row
+remada-em-t-landmine--barbell	Landmine T-Bar Row
+meadow-row--barbell	Meadows Row
+peso-morto-convencional--barbell	Conventional Deadlift
+rack-pull--barbell	Rack Pull
+encolhimentos--barbell	Barbell Shrug
+good-morning--barbell	Good Morning
+remada-seal--barbell	Seal Row
+puxada-na-maquina-guiada--machine	Machine Lat Pulldown
+remada-sentada-de-alavanca--machine	Seated Lever Row
+remada-em-t-com-apoio-de-peito--machine	Chest-Supported T-Bar Row
+pullover-na-maquina--machine	Machine Pullover
+maquina-de-hiperextensoes-lombar--machine	Back Extension Machine
+dominadas-assistidas--machine	Assisted Pull-Up Machine
+encolhimentos-na-maquina-smith--machine	Machine Shrug
+remada-na-smith--machine	Smith Machine Row
+puxada-a-frente--cable	Lat Pulldown
+puxada-unilateral--cable	Single-Arm Lat Pulldown
+remada-sentada--cable	Seated Cable Row
+remada-unilateral-sentada--cable	Single-Arm Seated Cable Row
+pullover-de-pe-com-corda-barra-straight-arm-pulldown--cable	Cable Straight-Arm Pulldown
+face-pull--cable	Cable Face Pull
+remada-alta--cable	Cable Upright Row
+encolhimentos-no-cabo--cable	Cable Shrug
+puxada-ajoelhado--band	Kneeling Band Pulldown
+remada-sentada--band	Seated Band Row
+pull-apart--band	Band Pull-Apart
+face-pull--band	Band Face Pull
+straight-arm-pulldown--band	Band Straight-Arm Pulldown
+dominadas-assistidas-com-elastico--band	Band-Assisted Pull-Up
+remada-unilateral--kettlebell	Single-Arm Kettlebell Row
+swing--kettlebell	Kettlebell Swing
+remada-gorila--kettlebell	Gorilla Row
+dominadas--bodyweight	Pull-Up
+remada-invertida-barra-ou-trx--bodyweight	Inverted Row
+superman--bodyweight	Superman
+hiperextensoes-no-banco-romano--bodyweight	Roman Chair Back Extension
+negativas-de-dominadas--bodyweight	Negative Pull-Up
+desenvolvimento-sentado-de-pe--dumbbell	Dumbbell Shoulder Press
+arnold-press--dumbbell	Arnold Press
+elevacoes-laterais--dumbbell	Dumbbell Lateral Raise
+elevacoes-frontais--dumbbell	Dumbbell Front Raise
+elevacoes-posteriores-curvado-ou-no-banco-inclinado--dumbbell	Dumbbell Rear Delt Fly
+y-raise--dumbbell	Dumbbell Y-Raise
+rotacoes-externas-internas--dumbbell	Dumbbell Shoulder Rotation
+desenvolvimento-unilateral--dumbbell	Single-Arm Dumbbell Shoulder Press
+desenvolvimento-militar-de-pe--barbell	Standing Overhead Press
+desenvolvimento-sentado--barbell	Seated Barbell Shoulder Press
+push-press--barbell	Push Press
+desenvolvimento-atras-da-nuca--barbell	Behind-the-Neck Press
+remada-alta--barbell	Barbell Upright Row
+elevacao-frontal-com-barra-disco--barbell	Barbell or Plate Front Raise
+bradford-press--barbell	Bradford Press
+shoulder-press--machine	Machine Shoulder Press
+maquina-de-elevacoes-laterais--machine	Lateral Raise Machine
+peck-deck-invertido-deltoide-posterior--machine	Reverse Pec Deck
+desenvolvimento-na-smith--machine	Smith Machine Shoulder Press
+remada-alta-na-smith--machine	Smith Machine Upright Row
+elevacao-lateral-unilateral--cable	Single-Arm Cable Lateral Raise
+elevacao-frontal--cable	Cable Front Raise
+crucifixo-invertido-nos-cabos--cable	Cable Reverse Fly
+y-raise--cable	Cable Y-Raise
+rotacoes-externas-internas--cable	Cable Shoulder Rotation
+elevacao-lateral-atras-do-corpo--cable	Behind-the-Back Cable Lateral Raise
+desenvolvimento--band	Band Shoulder Press
+elevacoes-laterais-frontais--band	Band Lateral and Front Raise
+rotacoes-externas--band	Band External Rotation
+dislocates--band	Band Shoulder Dislocate
+desenvolvimento--kettlebell	Kettlebell Shoulder Press
+bottoms-up-press--kettlebell	Bottoms-Up Kettlebell Press
+halo--kettlebell	Kettlebell Halo
+turkish-get-up--kettlebell	Turkish Get-Up
+windmill--kettlebell	Kettlebell Windmill
+pike-push-up--bodyweight	Pike Push-Up
+flexoes-em-pino-handstand-push-up--bodyweight	Handstand Push-Up
+pino-na-parede--bodyweight	Wall Handstand Hold
+flexoes-em-pike-elevadas--bodyweight	Elevated Pike Push-Up
+curl-alternado--dumbbell	Alternating Dumbbell Curl
+curl-simultaneo--dumbbell	Dumbbell Curl
+curl-martelo--dumbbell	Dumbbell Hammer Curl
+curl-cruzado-cross-body--dumbbell	Cross-Body Hammer Curl
+curl-concentrado--dumbbell	Dumbbell Concentration Curl
+curl-inclinado--dumbbell	Incline Dumbbell Curl
+curl-zottman--dumbbell	Zottman Curl
+curl-no-banco-scott--dumbbell	Dumbbell Preacher Curl
+curl-spider--dumbbell	Dumbbell Spider Curl
+curl-de-pulso--dumbbell	Dumbbell Wrist Curl
+farmer-s-walk--dumbbell	Farmer's Walk
+curl-com-barra-reta--barbell	Straight Bar Curl
+curl-com-barra-ez--barbell	EZ-Bar Curl
+curl-pega-larga-fechada--barbell	Wide or Close-Grip Barbell Curl
+curl-invertido-pronado--barbell	Barbell Reverse Curl
+curl-scott--barbell	Barbell Preacher Curl
+drag-curl--barbell	Drag Curl
+curl-spider--barbell	Barbell Spider Curl
+curl-21s--barbell	21s Curl
+curl-de-pulso--barbell	Barbell Wrist Curl
+rolo-de-pulso-wrist-roller--barbell	Wrist Roller
+maquina-de-biceps-preacher--machine	Preacher Curl Machine
+curl-de-alavanca-unilateral--machine	Single-Arm Lever Curl
+maquina-de-antebraco--machine	Forearm Machine
+curl-com-barra--cable	Cable Bar Curl
+curl-com-corda-martelo--cable	Cable Rope Hammer Curl
+curl-unilateral--cable	Single-Arm Cable Curl
+curl-bayesian-atras-do-corpo--cable	Bayesian Cable Curl
+curl-alto-pose-de-biceps--cable	High Cable Curl
+curl-scott-no-cabo--cable	Cable Preacher Curl
+curl-invertido--cable	Cable Reverse Curl
+curl-de-pulso--cable	Cable Wrist Curl
+curl--band	Band Curl
+curl-martelo--band	Band Hammer Curl
+curl-concentrado--band	Band Concentration Curl
+curl-de-pulso--band	Band Wrist Curl
+chin-ups-pega-supinada--bodyweight	Chin-Up
+curl-invertido-na-barra-trx--bodyweight	Bodyweight Biceps Curl (Bar or TRX)
+suspensao-na-barra--bodyweight	Dead Hang
+extensao-acima-da-cabeca--dumbbell	Dumbbell Overhead Triceps Extension
+extensao-deitado-skull-crusher--dumbbell	Dumbbell Skull Crusher
+kickback--dumbbell	Dumbbell Triceps Kickback
+tate-press--dumbbell	Tate Press
+supino-pega-fechada-com-halteres--dumbbell	Close-Grip Dumbbell Press
+skull-crusher-barra-reta-ou-ez--barbell	Barbell Skull Crusher
+extensao-francesa-sentado--barbell	Seated French Press
+jm-press--barbell	JM Press
+floor-press-pega-fechada--barbell	Close-Grip Floor Press
+maquina-de-triceps-extensao--machine	Triceps Extension Machine
+dips-na-maquina--machine	Machine Dip
+dips-assistidos--machine	Assisted Dip Machine
+supino-pega-fechada-na-smith--machine	Smith Machine Close-Grip Bench Press
+pushdown-com-barra-reta--cable	Straight Bar Triceps Pushdown
+pushdown-com-barra-v--cable	V-Bar Triceps Pushdown
+pushdown-com-corda--cable	Rope Triceps Pushdown
+pushdown-unilateral--cable	Single-Arm Triceps Pushdown
+extensao-acima-da-cabeca-com-corda--cable	Cable Overhead Triceps Extension
+kickback-no-cabo--cable	Cable Triceps Kickback
+extensao-cruzada-cross-body--cable	Cross-Body Cable Triceps Extension
+pushdown--band	Band Triceps Pushdown
+extensao-acima-da-cabeca--band	Band Overhead Triceps Extension
+kickback--band	Band Triceps Kickback
+dips-nas-paralelas-tronco-vertical--bodyweight	Triceps Dip
+dips-no-banco--bodyweight	Bench Dip
+flexoes-diamante--bodyweight	Diamond Push-Up
+extensoes-de-triceps-na-barra-trx--bodyweight	Bodyweight Triceps Extension (Bar or TRX)
+agachamento-goblet--dumbbell	Dumbbell Goblet Squat
+agachamento-bulgaro--dumbbell	Dumbbell Bulgarian Split Squat
+lunges--dumbbell	Dumbbell Lunge
+step-up--dumbbell	Dumbbell Step-Up
+agachamento-sumo--dumbbell	Dumbbell Sumo Squat
+split-squat--dumbbell	Dumbbell Split Squat
+agachamento-com-halteres-ao-lado--dumbbell	Dumbbell Squat
+agachamento-traseiro--barbell	Barbell Back Squat
+agachamento-frontal--barbell	Barbell Front Squat
+agachamento-com-pausa--barbell	Paused Back Squat
+box-squat--barbell	Box Squat
+lunges--barbell	Barbell Lunge
+bulgaro-com-barra--barbell	Barbell Bulgarian Split Squat
+zercher-squat--barbell	Zercher Squat
+overhead-squat--barbell	Overhead Squat
+step-up--barbell	Barbell Step-Up
+hack-squat-com-barra-atras--barbell	Barbell Hack Squat
+leg-press--machine	Leg Press
+extensao-de-pernas-leg-extension--machine	Leg Extension
+hack-squat--machine	Machine Hack Squat
+pendulum-squat--machine	Pendulum Squat
+belt-squat--machine	Belt Squat
+agachamento-na-smith--machine	Smith Machine Squat
+v-squat--machine	V-Squat
+agachamento-goblet-no-cabo--cable	Cable Goblet Squat
+lunges-no-cabo--cable	Cable Lunge
+extensao-de-perna-de-pe-com-caneleira--cable	Standing Cable Leg Extension
+agachamento--band	Band Squat
+lunges--band	Band Lunge
+extensao-de-perna--band	Band Leg Extension
+spanish-squat--band	Spanish Squat
+terminal-knee-extension--band	Terminal Knee Extension
+goblet-squat--kettlebell	Kettlebell Goblet Squat
+front-rack-squat--kettlebell	Kettlebell Front Rack Squat
+lunges--kettlebell	Kettlebell Lunge
+agachamento--bodyweight	Bodyweight Squat
+pistol-squat--bodyweight	Pistol Squat
+sissy-squat--bodyweight	Sissy Squat
+agachamento-com-salto--bodyweight	Jump Squat
+wall-sit--bodyweight	Wall Sit
+lunges-com-salto--bodyweight	Jumping Lunge
+step-up--bodyweight	Bodyweight Step-Up
+shrimp-squat--bodyweight	Shrimp Squat
+peso-morto-romeno--dumbbell	Dumbbell Romanian Deadlift
+peso-morto-stiff--dumbbell	Dumbbell Stiff-Leg Deadlift
+hip-thrust--dumbbell	Dumbbell Hip Thrust
+ponte-de-gluteos--dumbbell	Dumbbell Glute Bridge
+bulgaro-com-tronco-inclinado--dumbbell	Glute-Focused Bulgarian Split Squat
+lunge-reverso--dumbbell	Dumbbell Reverse Lunge
+step-up-alto--dumbbell	High Dumbbell Step-Up
+frog-pump-com-peso--dumbbell	Weighted Frog Pump
+peso-morto-sumo--barbell	Sumo Deadlift
+peso-morto-romeno--barbell	Barbell Romanian Deadlift
+stiff--barbell	Barbell Stiff-Leg Deadlift
+hip-thrust--barbell	Barbell Hip Thrust
+ponte-de-gluteos--barbell	Barbell Glute Bridge
+peso-morto-com-barra-hexagonal--barbell	Trap Bar Deadlift
+deficit-deadlift--barbell	Deficit Deadlift
+leg-curl-deitado--machine	Lying Leg Curl
+leg-curl-sentado--machine	Seated Leg Curl
+leg-curl-de-pe-unilateral--machine	Standing Single-Leg Curl
+maquina-de-hip-thrust--machine	Hip Thrust Machine
+glute-kickback-na-maquina--machine	Glute Kickback Machine
+maquina-de-abducao--machine	Hip Abduction Machine
+hiperextensoes-enfase-gluteo--machine	Glute-Focused Back Extension
+reverse-hyper--machine	Reverse Hyperextension
+glute-ham-raise-ghr--machine	Glute-Ham Raise
+hip-thrust-na-smith--machine	Smith Machine Hip Thrust
+kickback-de-gluteo--cable	Cable Glute Kickback
+pull-through--cable	Cable Pull-Through
+abducao-de-anca-de-pe--cable	Standing Cable Hip Abduction
+peso-morto-romeno-no-cabo--cable	Cable Romanian Deadlift
+leg-curl-de-pe-com-caneleira--cable	Standing Cable Leg Curl
+ponte-de-gluteos--band	Band Glute Bridge
+clamshell--band	Band Clamshell
+monster-walk--band	Monster Walk
+passos-laterais--band	Band Lateral Walk
+leg-curl--band	Band Leg Curl
+pull-through--band	Band Pull-Through
+hip-thrust-com-elastico--band	Band Hip Thrust
+peso-morto--kettlebell	Kettlebell Deadlift
+single-leg-deadlift--kettlebell	Kettlebell Single-Leg Deadlift
+sumo-deadlift--kettlebell	Kettlebell Sumo Deadlift
+ponte-de-gluteos--bodyweight	Glute Bridge
+hip-thrust-no-banco--bodyweight	Bodyweight Hip Thrust
+nordic-curl--bodyweight	Nordic Hamstring Curl
+slider-leg-curl--bodyweight	Slider Leg Curl
+donkey-kicks--bodyweight	Donkey Kick
+fire-hydrants--bodyweight	Fire Hydrant
+single-leg-rdl--bodyweight	Bodyweight Single-Leg RDL
+frog-pumps--bodyweight	Frog Pump
+elevacao-de-gemeos-de-pe--dumbbell	Standing Dumbbell Calf Raise
+elevacao-de-gemeos-sentado-com-halter-nos-joelhos--dumbbell	Seated Dumbbell Calf Raise
+lunge-lateral-adutores--dumbbell	Dumbbell Lateral Lunge
+agachamento-sumo-adutores--dumbbell	Dumbbell Sumo Squat (Adductors)
+elevacao-de-gemeos-de-pe--barbell	Standing Barbell Calf Raise
+elevacao-de-gemeos-sentado--barbell	Seated Barbell Calf Raise
+tibialis-raise-com-disco--barbell	Plate Tibialis Raise
+gemeos-de-pe--machine	Standing Calf Raise Machine
+gemeos-sentado--machine	Seated Calf Raise Machine
+gemeos-no-leg-press--machine	Leg Press Calf Raise
+donkey-calf-raise--machine	Donkey Calf Raise
+gemeos-na-smith--machine	Smith Machine Calf Raise
+maquina-de-adutores--machine	Hip Adduction Machine
+maquina-de-abdutores--machine	Hip Abductor Machine
+maquina-de-tibial--machine	Tibialis Machine
+aducao-de-anca-com-caneleira--cable	Cable Hip Adduction
+abducao-de-anca-com-caneleira--cable	Cable Hip Abduction
+elevacao-de-gemeos-no-cabo--cable	Cable Calf Raise
+elevacao-de-gemeos--band	Band Calf Raise
+flexao-dorsal-tibial--band	Band Ankle Dorsiflexion
+aducao-e-abducao-de-anca--band	Band Hip Adduction and Abduction
+elevacao-de-gemeos-num-degrau--bodyweight	Single-Step Calf Raise
+saltos-de-corda--bodyweight	Jump Rope Hops
+tibialis-raise-na-parede--bodyweight	Wall Tibialis Raise
+copenhagen-plank-adutores--bodyweight	Copenhagen Plank
+side-lying-leg-raise-abdutores--bodyweight	Side-Lying Leg Raise
+inclinacao-lateral-side-bend--dumbbell	Dumbbell Side Bend
+russian-twist--dumbbell	Dumbbell Russian Twist
+crunch-com-peso--dumbbell	Weighted Crunch
+suitcase-carry--dumbbell	Dumbbell Suitcase Carry
+dead-bug-com-halter--dumbbell	Dumbbell Dead Bug
+woodchop--dumbbell	Dumbbell Woodchop
+rollout-com-barra--barbell	Barbell Rollout
+landmine-rotation--barbell	Landmine Rotation
+landmine-anti-rotacao--barbell	Landmine Anti-Rotation
+jefferson-curl--barbell	Jefferson Curl
+prancha-com-transferencia-de-barra--barbell	Plank Bar Pull-Through
+maquina-de-crunch-abdominal--machine	Ab Crunch Machine
+maquina-de-rotacao-de-tronco--machine	Torso Rotation Machine
+captain-s-chair--machine	Captain's Chair Leg Raise
+banco-declinado-de-abdominais--machine	Decline Bench Sit-Up
+roman-chair-obliquos--machine	Roman Chair Oblique Raise
+crunch-ajoelhado-com-corda--cable	Kneeling Cable Crunch
+woodchop--cable	Cable Woodchop
+pallof-press--cable	Cable Pallof Press
+crunch-obliquo--cable	Cable Oblique Crunch
+rotacao-horizontal--cable	Cable Horizontal Rotation
+pallof-press--band	Band Pallof Press
+woodchop--band	Band Woodchop
+dead-bug-com-elastico--band	Band Dead Bug
+crunch-ajoelhado--band	Kneeling Band Crunch
+suitcase-carry--kettlebell	Kettlebell Suitcase Carry
+russian-twist--kettlebell	Kettlebell Russian Twist
+prancha--bodyweight	Plank
+crunch--bodyweight	Crunch
+sit-up--bodyweight	Sit-Up
+elevacao-de-pernas-deitado-ou-suspenso-na-barra--bodyweight	Leg Raise
+hollow-hold--bodyweight	Hollow Hold
+dead-bug--bodyweight	Dead Bug
+bird-dog--bodyweight	Bird Dog
+mountain-climbers--bodyweight	Mountain Climber
+v-ups--bodyweight	V-Up
+bicicleta--bodyweight	Bicycle Crunch
+toes-to-bar--bodyweight	Toes-to-Bar
+l-sit--bodyweight	L-Sit
+dragon-flag--bodyweight	Dragon Flag
+ab-wheel-rollout--bodyweight	Ab Wheel Rollout
+prancha-com-bola-suica--bodyweight	Stability Ball Plank
+stir-the-pot--bodyweight	Stir the Pot
+clean--barbell	Barbell Clean
+power-clean--barbell	Power Clean
+hang-clean--barbell	Hang Clean
+snatch--barbell	Barbell Snatch
+power-snatch--barbell	Power Snatch
+clean-and-jerk--barbell	Clean and Jerk
+thruster--barbell	Barbell Thruster
+push-jerk--barbell	Push Jerk
+thruster--dumbbell	Dumbbell Thruster
+man-maker--dumbbell	Man Maker
+swing--dumbbell	Dumbbell Swing
+snatch--dumbbell	Dumbbell Snatch
+clean-and-press--dumbbell	Dumbbell Clean and Press
+devil-press--dumbbell	Devil Press
+burpees--other	Burpee
+box-jumps--other	Box Jump
+battle-ropes--other	Battle Ropes
+empurrar-puxar-treno-sled--other	Sled Push and Pull
+wall-balls--other	Wall Ball
+slam-ball--other	Ball Slam
+corda-de-saltar--other	Jump Rope
+trx--other	TRX Training
+saco-de-areia--other	Sandbag Training
+virar-pneu--other	Tire Flip
+bear-crawl--other	Bear Crawl
+sprints--other	Sprints
+jumping-jacks--other	Jumping Jack
+90-90-de-anca--none	90/90 Hip Switch
+alongamento-de-flexores-da-anca-couch-stretch--none	Couch Stretch
+world-s-greatest-stretch--none	World's Greatest Stretch
+pombo-pigeon--none	Pigeon Pose
+agachamento-profundo-manter--none	Deep Squat Hold
+cossack-squat--none	Cossack Squat
+mobilidade-de-tornozelo-na-parede--none	Wall Ankle Mobilization
+gato-camelo--none	Cat-Cow
+rotacao-toracica-em-quadrupedia--none	Quadruped Thoracic Rotation
+rotacao-toracica-deitado-open-book--none	Open Book Thoracic Rotation
+alongamento-de-peitoral-na-porta--none	Doorway Chest Stretch
+dislocates-de-ombro-com-banda--band	Band Shoulder Pass-Through
+posicao-da-crianca--none	Child's Pose
+alongamento-de-isquiotibiais--none	Hamstring Stretch
+circulos-de-anca-cars--none	Hip CARs
+circulos-de-ombro-cars--none	Shoulder CARs
+alongamento-de-quadriceps-em-pe--none	Standing Quad Stretch
+alongamento-de-gemeos-na-parede--none	Wall Calf Stretch
+alongamento-de-adutores-borboleta--none	Butterfly Stretch
+alongamento-de-gluteos-figura-4--none	Figure-4 Glute Stretch
+alongamento-de-triceps-e-ombro--none	Overhead Triceps and Shoulder Stretch
+alongamento-de-pescoco--none	Neck Stretch
+equilibrio-num-pe--none	Single-Leg Balance
+equilibrio-num-pe-com-olhos-fechados--none	Single-Leg Balance, Eyes Closed
+marcha-calcanhar-ponta-tandem-walk--none	Tandem Walk
+star-excursion-alcance-em-estrela-num-pe--none	Star Excursion Balance Reach
+equilibrio-em-bosu--other	BOSU Balance
+cao-a-olhar-para-baixo-yoga--none	Downward Dog (Yoga)
+cobra-yoga--none	Cobra Pose (Yoga)
+guerreiro-ii-yoga--none	Warrior II (Yoga)
+saudacao-ao-sol-yoga--none	Sun Salutation (Yoga)
+the-hundred-pilates--none	The Hundred (Pilates)
+roll-up-pilates--none	Roll-Up (Pilates)
+passadeira-caminhada--treadmill	Treadmill: Walk
+passadeira-caminhada-inclinada-ex-12-3-30--treadmill	Treadmill: Incline Walk
+passadeira-corrida-continua--treadmill	Treadmill: Steady Run
+passadeira-intervalos-hiit--treadmill	Treadmill: Intervals (HIIT)
+passadeira-sprints--treadmill	Treadmill: Sprints
+passadeira-caminhada-lateral--treadmill	Treadmill: Side Walk
+passadeira-empurrar-a-passadeira-desligada-sled-push--treadmill	Treadmill: Unpowered Push (Sled Push)
+passadeira-caminhada-para-tras--treadmill	Treadmill: Backward Walk
+bicicleta-estatica-vertical--bike	Bike: Upright Stationary
+bicicleta-reclinada--bike	Bike: Recumbent
+bicicleta-spinning--bike	Bike: Spinning
+bicicleta-assault-air-bike-intervalos--bike	Bike: Air Bike Intervals
+eliptica-continuo--elliptical	Elliptical: Steady
+eliptica-intervalos--elliptical	Elliptical: Intervals
+eliptica-so-pernas--elliptical	Elliptical: Legs Only
+eliptica-para-tras--elliptical	Elliptical: Backward
+remo-ergometro-continuo--rower	Rower: Steady
+remo-ergometro-intervalos--rower	Rower: Intervals
+remo-ergometro-sprints-de-250-500-m--rower	Rower: 250–500 m Sprints
+escada-stepper-subida-continua--stair	Stair Climber: Steady
+escada-stepper-saltar-degraus--stair	Stair Climber: Skip Steps
+escada-stepper-lateral--stair	Stair Climber: Lateral
+ski-erg-continuo--skierg	SkiErg: Steady
+ski-erg-intervalos--skierg	SkiErg: Intervals

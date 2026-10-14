@@ -21,7 +21,7 @@ import {
 import { addIcons } from 'ionicons';
 import { add, checkmark, refreshOutline } from 'ionicons/icons';
 import { libraryItemToInput, LibraryItemState } from '../../core/library/library';
-import type { LibraryItem } from '../../core/library/library-types';
+import { ruleName, type LibraryItem } from '../../core/library/library-types';
 import { specOfKeys } from '../../core/metrics/muscles';
 import { motionFor } from '../../core/motion/motion';
 import { SHOW_MOTION } from '../../core/motion/motion-flag';
@@ -89,11 +89,24 @@ import { ToastService } from '../../core/ui/toast.service';
                 <ion-label class="ion-text-wrap" (click)="toggleOpen(item.key)">
                   <h2>{{ item.name }}</h2>
                   <p>{{ subtitle(item) }}</p>
-                  @if (openKey() === item.key && (item.kind === 'STRENGTH' || motionOf(item))) {
-                    <div class="visual">
-                      @if (motionOf(item); as mo) { <app-exercise-motion [motion]="mo" [equipment]="item.equipment ?? 'none'" /> }
-                      @if (item.kind === 'STRENGTH') { <app-muscle-map [primary]="specOf(item.primary)" [secondary]="specOf(item.secondary)" /> }
+                  @if (openKey() === item.key) {
+                    @if (item.kind === 'STRENGTH' || motionOf(item)) {
+                      <div class="visual">
+                        @if (motionOf(item); as mo) { <app-exercise-motion [motion]="mo" [equipment]="item.equipment ?? 'none'" /> }
+                        @if (item.kind === 'STRENGTH') { <app-muscle-map [primary]="specOf(item.primary)" [secondary]="specOf(item.secondary)" /> }
+                      </div>
+                    }
+                    <div class="facts">
+                      @if (item.mechanic) { <span>{{ mechanicLabel[item.mechanic] }}</span> }
+                      @if (item.level) { <span>{{ levelLabel[item.level] }}</span> }
+                      @if (item.namePt) { <span>PT: {{ item.namePt }}</span> }
                     </div>
+                    @if (steps(item).length) {
+                      <ol class="steps">
+                        @for (st of steps(item); track $index) { <li>{{ st }}</li> }
+                      </ol>
+                      <p class="src">Instruções: free-exercise-db (domínio público)</p>
+                    }
                   }
                 </ion-label>
                 <div slot="end" class="end">
@@ -134,6 +147,10 @@ import { ToastService } from '../../core/ui/toast.service';
     </ion-content>
   `,
   styles: `
+    .facts { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 8px; font-size: 12px; color: var(--ion-color-medium); }
+    .steps { margin: 8px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.45; color: var(--ion-text-color); }
+    .steps li { margin-bottom: 4px; }
+    .src { margin: 4px 0 0; font-size: 11px; color: var(--ion-color-medium); }
     .visual { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: center; margin-top: 8px; }
     .visual > * { flex: 1 1 150px; min-width: 0; }
     .page { max-width: 860px; margin: 0 auto; }
@@ -161,10 +178,20 @@ export class LibraryPage implements ViewWillEnter {
   readonly openKey = signal<string | null>(null);
   readonly specOf = specOfKeys;
   readonly categoryLabel = CATEGORY_LABEL;
-  motionOf = (item: LibraryItem) => (SHOW_MOTION ? motionFor(item.name, specOfKeys(item.primary), item.kind) : null);
+  motionOf = (item: LibraryItem) => (SHOW_MOTION ? motionFor(ruleName(item), specOfKeys(item.primary), item.kind) : null);
+  /** Instruções (free-exercise-db): ficheiro à parte, só carregado quando abres um exercício. */
+  readonly instructions = signal<Record<string, string[]> | null>(null);
   toggleOpen(key: string): void {
     this.openKey.update((k) => (k === key ? null : key));
+    if (!this.instructions()) {
+      void import('../../core/library/library-instructions.generated').then((m) => this.instructions.set(m.LIBRARY_INSTRUCTIONS));
+    }
   }
+  steps(item: LibraryItem): string[] {
+    return this.instructions()?.[item.key] ?? [];
+  }
+  readonly levelLabel: Record<string, string> = { beginner: 'Iniciante', intermediate: 'Intermédio', expert: 'Avançado' };
+  readonly mechanicLabel: Record<string, string> = { COMPOUND: 'Multiarticular', ISOLATION: 'Monoarticular' };
   readonly equipmentList = SEED.equipment;
 
   /** Carregada à parte (chunk próprio) para não pesar no arranque. */
@@ -189,7 +216,7 @@ export class LibraryPage implements ViewWillEnter {
     const g = this.group();
     const eq = this.equipment();
     return items.filter(
-      (i) => (!g || i.group === g) && (!eq || i.equipment === eq) && (!q || fold(i.name).includes(q)),
+      (i) => (!g || i.group === g) && (!eq || i.equipment === eq) && (!q || fold(i.name).includes(q) || (!!i.namePt && fold(i.namePt).includes(q))),
     );
   });
   readonly visible = computed(() => this.filtered().slice(0, this.limit()));

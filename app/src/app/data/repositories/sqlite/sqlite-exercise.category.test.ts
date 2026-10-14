@@ -24,7 +24,7 @@ beforeEach(async () => {
 });
 
 const lib = (name: string) => {
-  const i = LIBRARY.items.find((x) => x.name === name);
+  const i = LIBRARY.items.find((x) => x.name === name || x.namePt === name);
   if (!i) throw new Error(name);
   return i;
 };

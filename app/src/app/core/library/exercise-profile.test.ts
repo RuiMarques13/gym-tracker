@@ -3,9 +3,11 @@ import { LIBRARY } from './library-data';
 import { profileFor } from './exercise-profile';
 
 describe('perfil muscular curado', () => {
-  const byName = (n: string) => LIBRARY.items.find((i) => i.name === n)!;
-  it('cobre todos os exercícios de força, exceto nenhum', () => {
-    const miss = LIBRARY.items.filter((i) => i.kind === 'STRENGTH' && !profileFor(i.name)).map((i) => i.name);
+  const byName = (n: string) => LIBRARY.items.find((i) => i.name === n || i.namePt === n)!;
+  it('cobre todos os exercícios de força do teu catálogo', () => {
+    const miss = LIBRARY.items
+      .filter((i) => i.source === 'catalog' && i.kind === 'STRENGTH' && !profileFor(i.namePt ?? i.name))
+      .map((i) => i.name);
     expect(miss).toEqual([]);
   });
   it('casos que falhavam', () => {

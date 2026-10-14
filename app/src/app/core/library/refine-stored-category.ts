@@ -14,7 +14,12 @@ export async function refineStoredCategories(
   nowIso: string,
   items: readonly { key: string; kind: Kind; category: Category }[],
 ): Promise<void> {
-  const fine = items.filter((i) => i.category !== defaultCategory(i.kind));
+  // Só olha para as linhas que ainda não têm categoria: com 1100+ itens na biblioteca, um UPDATE por item
+  // em cada arranque custaria centenas de chamadas à base de dados no telemóvel.
+  const pending = new Set(
+    (await db.query<{ id: string }>('SELECT id FROM exercise WHERE category IS NULL AND deleted_at IS NULL')).map((r) => r.id),
+  );
+  const fine = items.filter((i) => i.category !== defaultCategory(i.kind) && pending.has(ids.libraryExercise(i.key)));
   if (!fine.length) return;
   await db.transaction(async (tx) => {
     for (const i of fine) {

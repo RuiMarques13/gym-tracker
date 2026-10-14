@@ -1,12 +1,13 @@
 import { LIBRARY_RAW } from './library.generated';
-import type { LibraryData, LibraryItem } from './library-types';
+import { ruleName, type LibraryData, type LibraryItem } from './library-types';
 import { profileFor } from './exercise-profile';
 import { refineMuscles } from './muscle-refine';
 
 function curate(i: LibraryItem): LibraryItem {
-  const prof = i.kind === 'STRENGTH' ? profileFor(i.name) : null;
+  // Os perfis curados conhecem os nomes do teu catálogo (em português); os do free-exercise-db trazem os músculos.
+  const prof = i.kind === 'STRENGTH' && i.source === 'catalog' ? profileFor(ruleName(i)) : null;
   if (prof) return { ...i, ...prof };
-  return { ...i, ...refineMuscles(i.name, { primary: i.primary, secondary: i.secondary }) };
+  return { ...i, ...refineMuscles(ruleName(i), { primary: i.primary, secondary: i.secondary }) };
 }
 
 /** Biblioteca com perfil muscular curado (exercise-profile.ts) e músculos finos (muscle-refine.ts). */

@@ -23,7 +23,7 @@ beforeEach(async () => {
 });
 
 const libItem = (name: string) => {
-  const item = LIBRARY.items.find((i) => i.name === name);
+  const item = LIBRARY.items.find((i) => i.name === name || i.namePt === name);
   if (!item) throw new Error(`item não existe: ${name}`);
   return item;
 };
@@ -89,11 +89,11 @@ describe('cardio', () => {
     expect(ex).toMatchObject({ kind: 'CARDIO', isUnilateral: false, isIsometric: false, movementType: null, equipmentName: 'Passadeira' });
   });
 
-  it('a biblioteca tem os 24 de cardio e adicionam-se sem erros', async () => {
+  it('a biblioteca tem os 24 de cardio do catálogo (e os do free-exercise-db) e adicionam-se sem erros', async () => {
     const cardio = LIBRARY.items.filter((i) => i.kind === 'CARDIO');
-    expect(cardio).toHaveLength(24);
+    expect(cardio.filter((i) => i.source === 'catalog')).toHaveLength(24);
     for (const item of cardio) await repo.save(libraryItemToInput(item));
-    expect(await repo.list({ kind: 'CARDIO' })).toHaveLength(24);
+    expect(await repo.list({ kind: 'CARDIO' })).toHaveLength(cardio.length);
   });
 
   it('ordenação por mais recentes', async () => {
@@ -152,7 +152,7 @@ describe('biblioteca', () => {
     const ex = await repo.save(libraryItemToInput(item));
     expect(ex.id).toBe(ids.libraryExercise(item.key));
     expect(ex).toMatchObject({
-      name: 'Puxada à frente', equipmentName: 'Cabo', metricType: 'WEIGHT_REPS',
+      name: 'Lat Pulldown', equipmentName: 'Cabo', metricType: 'WEIGHT_REPS',
       primaryMuscleIds: [ids.muscle('lats')], secondaryMuscleIds: [ids.muscle('biceps'), ids.muscle('upper_back'), ids.muscle('rear_delt')],
       notes: 'Variações: pega larga, fechada, neutra, supinada',
     });
@@ -166,7 +166,7 @@ describe('biblioteca', () => {
     const ex = await fresh.save(libraryItemToInput(libItem('90/90 de anca')));
     expect(ex).toMatchObject({ kind: 'MOBILITY', metricType: 'DURATION', isUnilateral: true, equipmentId: null,
       mobilityAreaIds: [ids.mobilityArea('hip')] });
-    expect(LIBRARY.items.filter((i) => i.kind === 'MOBILITY')).toHaveLength(33);
+    expect(LIBRARY.items.filter((i) => i.kind === 'MOBILITY' && i.source === 'catalog')).toHaveLength(33);
   });
 
   it('peso corporal mede-se por reps, pranchas por duração, búlgaro é unilateral', async () => {
@@ -180,7 +180,7 @@ describe('biblioteca', () => {
     await repo.save(input);
     await repo.archive(input.id!);
     await repo.save(input);
-    const rows = await db.query<{ n: number }>("SELECT COUNT(*) AS n FROM exercise WHERE name = 'Prancha'");
+    const rows = await db.query<{ n: number }>("SELECT COUNT(*) AS n FROM exercise WHERE name = 'Plank'");
     expect(rows[0].n).toBe(1);
     expect((await repo.get(input.id!))?.archivedAt).toBeNull();
   });
