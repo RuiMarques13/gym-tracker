@@ -44,39 +44,7 @@ export const SPEC_MUSCLE_OF_KEY: Record<string, SpecMuscleId> = {
   lower_back: 'lombares',
 };
 
-/**
- * Zonas extra do boneco: divisões que os dados já distinguem mas que não contam como músculo próprio no volume
- * (no volume, oblíquos contam como abdominais, abdutores como glúteos e o tibial não conta).
- */
-export const FIGURE_EXTRA = [
-  { id: 'obliquos', label: 'Oblíquos' },
-  { id: 'gluteo_medio', label: 'Glúteo médio' },
-  { id: 'tibial', label: 'Tibial anterior' },
-] as const;
-
-export const MUSCLE_LABEL: Record<string, string> = Object.fromEntries(
-  [...SPEC_MUSCLES, ...FIGURE_EXTRA].map((m) => [m.id, m.label]),
-);
-
-/** Chave do grupo → zona do boneco (como o spec, mas com oblíquos, glúteo médio e tibial à parte). */
-const FIGURE_OF_KEY: Record<string, string> = {
-  ...SPEC_MUSCLE_OF_KEY,
-  obliques: 'obliquos',
-  abductors: 'gluteo_medio',
-  tibialis: 'tibial',
-};
-const FIGURE_OF_MUSCLE_ID = new Map(Object.entries(FIGURE_OF_KEY).map(([key, z]) => [stableIds.muscle(key), z]));
-
-/** Chaves de grupos (biblioteca) → zonas do boneco. */
-export function figureOfKeys(keys: readonly string[]): string[] {
-  return [...new Set(keys.map((k) => FIGURE_OF_KEY[k]).filter((z): z is string => !!z))];
-}
-
-/** Ids de grupos guardados → zonas do boneco. */
-export function figureOfMuscleIds(muscleIds: readonly string[]): string[] {
-  return [...new Set(muscleIds.map((id) => FIGURE_OF_MUSCLE_ID.get(id)).filter((z): z is string => !!z))];
-}
-
+export const MUSCLE_LABEL: Record<string, string> = Object.fromEntries(SPEC_MUSCLES.map((m) => [m.id, m.label]));
 
 const SPEC_OF_MUSCLE_ID = new Map(Object.entries(SPEC_MUSCLE_OF_KEY).map(([key, spec]) => [stableIds.muscle(key), spec]));
 

@@ -47,7 +47,8 @@ import {
   REGION_LABEL,
 } from '../../data/models/enums';
 import { Exercise, ExerciseInput, ExerciseValidationError } from '../../data/models/exercise';
-import { figureOfMuscleIds, specOfMuscleIds } from '../../core/metrics/muscles';
+import { specOfMuscleIds } from '../../core/metrics/muscles';
+import { portionsForExercise } from '../../core/anatomy/exercise-portions';
 import { motionFor } from '../../core/motion/motion';
 import { SHOW_MOTION } from '../../core/motion/motion-flag';
 import { ids } from '../../core/util/uuid';
@@ -193,7 +194,7 @@ const REGIONS: Region[] = ['UPPER', 'LOWER', 'CORE', 'FULL_BODY'];
               </ion-list-header>
               <div class="visual">
                 @if (kind() === 'STRENGTH' && motion(); as mo) { <app-exercise-motion [motion]="mo" [equipment]="equipmentKey()" /> }
-                <app-muscle-map [primary]="figPrimary()" [secondary]="figSecondary()" />
+                <app-muscle-map [primary]="fig().primary" [secondary]="fig().secondary" [info]="fig().info" />
               </div>
               @for (group of muscleGroups(); track group.region) {
                 <div class="chips-block">
@@ -354,12 +355,15 @@ export class ExerciseFormPage implements OnInit {
     specOfMuscleIds([...this.muscleRoles()].filter(([, r]) => r === 'secondary').map(([id]) => id)),
   );
   /** Zonas do boneco (mais finas que o spec: oblíquos, glúteo médio, tibial). */
-  readonly figPrimary = computed(() =>
-    figureOfMuscleIds([...this.muscleRoles()].filter(([, r]) => r === 'primary').map(([id]) => id)),
-  );
-  readonly figSecondary = computed(() =>
-    figureOfMuscleIds([...this.muscleRoles()].filter(([, r]) => r === 'secondary').map(([id]) => id)),
-  );
+  /** Porções do boneco pelo nome, equipamento e grupos escolhidos (com fonte e confiança). */
+  readonly fig = computed(() => {
+    const roles = [...this.muscleRoles()];
+    return portionsForExercise({
+      name: this.name(), kind: this.kind(), equipmentId: this.equipmentId(),
+      primaryMuscleIds: roles.filter(([, r]) => r === 'primary').map(([id]) => id),
+      secondaryMuscleIds: roles.filter(([, r]) => r === 'secondary').map(([id]) => id),
+    });
+  });;
   readonly muscleGroups = computed(() =>
     REGIONS.map((r) => ({ region: r, label: REGION_LABEL[r], muscles: this.muscles().filter((m) => (m.region ?? 'FULL_BODY') === r) }))
       .filter((g) => g.muscles.length),

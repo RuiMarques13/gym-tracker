@@ -22,11 +22,12 @@ import { addIcons } from 'ionicons';
 import { add, checkmark, refreshOutline } from 'ionicons/icons';
 import { libraryItemToInput, LibraryItemState } from '../../core/library/library';
 import { ruleName, type LibraryItem } from '../../core/library/library-types';
-import { figureOfKeys, specOfKeys } from '../../core/metrics/muscles';
+import { specOfKeys } from '../../core/metrics/muscles';
+import { portionsFor, type PortionProfile } from '../../core/anatomy/profiles';
 import { motionFor } from '../../core/motion/motion';
 import { SHOW_MOTION } from '../../core/motion/motion-flag';
 import { ExerciseMotionComponent } from '../../shared/exercise-motion.component';
-import { MuscleMapComponent } from '../../shared/muscle-map.component';
+import { MuscleCardComponent, MuscleMapComponent } from '../../shared/muscle-map.component';
 import { SEED } from '../../core/seed/seed.generated';
 import { ids } from '../../core/util/uuid';
 import { CATEGORY_LABEL, METRIC_LABEL } from '../../data/models/enums';
@@ -47,7 +48,7 @@ import { ToastService } from '../../core/ui/toast.service';
 
 @Component({
   selector: 'app-library',
-  imports: [MuscleMapComponent, ExerciseMotionComponent, 
+  imports: [MuscleMapComponent, MuscleCardComponent, ExerciseMotionComponent, 
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent, IonSearchbar, IonChip, IonLabel,
     IonList, IonItem, IonNote, IonBadge, IonButton, IonIcon, IonSpinner,
   ],
@@ -115,9 +116,9 @@ import { ToastService } from '../../core/ui/toast.service';
               @if (openKey() === item.key) {
                 <div class="detail">
                   <div class="detail-top">
-                    @if (item.kind === 'STRENGTH') {
-                      <app-muscle-map class="map" [compact]="true" [primary]="figOf(item.primary)" [secondary]="figOf(item.secondary)" />
-                    }
+                    @let pf = profileOf(item);
+                    <app-muscle-map #mm class="map" [class.hide]="item.kind !== 'STRENGTH'" [compact]="true" [cardOutside]="true"
+                      [primary]="pf.primary" [secondary]="pf.secondary" [info]="pf.info" />
                     @if (motionOf(item); as mo) { <app-exercise-motion class="map" [motion]="mo" [equipment]="item.equipment ?? 'none'" /> }
                     <div class="meta">
                       <div class="chips">
@@ -126,6 +127,7 @@ import { ToastService } from '../../core/ui/toast.service';
                         @if (item.isUnilateral) { <span class="chip">Unilateral</span> }
                       </div>
                       @if (item.namePt) { <p class="pt">{{ item.namePt }}</p> }
+                      @if (item.kind === 'STRENGTH' && !mm.card()) { <p class="src">Toca num músculo para ver de onde vem.</p> }
                       @if (steps(item).length) {
                         <ion-button size="small" fill="outline" (click)="showSteps.set(!showSteps())">
                           {{ showSteps() ? 'Esconder instruções' : 'Como fazer · ' + steps(item).length + ' passos' }}
@@ -133,6 +135,7 @@ import { ToastService } from '../../core/ui/toast.service';
                       }
                     </div>
                   </div>
+                  @if (mm.card(); as c) { <app-muscle-card class="mcard" [card]="c" (closed)="mm.selected.set(null)" /> }
                   @if (showSteps() && steps(item).length) {
                     <ol class="steps">
                       @for (st of steps(item); track $index) { <li>{{ st }}</li> }
@@ -160,6 +163,8 @@ import { ToastService } from '../../core/ui/toast.service';
     .detail { padding: 8px 16px 14px; border-bottom: 1px solid var(--ion-border-color, rgba(128,128,128,.2)); }
     .detail-top { display: flex; gap: 16px; align-items: center; }
     .detail-top .map { flex: 0 0 176px; max-width: 46%; }
+    .detail-top .map.hide { display: none; }
+    .mcard ::ng-deep .card { max-width: none; }
     .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
     .chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .chip { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--ion-color-step-100, rgba(128,128,128,.15)); }
@@ -193,7 +198,16 @@ export class LibraryPage implements ViewWillEnter {
   readonly busy = signal<string | null>(null);
   readonly openKey = signal<string | null>(null);
   readonly specOf = specOfKeys;
-  readonly figOf = figureOfKeys;
+  private readonly profiles = new Map<string, PortionProfile>();
+  /** Porções do boneco (com fonte e confiança), calculadas uma vez por item. */
+  profileOf(item: LibraryItem): PortionProfile {
+    let p = this.profiles.get(item.key);
+    if (!p) {
+      p = portionsFor({ name: item.name, namePt: item.namePt, equipment: item.equipment, primaryKeys: item.primary, secondaryKeys: item.secondary, kind: item.kind });
+      this.profiles.set(item.key, p);
+    }
+    return p;
+  }
   readonly categoryLabel = CATEGORY_LABEL;
   motionOf = (item: LibraryItem) => (SHOW_MOTION ? motionFor(ruleName(item), specOfKeys(item.primary), item.kind) : null);
   /** Instruções (free-exercise-db): ficheiro à parte, só carregado quando abres um exercício. */

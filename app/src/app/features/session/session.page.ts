@@ -44,7 +44,10 @@ import type { SetType, Side } from '../../data/models/enums';
 import type { Exercise } from '../../data/models/exercise';
 import { groupSets, Session, SessionError, SessionExercise, SessionSet, SideEntry, workingSetCount } from '../../data/models/session';
 import { BLOCK_LABEL, BLOCK_ORDER } from '../../data/models/workout';
-import { figureOfMuscleIds, MUSCLE_LABEL, specOfMuscleIds } from '../../core/metrics/muscles';
+import { MUSCLE_LABEL, specOfMuscleIds } from '../../core/metrics/muscles';
+import { portionsForExercise } from '../../core/anatomy/exercise-portions';
+import type { PortionId } from '../../core/anatomy/portions';
+import type { PortionInfo, PortionProfile } from '../../core/anatomy/profiles';
 import { MetricExercise, MetricSet, sessionWarnings } from '../../core/metrics/volume';
 import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories/providers';
 import { ExercisePickerComponent } from '../workouts/exercise-picker.component';
@@ -86,6 +89,13 @@ const str = (n: number | null | undefined, digits = 2): string => (n === null ||
 
 /** Sessão em curso: registar séries, descanso e duração com o temporizador, terminar. */
 import { ToastService } from '../../core/ui/toast.service';
+
+/** Porções do boneco de um exercício guardado. */
+const figOf = (ex: Exercise | null | undefined) => {
+  if (!ex) return { figPrimary: [] as string[], figSupport: [] as string[], figInfo: {} as PortionProfile['info'] };
+  const p = portionsForExercise(ex);
+  return { figPrimary: p.primary as string[], figSupport: p.secondary as string[], figInfo: p.info };
+};
 
 @Component({
   selector: 'app-session',
@@ -130,7 +140,7 @@ import { ToastService } from '../../core/ui/toast.service';
           @if (hasStrength()) {
             <section class="muscles" aria-label="Músculos trabalhados">
               <h3>Músculos trabalhados</h3>
-              <app-muscle-map [primary]="trained().primary" [secondary]="trained().support" [bySide]="trained().bySide" primaryLabel="Principais" secondaryLabel="Apoio" [compact]="true" />
+              <app-muscle-map [primary]="trained().primary" [secondary]="trained().support" [info]="trained().info" [bySide]="trained().bySide" primaryLabel="Principais" secondaryLabel="Apoio" [compact]="true" />
               @if (!trained().primary.length) { <p class="muted">Aparecem aqui à medida que registas séries.</p> }
             </section>
           }
@@ -501,12 +511,12 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   private readonly primaryMuscles = resource({
     params: () => [...new Set((this.session()?.exercises ?? []).map((e) => e.exerciseId))].sort().join(','),
     loader: async ({ params }) => {
-      const out = new Map<string, MetricExercise & { support: string[]; figPrimary: string[]; figSupport: string[] }>();
+      const out = new Map<string, MetricExercise & { support: string[]; figPrimary: string[]; figSupport: string[]; figInfo: PortionProfile['info'] }>();
       for (const id of params ? params.split(',') : []) {
         const ex = await this.exerciseRepo.get(id);
         out.set(id, {
           id, primaryMuscles: specOfMuscleIds(ex?.primaryMuscleIds ?? []), secondaryMuscles: [], support: specOfMuscleIds(ex?.secondaryMuscleIds ?? []),
-          figPrimary: figureOfMuscleIds(ex?.primaryMuscleIds ?? []), figSupport: figureOfMuscleIds(ex?.secondaryMuscleIds ?? []),
+          ...figOf(ex),
         });
       }
       return out;
@@ -519,6 +529,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     type Sets = { primary: Set<string>; support: Set<string> };
     const mk = (): Sets => ({ primary: new Set(), support: new Set() });
     const both = mk(), left = mk(), right = mk();
+    const info: PortionProfile['info'] = {};
     let split = false;
     if (s && exs) {
       for (const e of s.exercises) {
@@ -537,10 +548,15 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
         }
         m.figPrimary.forEach((x) => both.primary.add(x));
         m.figSupport.forEach((x) => both.support.add(x));
+        // fonte por porção: a de um exercício onde é principal ganha à de um onde é secundária
+        for (const [id, inf] of Object.entries(m.figInfo) as [PortionId, PortionInfo][]) {
+          const cur = info[id];
+          if (!cur || (cur.role === 'secondary' && inf.role === 'primary') || (cur.role === inf.role && inf.confidence < cur.confidence)) info[id] = inf;
+        }
       }
     }
     const out = (x: Sets) => ({ primary: [...x.primary], secondary: [...x.support] });
-    return { primary: [...both.primary], support: [...both.support], bySide: split ? { left: out(left), right: out(right) } : null };
+    return { primary: [...both.primary], support: [...both.support], info, bySide: split ? { left: out(left), right: out(right) } : null };
   });
   readonly hasStrength = computed(() => (this.session()?.exercises ?? []).some((e) => e.kind === 'STRENGTH'));
   /** Sessão livre que ainda não começou: sem exercícios, ou à espera do pequeno timer de arranque. */
