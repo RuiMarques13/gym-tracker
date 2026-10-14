@@ -20,7 +20,8 @@ export const VOLUME_RULES = {
     hypertrophy: {
       beginner: { min: 6, target: 10, max: 12, freq: [2, 2], rir: [2, 3] },
       intermediate: { min: 10, target: 14, max: 20, freq: [2, 3], rir: [1, 3] },
-      advanced: { min: 12, target: 18, max: 25, freq: [2, 4], rir: [0, 2] },
+      // máximo 20: a IUSCA 2021 escreve que a evidência acima de 20 séries é limitada (era 25).
+      advanced: { min: 12, target: 18, max: 20, freq: [2, 4], rir: [0, 2] },
     },
     maintenance: {
       under_60: { min: 3, target_ratio_of_previous: 0.33, max: 8, freq: [1, 2], rir: [1, 3] },

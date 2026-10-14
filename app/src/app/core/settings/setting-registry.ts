@@ -86,6 +86,26 @@ export const SETTINGS = {
     key: 'progression.loadSuggestions', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: true,
     validate: isBool, label: 'Sugerir a carga de cada exercício',
   }),
+  /** Sem descanso no treino nem no exercício: 2 min nos multiarticulares, 90 s nos monoarticulares (IUSCA 2021). */
+  restByMechanic: def<boolean>({
+    key: 'progression.restByMechanic', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: true,
+    validate: isBool, label: 'Descanso pelo tipo de exercício',
+  }),
+  /** Escolha da app: sessões seguidas sem progresso que contam como estagnação. */
+  stagnationSessions: def<number>({
+    key: 'progression.stagnationSessions', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 3,
+    validate: isIntInRange(2, 8), label: 'Sessões sem progresso para estagnação',
+  }),
+  /** Sugerir descarga quando há sinais de fadiga, fora de qualquer estagnação (desligado até ativares). */
+  deloadSuggestions: def<boolean>({
+    key: 'progression.deloadSuggestions', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: false,
+    validate: isBool, label: 'Sugerir descarga quando há fadiga',
+  }),
+  /** Semana de descarga em curso: data de fim (ISO) ou null. Durante a descarga a sessão sugere metade das séries. */
+  deloadUntil: def<string | null>({
+    key: 'progression.deloadUntil', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: null,
+    validate: isIsoOrNull, label: 'Descarga até',
+  }),
   showRomScore: def<boolean>({
     key: 'mobility.showRomScore', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: true,
     validate: isBool, label: 'Mostrar nota de amplitude na mobilidade',

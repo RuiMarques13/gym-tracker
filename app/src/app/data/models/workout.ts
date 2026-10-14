@@ -1,4 +1,4 @@
-import type { Block, Kind, MetricType } from './enums';
+import type { Block, Kind, Mechanic, MetricType } from './enums';
 
 export const BLOCK_ORDER: Block[] = ['WARMUP', 'MAIN'];
 
@@ -34,6 +34,9 @@ export interface PlannedExercise {
   targetWeightKg: number | null;
   targetDistanceM: number | null;
   restSeconds: number | null;
+  /** Do exercício (só leitura): para sugerir o descanso pelo tipo. */
+  exerciseMechanic?: Mechanic | null;
+  exerciseRestSeconds?: number | null;
 }
 
 export interface Workout {

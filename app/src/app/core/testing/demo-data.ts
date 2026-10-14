@@ -110,6 +110,9 @@ export const DEMO_START = '2026-07-13'; // segunda-feira
 export const DEMO_WEEKS = 12;
 export const DELOAD_WEEK = 6;
 export const SICK_WEEK = 9;
+/** Exercício que deixa de progredir a partir desta semana (para ver o cartão de estagnação). */
+export const STALL_KEY = 'elevacoes-laterais--dumbbell';
+export const STALL_FROM = 10;
 
 export interface DemoSummary { sessions: number; sets: number; skipped: number }
 
@@ -226,7 +229,8 @@ export async function generateDemo(
         let allTop = true;
         for (let i = 0; i < sets; i++) {
           const dropoff = i === 0 ? 0 : i === sets - 1 ? Math.floor(pick(1, 3)) : Math.floor(pick(0, 2));
-          const noise = Math.floor(pick(-1, 2)); // -1, 0, +1
+          const stalled = p.key === STALL_KEY && w >= STALL_FROM;
+          const noise = stalled ? (pick(-1, 2), 0) : Math.floor(pick(-1, 2)); // -1, 0, +1
           let reps = Math.max(p.repsLo - 2, st.reps + (deload ? 1 : 0) + noise - dropoff - Math.floor(fatigue / 3));
           reps = Math.min(p.repsHi + 1, reps);
           if (reps < p.repsHi) allTop = false;
@@ -242,7 +246,7 @@ export async function generateDemo(
           clock.advance(restSec * 1000);
         }
         // Progressão dupla: só avança se atingiu o topo em todas as séries (e não foi deload/doença).
-        if (!deload && !sick) {
+        if (!deload && !sick && !(p.key === STALL_KEY && w >= STALL_FROM)) {
           if (allTop && st.reps >= p.repsHi) { st.w += p.step; st.reps = p.repsLo; }
           else if (rand() < 0.8) st.reps = Math.min(p.repsHi, st.reps + (rand() < 0.5 ? 1 : 2));
         }

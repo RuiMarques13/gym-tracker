@@ -1,7 +1,7 @@
 import type { DbAdapter, SqlValue } from '../../../core/db/db-adapter';
 import type { Clock } from '../../../core/util/clock';
 import { newId } from '../../../core/util/uuid';
-import type { Block, Kind, MetricType } from '../../models/enums';
+import type { Block, Kind, Mechanic, MetricType } from '../../models/enums';
 import {
   normalizeSupersets,
   BLOCK_ORDER,
@@ -34,6 +34,8 @@ interface ItemRow {
   target_weight_kg: number | null;
   target_distance_m: number | null;
   rest_seconds: number | null;
+  exercise_mechanic?: Mechanic | null;
+  exercise_rest_seconds?: number | null;
 }
 
 const int = (v: number | null | undefined, min = 0): number | null =>
@@ -108,7 +110,7 @@ export class SqliteWorkoutRepository implements WorkoutRepository {
       `SELECT p.id, p.exercise_id, e.name AS exercise_name, e.kind AS exercise_kind, e.metric_type,
               e.is_unilateral, e.archived_at AS exercise_archived_at, p.position, p.block, p.superset_group,
               p.target_sets, p.target_reps_min, p.target_reps, p.target_duration_seconds, p.target_weight_kg, p.target_distance_m,
-              p.rest_seconds
+              p.rest_seconds, e.mechanic AS exercise_mechanic, e.default_rest_seconds AS exercise_rest_seconds
        FROM planned_exercise p JOIN exercise e ON e.id = p.exercise_id
        WHERE p.template_id = ? AND p.deleted_at IS NULL AND e.deleted_at IS NULL
        ORDER BY p.position`,
@@ -326,5 +328,7 @@ function toPlanned(r: ItemRow): PlannedExercise {
     targetWeightKg: r.target_weight_kg,
     targetDistanceM: r.target_distance_m,
     restSeconds: r.rest_seconds,
+    exerciseMechanic: r.exercise_mechanic ?? null,
+    exerciseRestSeconds: r.exercise_rest_seconds ?? null,
   };
 }

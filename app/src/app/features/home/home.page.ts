@@ -22,12 +22,14 @@ import { formatDay, formatTime } from '../history/history-format';
 import { HomeWidgetsComponent } from './home-widgets.component';
 import { HomeLayoutEditorComponent } from './home-layout-editor.component';
 import { SessionLauncher } from '../session/session-launcher';
+import { SuggestionCardsComponent } from '../../shared/suggestion-cards.component';
+import { ProgressionService } from '../../core/progression/progression.service';
 
 @Component({
   selector: 'app-home',
   imports: [NavButtonComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonContent,
-    IonButton, HomeWidgetsComponent, HomeLayoutEditorComponent, IonButtons, IonIcon,
+    IonButton, HomeWidgetsComponent, HomeLayoutEditorComponent, IonButtons, IonIcon, SuggestionCardsComponent,
   ],
   template: `
     <ion-header>
@@ -76,6 +78,22 @@ import { SessionLauncher } from '../session/session-launcher';
           </div>
         }
 
+        @if (deload(); as d) {
+          <div class="active deload">
+            <div>
+              <strong>Semana de descarga</strong>
+              <span>Até {{ d.label }}: metade das séries de cada exercício, com a mesma carga.</span>
+            </div>
+            <ion-button size="small" fill="outline" (click)="endDeload()">Terminar</ion-button>
+          </div>
+        }
+        @if (suggestions.value()?.length) {
+          <section class="sugg" aria-label="Sugestões">
+            <h2>Sugestões</h2>
+            <app-suggestion-cards [cards]="suggestions.value()!" (changed)="suggestions.reload()" />
+          </section>
+        }
+
         @if (editing()) {
           <app-home-layout-editor />
         } @else {
@@ -95,9 +113,23 @@ import { SessionLauncher } from '../session/session-launcher';
     .stale { flex-direction: column; align-items: stretch; background: rgba(var(--ion-color-warning-rgb), 0.18); }
     .stale-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .active span { color: var(--ion-color-medium); font-size: 0.9rem; }
+    .deload { background: rgba(var(--ion-color-tertiary-rgb, 128,128,128), 0.14); }
+    .sugg { margin: 0 0 18px; }
+    .sugg h2 { font-size: 1rem; margin: 0 0 8px; }
   `,
 })
 export class HomePage implements ViewWillEnter {
+  private readonly progression = inject(ProgressionService);
+  private readonly settingsSvc = inject(SettingsService);
+  /** Estagnação e fadiga (fase 3): só aparece quando há alguma coisa. */
+  readonly suggestions = resource({
+    params: () => ({ t: this.tick(), d: this.settingsSvc.get('deloadUntil')() }),
+    loader: () => this.progression.cards(),
+  });
+  readonly deload = computed(() => (this.settingsSvc.get('deloadUntil')(), this.tick(), this.progression.deload()));
+  async endDeload(): Promise<void> {
+    await this.progression.endDeload();
+  }
   private readonly database = inject(DatabaseService);
   private readonly exercises = inject(EXERCISE_REPOSITORY);
   private readonly sessions = inject(SESSION_REPOSITORY);

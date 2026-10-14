@@ -48,6 +48,8 @@ export interface LoadSuggestion {
   reason: string;
   /** De onde vem a regra: ACSM 2009 (fonte) ou escolha da app. */
   basis: 'ACSM 2009' | 'app';
+  /** Chave da regra em rules.ts (para o «Porquê?»). */
+  rule: string;
 }
 
 export const LOAD_RULES = {
@@ -105,7 +107,7 @@ export function suggestLoad(input: LoadInput): LoadSuggestion {
   const w = s0 ? topWeight(s0) : null;
   if (!s0 || w === null) {
     return {
-      ...base, action: 'start', weightKg: null, basis: 'app',
+      ...base, action: 'start', weightKg: null, basis: 'app', rule: 'load.start',
       reason: `Primeira vez: escolhe uma carga com que faças ${min}–${max} repetições e fiques a 1–3 da falha.`,
     };
   }
@@ -120,10 +122,11 @@ export function suggestLoad(input: LoadInput): LoadSuggestion {
   if (top0 && (top1 || easy)) {
     const lo = r2(w * (1 + LOAD_RULES.stepMin));
     const hi = r2(w * (1 + LOAD_RULES.stepMax));
+    const rule = top1 ? 'load.increase' : 'load.rirSkip';
     const why = top1 ? `${max} repetições em 2 sessões seguidas` : `${max} repetições com ${Math.round(rir0!)}+ em reserva`;
     if (inc === null) {
       return {
-        ...base, action: 'increase', weightKg: null, rangeKg: [lo, hi], repsMin: min, repsMax: max, basis: 'ACSM 2009',
+        ...base, action: 'increase', weightKg: null, rangeKg: [lo, hi], repsMin: min, repsMax: max, basis: 'ACSM 2009', rule,
         reason: `${why}: sobe para ${kg(lo)}–${kg(hi)} (define o incremento do equipamento para a app escolher).`,
       };
     }
@@ -134,7 +137,7 @@ export function suggestLoad(input: LoadInput): LoadSuggestion {
         ? options[0]
         : options.reduce((b, x) => (Math.abs(x - target) < Math.abs(b - target) - EPS ? x : b), options[0]);
       return {
-        ...base, action: 'increase', weightKg: pick, options, rangeKg: [lo, hi], repsMin: min, repsMax: max, basis: 'ACSM 2009',
+        ...base, action: 'increase', weightKg: pick, options, rangeKg: [lo, hi], repsMin: min, repsMax: max, basis: 'ACSM 2009', rule,
         reason: `${why}: sobe ${pct((pick - w) / w)} para ${kg(pick)}.`,
       };
     }
@@ -143,12 +146,12 @@ export function suggestLoad(input: LoadInput): LoadSuggestion {
     const extra = max + LOAD_RULES.extraReps;
     if (allAtLeast(t0, extra)) {
       return {
-        ...base, action: 'increase', weightKg: next, rangeKg: [lo, hi], repsMin: min, repsMax: max, basis: 'app',
+        ...base, action: 'increase', weightKg: next, rangeKg: [lo, hi], repsMin: min, repsMax: max, basis: 'app', rule: 'load.bigJump',
         reason: `Já fazes ${extra} repetições: passa a ${kg(next)} (+${pct(inc / w)}, acima dos 10% por causa do incremento).`,
       };
     }
     return {
-      ...base, action: 'reps', weightKg: w, rangeKg: [lo, hi], repsMin: max + 1, repsMax: extra, basis: 'app',
+      ...base, action: 'reps', weightKg: w, rangeKg: [lo, hi], repsMin: max + 1, repsMax: extra, basis: 'app', rule: 'load.bigJump',
       reason: `O próximo salto (${kg(next)}, +${pct(inc / w)}) passa os 10%: mantém ${kg(w)} e sobe até ${extra} repetições.`,
     };
   }
@@ -156,13 +159,13 @@ export function suggestLoad(input: LoadInput): LoadSuggestion {
   if (allBelow(t0, min) && allBelow(t1, min)) {
     const down = inc ? r2(Math.max(0, w - inc)) : r2(Math.round(w * 0.95 * 2) / 2);
     return {
-      ...base, action: 'decrease', weightKg: down, basis: 'app',
+      ...base, action: 'decrease', weightKg: down, basis: 'app', rule: 'load.decrease',
       reason: `Abaixo de ${min} repetições em 2 sessões: baixa para ${kg(down)} e volta a subir.`,
     };
   }
 
   return {
-    ...base, action: 'hold', weightKg: w, basis: 'app',
+    ...base, action: 'hold', weightKg: w, basis: 'app', rule: 'load.reps',
     reason: top0
       ? `Chegaste a ${max} repetições: repete ${kg(w)}; se voltares ao topo, sobe.`
       : `Mantém ${kg(w)} e tenta mais 1 repetição até ${max}.`,

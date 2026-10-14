@@ -1,3 +1,4 @@
+import { estimate1RM } from '../../core/metrics/one-rm';
 import type { ExerciseHistoryEntry, SessionSet } from '../../data/models/session';
 
 const loc = 'pt-PT';
@@ -21,10 +22,11 @@ export function formatSpan(startIso: string, endIso: string): string {
 export function formatVolume(kg: number): string {
   return `${Math.round(kg).toLocaleString(loc)} kg`;
 }
-/** 1RM estimado (Epley) de uma série de trabalho com carga; null se não se aplica. */
+/** 1RM estimado (Epley, a fórmula única da app) de uma série de trabalho com carga; null se não se aplica. */
 export function epley(s: Pick<SessionSet, 'weightKg' | 'reps' | 'type'>): number | null {
-  if (s.type !== 'WORKING' || !s.weightKg || !s.reps) return null;
-  return s.reps === 1 ? s.weightKg : Math.round(s.weightKg * (1 + s.reps / 30) * 10) / 10;
+  if (s.type !== 'WORKING') return null;
+  const v = estimate1RM(s.weightKg, s.reps);
+  return v === null ? null : Math.round(v * 10) / 10;
 }
 
 export interface SessionProgress {

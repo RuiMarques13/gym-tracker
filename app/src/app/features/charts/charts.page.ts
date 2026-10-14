@@ -56,7 +56,7 @@ const METRIC_OPTIONS: Array<{ id: CategoryMetric; label: string; unit: string }>
 
         <section class="card">
           <h2>Progressão por exercício</h2>
-          <p class="sub">Melhor 1RM estimado (Epley) em cada sessão.</p>
+          <p class="sub">Melhor 1RM estimado (Epley) em cada sessão; menos exato com mais de 10 repetições.</p>
           <ion-select label="Exercício" labelPlacement="stacked" interface="popover" placeholder="Escolhe um exercício"
             [value]="exerciseId()" (ionChange)="exerciseId.set($any($event).detail.value)">
             @for (e of exercises.value() ?? []; track e.id) {

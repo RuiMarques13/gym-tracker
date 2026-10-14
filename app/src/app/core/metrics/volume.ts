@@ -1,3 +1,4 @@
+import { reliable1RM } from './one-rm';
 import { VOLUME_RULES, VolumeRules } from './volume-rules';
 
 export type Goal = 'hypertrophy' | 'maintenance' | 'cut';
@@ -132,11 +133,9 @@ export function weekProgress(
   return { target: Math.round(target * 10) / 10, done: points[today + 1].real ?? 0, today, points };
 }
 
-/** e1RM de Brzycki, só com ≤ 10 repetições (incluindo as de reserva) e carga > 0. */
+/** e1RM (Epley, a fórmula única da app: core/metrics/one-rm.ts), só com ≤ 10 repetições contando as de reserva. */
 export function e1rm(s: Pick<MetricSet, 'weightKg' | 'reps' | 'rir'>): number | null {
-  const reps = s.reps + (s.rir ?? 0);
-  if (s.weightKg <= 0 || reps < 1 || reps > 10) return null;
-  return (s.weightKg * 36) / (37 - reps);
+  return reliable1RM(s.weightKg, s.reps, s.rir);
 }
 
 /** Variação média do melhor e1RM semanal dos exercícios principais, da mais antiga para a mais recente. */

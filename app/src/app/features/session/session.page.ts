@@ -1,5 +1,8 @@
 import { EffortScaleComponent } from '../../shared/effort-scale.component';
 import { StatTile, StatTilesComponent } from '../../shared/stat-tiles.component';
+import { RuleWhyComponent } from '../../shared/rule-why.component';
+import { SuggestionCardsComponent } from '../../shared/suggestion-cards.component';
+import { ProgressionService, type SuggestionCard } from '../../core/progression/progression.service';
 import { MuscleMapComponent } from '../../shared/muscle-map.component';
 import { firstExercise } from './session-launcher';
 import { BodyProfileService } from '../../core/health/body-profile.service';
@@ -33,7 +36,7 @@ import {
   ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, checkmarkCircle, ellipseOutline, play, stopwatchOutline, trashOutline } from 'ionicons/icons';
+import { add, arrowDown, arrowUp, checkmarkCircle, ellipseOutline, play, remove, stopwatchOutline, trashOutline } from 'ionicons/icons';
 import { CardioRunService } from '../../core/timer/cardio-run.service';
 import { SettingsService } from '../../core/settings/settings.service';
 import { formatClock } from '../../core/timer/timer-math';
@@ -54,6 +57,8 @@ import { ExercisePickerComponent } from '../workouts/exercise-picker.component';
 import { formatDay } from '../history/history-format';
 import { formatTargets } from '../workouts/workout-format';
 import { repRange, suggestLoad, type LoadSuggestion } from '../../core/progression/load';
+import { defaultRest } from '../../core/progression/rest';
+import { nextTimeText } from '../../core/progression/next-time';
 import { SEED } from '../../core/seed/seed.generated';
 import { ids } from '../../core/util/uuid';
 
@@ -99,7 +104,7 @@ const figOf = (ex: Exercise | null | undefined) => {
 
 @Component({
   selector: 'app-session',
-  imports: [EffortScaleComponent, StatTilesComponent, MuscleMapComponent, 
+  imports: [EffortScaleComponent, StatTilesComponent, MuscleMapComponent, RuleWhyComponent, SuggestionCardsComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonContent, IonFooter, IonList, IonItem,
     IonLabel, IonBadge, IonInput, IonTextarea, IonModal, IonSegment, IonSegmentButton, IonSpinner,
   ],
@@ -152,6 +157,12 @@ const figOf = (ex: Exercise | null | undefined) => {
           @for (w of warnings(); track w) {
             <p class="warn">{{ w }}</p>
           }
+          @if (!historical() && deload(); as d) {
+            <div class="deload">
+              <div><strong>Semana de descarga</strong> até {{ d.label }}: metade das séries de cada exercício, com a mesma carga.</div>
+              <ion-button size="small" fill="clear" (click)="endDeload()">Terminar</ion-button>
+            </div>
+          }
 
           @for (b of blocks(); track b.block) {
             <h3 class="block-title">{{ blockLabel[b.block] }}</h3>
@@ -180,6 +191,7 @@ const figOf = (ex: Exercise | null | undefined) => {
                       @if (sg.action === 'increase') { <span class="tag">sobe</span> }
                       @if (sg.action === 'decrease') { <span class="tag">desce</span> }
                     </div>
+                    @if (deload() && ex.targetSets) { <p class="why">Descarga: {{ deloadSets(ex) }} de {{ ex.targetSets }} séries.</p> }
                     @if (sg.options.length > 1) {
                       <div class="opts">
                         @for (o of sg.options; track o) {
@@ -187,7 +199,10 @@ const figOf = (ex: Exercise | null | undefined) => {
                         }
                       </div>
                     }
-                    <p class="why">{{ sg.reason }} <span class="basis">{{ sg.basis === 'app' ? 'Regra da app' : 'Fonte: ' + sg.basis }}</span></p>
+                    <p class="why">{{ sg.reason }}
+                      <button type="button" class="whybtn" (click)="toggleWhy(ex.id)">{{ whyOpen().has(ex.id) ? 'Fechar' : 'Porquê?' }}</button>
+                    </p>
+                    @if (whyOpen().has(ex.id)) { <app-rule-why class="rulewhy" [key]="sg.rule" /> }
                   </div>
                 }
                 @if (groups(ex).length) {
@@ -342,6 +357,21 @@ const figOf = (ex: Exercise | null | undefined) => {
             <ion-textarea label="Notas (opcional)" labelPlacement="stacked" fill="outline" [autoGrow]="true" placeholder="Como te sentiste, dor, sono, stress…"
               [value]="finishNotes()" (ionInput)="finishNotes.set($any($event).detail.value ?? '')" />
             @if (!totalSets() && !historical()) { <p class="hint">Ainda não registaste nenhuma série.</p> }
+            @if (!historical() && nextTime().length) {
+              <div class="next">
+                <h3>Próxima vez</h3>
+                @for (n of nextTime(); track n.id) {
+                  <div class="next-row" [class.up]="n.action === 'increase'" [class.down]="n.action === 'decrease'">
+                    <ion-icon [name]="n.action === 'increase' ? 'arrow-up' : n.action === 'decrease' ? 'arrow-down' : 'remove'" />
+                    <div><strong>{{ n.name }}</strong><p>{{ n.text }}</p></div>
+                  </div>
+                }
+              </div>
+            }
+            @if (!historical() && stagCards().length) {
+              <h3 class="stag-h">Mudar o estímulo</h3>
+              <app-suggestion-cards [cards]="stagCards()" (changed)="loadStagCards()" />
+            }
             @if (historical()) {
               <ion-button expand="block" (click)="saveDetails()">Guardar</ion-button>
               <ion-button expand="block" fill="clear" color="danger" (click)="discard()">Apagar sessão</ion-button>
@@ -367,7 +397,19 @@ const figOf = (ex: Exercise | null | undefined) => {
     .opts button { font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--ion-color-medium); background: none; color: inherit; }
     .opts button.on { border-color: var(--ion-color-primary); background: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
     .why { margin: 6px 0 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4; }
-    .why .basis { opacity: .8; font-style: italic; }
+    .deload { display: flex; align-items: center; gap: 8px; margin: 8px 12px; padding: 10px 12px; border-radius: 12px; font-size: 14px; background: rgba(var(--ion-color-tertiary-rgb, 128,128,128), .14); }
+    .deload > div { flex: 1; }
+    .stag-h { font-size: 15px; margin: 14px 0 6px; }
+    .next { margin: 12px 0; }
+    .next h3 { font-size: 15px; margin: 0 0 6px; }
+    .next-row { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid rgba(128,128,128,.15); }
+    .next-row ion-icon { font-size: 18px; margin-top: 2px; color: var(--ion-color-medium); flex: 0 0 auto; }
+    .next-row.up ion-icon { color: var(--ion-color-primary); }
+    .next-row.down ion-icon { color: var(--ion-color-warning); }
+    .next-row strong { font-size: 14px; }
+    .next-row p { margin: 2px 0 0; font-size: 13px; color: var(--ion-color-medium); }
+    .whybtn { font: inherit; font-size: 12px; font-weight: 600; border: 0; background: none; color: var(--ion-color-primary); padding: 0 2px; }
+    .rulewhy { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(128,128,128,.2); }
     .page { max-width: 760px; margin: 0 auto; padding: 8px 12px 24px; }
     .center { display: grid; place-items: center; height: 60vh; }
     .day { margin: 2px 4px 8px; color: var(--ion-color-medium); font-size: 0.9rem; }
@@ -591,7 +633,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   readonly sheetSides = computed<Side[]>(() => (this.sheetExercise()?.isUnilateral ? ['LEFT', 'RIGHT'] : ['BOTH']));
 
   constructor() {
-    addIcons({ add, checkmarkCircle, ellipseOutline, play, stopwatchOutline, trashOutline });
+    addIcons({ add, arrowDown, arrowUp, checkmarkCircle, ellipseOutline, play, remove, stopwatchOutline, trashOutline });
     // Sugestão de carga para os exercícios da sessão (os novos também, quando os juntas).
     effect(() => {
       const s = this.session();
@@ -653,7 +695,23 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       targetSets: ex.targetSets, targetRepsMin: ex.targetRepsMin, targetReps: ex.targetReps, targetDurationSeconds: ex.targetDurationSeconds,
       targetWeightKg: ex.targetWeightKg, targetDistanceM: ex.targetDistanceM, restSeconds: ex.restSeconds,
     }) || 'Sem alvo';
-  isDone = (ex: SessionExercise) => !!ex.targetSets && workingSetCount(ex) >= ex.targetSets;
+  isDone = (ex: SessionExercise) => !!ex.targetSets && workingSetCount(ex) >= (this.deload() ? this.deloadSets(ex) : ex.targetSets);
+  /** Semana de descarga: metade das séries (arredondado para cima; escolha da app, rules.ts `deload.amount`). */
+  deloadSets = (ex: SessionExercise) => Math.max(1, Math.ceil((ex.targetSets ?? 0) / 2));
+  private readonly progression = inject(ProgressionService);
+  readonly deload = computed(() => (this.settings.get('deloadUntil')(), this.progression.deload()));
+  async endDeload(): Promise<void> {
+    await this.progression.endDeload();
+    await this.toast('Descarga terminada.');
+  }
+  // --- estagnação (painel final) ---
+  readonly stagCards = signal<SuggestionCard[]>([]);
+  async loadStagCards(): Promise<void> {
+    const s = this.session();
+    if (!s || s.endedAt) return;
+    const ids = [...new Set(s.exercises.filter((e) => e.kind === 'STRENGTH' && e.sets.length).map((e) => e.exerciseId))];
+    this.stagCards.set(ids.length ? await this.progression.cards({ exerciseIds: ids }) : []);
+  }
 
   // --- sugestão de carga ----------------------------------------------------------------------------
   /** Sugestão por exercício da sessão (id do session_exercise). Calculada uma vez, a partir das sessões anteriores. */
@@ -666,6 +724,11 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   choose(ex: SessionExercise, kg: number): void {
     this.chosen.update((m) => new Map(m).set(ex.id, kg));
   }
+  /** Exercícios com o «Porquê?» aberto. */
+  readonly whyOpen = signal<ReadonlySet<string>>(new Set());
+  toggleWhy(id: string): void {
+    this.whyOpen.update((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  }
   kgLabel = (x: number) => `${x.toLocaleString('pt-PT', { maximumFractionDigits: 2 })} kg`;
 
   private async loadSuggestions(s: Session): Promise<void> {
@@ -673,20 +736,43 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     const todo = s.exercises.filter((e) => e.kind === 'STRENGTH' && e.metricType === 'WEIGHT_REPS' && !this.asked.has(e.id));
     if (!todo.length) return;
     for (const e of todo) this.asked.add(e.id);
-    const increments = this.settings.get('loadIncrements')();
     const found = new Map(this.suggestions());
-    for (const e of todo) {
-      const recent = await this.repo.recentSets(e.exerciseId, s.id, 3);
-      const history = recent.map((sets) => ({
-        sets: sets.filter((x) => x.type === 'WORKING').map((x) => ({ weightKg: x.weightKg, reps: x.reps, rir: x.rir })),
-      }));
-      const [min, max] = repRange(e);
-      const key = e.equipmentId ? EQUIPMENT_KEY.get(e.equipmentId) : undefined;
-      found.set(e.id, suggestLoad({
-        history, repsMin: min, repsMax: max, mechanic: e.mechanic, incrementKg: key ? (increments[key] ?? null) : null,
-      }));
-    }
+    for (const e of todo) found.set(e.id, await this.suggestFor(e, s.id));
     this.suggestions.set(found);
+  }
+
+  /** Sugestão de carga de um exercício a partir das sessões terminadas; `today` entra como a mais recente («Próxima vez»). */
+  private async suggestFor(e: SessionExercise, sessionId: string, today?: SessionSet[]): Promise<LoadSuggestion> {
+    const increments = this.settings.get('loadIncrements')();
+    const recent = await this.repo.recentSets(e.exerciseId, sessionId, today ? 2 : 3);
+    const working = (sets: SessionSet[]) => ({
+      sets: sets.filter((x) => x.type === 'WORKING').map((x) => ({ weightKg: x.weightKg, reps: x.reps, rir: x.rir })),
+    });
+    const history = [...(today ? [working(today)] : []), ...recent.map(working)];
+    const [min, max] = repRange(e);
+    const key = e.equipmentId ? EQUIPMENT_KEY.get(e.equipmentId) : undefined;
+    const sg = suggestLoad({ history, repsMin: min, repsMax: max, mechanic: e.mechanic, incrementKg: key ? (increments[key] ?? null) : null });
+    // Semana de descarga: a mesma carga, sem subir (Bell 2023: o volume cai, a intensidade pode manter-se).
+    if (!today && this.progression.deload() && sg.action === 'increase') {
+      const last = Math.max(0, ...(history[0]?.sets ?? []).map((x) => x.weightKg ?? 0));
+      return { ...sg, action: 'hold', weightKg: last || null, options: [], rangeKg: null, rule: 'deload.how',
+        reason: `Semana de descarga: mantém ${this.kgLabel(last)}; a subida fica para depois.` };
+    }
+    return sg;
+  }
+
+  // --- próxima vez (painel final) ----------------------------------------------------------------------
+  /** Para cada exercício de carga feito hoje: o que a app vai sugerir na próxima sessão. */
+  readonly nextTime = signal<{ id: string; name: string; action: LoadSuggestion['action']; text: string }[]>([]);
+  private async loadNextTime(s: Session): Promise<void> {
+    if (!this.settings.get('loadSuggestions')()) { this.nextTime.set([]); return; }
+    const out: { id: string; name: string; action: LoadSuggestion['action']; text: string }[] = [];
+    for (const e of s.exercises) {
+      if (e.kind !== 'STRENGTH' || e.metricType !== 'WEIGHT_REPS' || !e.sets.some((x) => x.type === 'WORKING' && x.weightKg)) continue;
+      const sg = await this.suggestFor(e, s.id, e.sets);
+      out.push({ id: e.id, name: e.exerciseName, action: sg.action, text: nextTimeText(sg, this.kgLabel) });
+    }
+    this.nextTime.set(out);
   }
   nextPosition = (ex: SessionExercise) => Math.max(0, ...ex.sets.map((s) => s.position)) + 1;
 
@@ -907,7 +993,8 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       void this.toast(`Superset: segue para ${next.exerciseName}.`);
       return;
     }
-    const seconds = ex.restSeconds ?? (ex.kind === 'STRENGTH' ? this.settings.get('defaultRestSeconds')() : 0);
+    const seconds = ex.restSeconds
+      ?? (ex.kind === 'STRENGTH' ? defaultRest(ex.mechanic, this.settings.get('restByMechanic')(), this.settings.get('defaultRestSeconds')()) : 0);
     if (seconds > 0) this.timer.start('REST', ex.exerciseName, seconds);
   }
 
@@ -937,6 +1024,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     this.finishRpe.set(s?.rpe === null || s?.rpe === undefined ? '' : String(s.rpe));
     this.finishNotes.set(s?.notes ?? '');
     this.finishOpen.set(true);
+    if (s && !s.endedAt) { void this.loadNextTime(s); void this.loadStagCards(); }
   }
 
   async saveDetails(): Promise<void> {

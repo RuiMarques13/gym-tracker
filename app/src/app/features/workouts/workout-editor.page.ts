@@ -29,7 +29,9 @@ import {
 import { addIcons } from 'ionicons';
 import { add, copyOutline, linkOutline, trashOutline } from 'ionicons/icons';
 import { newId } from '../../core/util/uuid';
-import type { Block, Kind, MetricType } from '../../data/models/enums';
+import type { Block, Kind, Mechanic, MetricType } from '../../data/models/enums';
+import { defaultRest } from '../../core/progression/rest';
+import { SettingsService } from '../../core/settings/settings.service';
 import type { Exercise } from '../../data/models/exercise';
 import {
   BLOCK_LABEL,
@@ -51,6 +53,9 @@ interface EditItem extends PlannedExerciseInput {
   metricType: MetricType;
   isUnilateral: boolean;
   archived: boolean;
+  /** Do exercício (só para sugerir o descanso). */
+  mechanic?: Mechanic | null;
+  exerciseRest?: number | null;
 }
 
 const BLOCK_HINT: Record<Block, string> = {
@@ -213,7 +218,7 @@ import { toastHtml } from '../../core/ui/toast-text';
                 }
                 <ion-item>
                   <ion-input label="Descanso (s)" type="number" inputmode="numeric" min="0"
-                    placeholder="Do exercício ou global" [value]="it.restSeconds"
+                    [placeholder]="restHint(it)" [value]="it.restSeconds"
                     (ionInput)="patch(it.id, { restSeconds: toNum($any($event).detail.value) })" />
                 </ion-item>
                 <ion-list-header><ion-label>Bloco</ion-label></ion-list-header>
@@ -272,6 +277,7 @@ import { toastHtml } from '../../core/ui/toast-text';
 })
 export class WorkoutEditorPage {
   private readonly repo = inject(WORKOUT_REPOSITORY);
+  private readonly settings = inject(SettingsService);
   private readonly modals = inject(ModalController);
   private readonly nav = inject(NavController);
   private readonly toasts = inject(ToastService);
@@ -334,11 +340,22 @@ export class WorkoutEditorPage {
           metricType: i.metricType, isUnilateral: i.isUnilateral, archived: i.exerciseArchived, block: i.block, supersetGroup: i.supersetGroup,
           targetSets: i.targetSets, targetRepsMin: i.targetRepsMin, targetReps: i.targetReps, targetDurationSeconds: i.targetDurationSeconds,
           targetWeightKg: i.targetWeightKg, targetDistanceM: i.targetDistanceM, restSeconds: i.restSeconds,
+          mechanic: i.exerciseMechanic ?? null, exerciseRest: i.exerciseRestSeconds ?? null,
         })),
       );
       this.used.set(await this.repo.isUsed(id));
     }
     this.loading.set(false);
+  }
+
+  /** O descanso que vale se não escreveres nada: do exercício, pelo tipo (IUSCA 2021) ou o global. */
+  restHint(it: EditItem): string {
+    if (it.kind !== 'STRENGTH') return 'Opcional';
+    if (it.exerciseRest) return `Do exercício: ${it.exerciseRest} s`;
+    const s = defaultRest(it.mechanic ?? null, this.settings.get('restByMechanic')(), this.settings.get('defaultRestSeconds')());
+    return it.mechanic && this.settings.get('restByMechanic')()
+      ? `Sugerido: ${s} s (${it.mechanic === 'COMPOUND' ? 'multiarticular' : 'monoarticular'})`
+      : `Global: ${s} s`;
   }
 
   targetsLabel(it: EditItem): string {
@@ -359,6 +376,7 @@ export class WorkoutEditorPage {
     const added: EditItem[] = data.map((e) => ({
       id: newId(), exerciseId: e.id, exerciseName: e.name, kind: e.kind, metricType: e.metricType,
       isUnilateral: e.isUnilateral, archived: false, block, ...defaultTargets(e.kind, e.metricType),
+      mechanic: e.mechanic, exerciseRest: e.defaultRestSeconds,
     }));
     this.items.update((list) => [...list, ...added]);
   }

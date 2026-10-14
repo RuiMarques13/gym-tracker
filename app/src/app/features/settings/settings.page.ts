@@ -24,6 +24,7 @@ import { checkmarkCircle } from 'ionicons/icons';
 import { AuthService } from '../../core/cloud/auth.service';
 import { SyncService } from '../../core/sync/sync.service';
 import { BackupService } from '../../core/backup/backup.service';
+import { ProgressionService } from '../../core/progression/progression.service';
 import { MERGE_TABLES, MergeError, MergeReport } from '../../core/merge/merge';
 import { SettingsService } from '../../core/settings/settings.service';
 import { SEED } from '../../core/seed/seed.generated';
@@ -113,6 +114,34 @@ import { ToastService } from '../../core/ui/toast.service';
           <ion-item lines="none">
             <ion-note class="ion-text-wrap">Os incrementos são teus: nenhuma fonte os dá. Sem incremento, a app mostra o intervalo em kg sem escolher.</ion-note>
           </ion-item>
+          <ion-item>
+            <ion-toggle [checked]="restByMechanic()" (ionChange)="setFlag('restByMechanic', $any($event).detail.checked)">
+              <ion-label class="ion-text-wrap">Descanso pelo tipo de exercício<p>2 min nos multiarticulares, 90 s nos monoarticulares, quando o treino não diz outro (IUSCA 2021)</p></ion-label>
+            </ion-toggle>
+          </ion-item>
+          <ion-item>
+            <ion-input label="Sessões até estagnar" labelPlacement="start" type="number" inputmode="numeric" min="2" max="8"
+              [value]="stagnation()" (ionChange)="setStagnation($any($event).detail.value)" />
+          </ion-item>
+          <ion-item>
+            <ion-toggle [checked]="deloadSuggest()" (ionChange)="setFlag('deloadSuggestions', $any($event).detail.checked)">
+              <ion-label class="ion-text-wrap">Sugerir descarga quando há fadiga<p>Esforço alto, séries à falha, dor forte ou desempenho a cair. Desligado: a descarga só aparece como resposta a um exercício estagnado</p></ion-label>
+            </ion-toggle>
+          </ion-item>
+          <ion-item>
+            <ion-label class="ion-text-wrap">
+              <h3>Semana de descarga</h3>
+              <p>{{ deloadLabel() ?? 'Metade das séries, a mesma carga, durante 7 dias' }}</p>
+            </ion-label>
+            @if (deloadLabel()) {
+              <ion-button slot="end" size="small" fill="outline" (click)="endDeload()">Terminar</ion-button>
+            } @else {
+              <ion-button slot="end" size="small" fill="outline" (click)="startDeload()">Começar hoje</ion-button>
+            }
+          </ion-item>
+          <ion-item button detail routerLink="/definicoes/regras">
+            <ion-label class="ion-text-wrap"><h3>Regras e fontes</h3><p>Todas as regras de progressão, de onde vem cada número</p></ion-label>
+          </ion-item>
 
           <ion-list-header><ion-label>Relógio</ion-label></ion-list-header>
           <ion-item button detail routerLink="/definicoes/relogio">
@@ -187,6 +216,28 @@ export class SettingsPage {
   readonly increments = this.settings.get('loadIncrements');
   /** Equipamentos com carga em kg (os outros não precisam de incremento). */
   readonly incrementEquipment = SEED.equipment.filter((e) => ['barbell', 'dumbbell', 'cable', 'machine', 'kettlebell'].includes(e.key));
+  readonly restByMechanic = this.settings.get('restByMechanic');
+  readonly deloadSuggest = this.settings.get('deloadSuggestions');
+  readonly stagnation = this.settings.get('stagnationSessions');
+  private readonly progression = inject(ProgressionService);
+  readonly deloadLabel = computed(() => {
+    this.settings.get('deloadUntil')();
+    const d = this.progression.deload();
+    return d ? `Em curso até ${d.label}` : null;
+  });
+  setFlag(key: 'restByMechanic' | 'deloadSuggestions', on: boolean): void {
+    void this.settings.set(key, on);
+  }
+  setStagnation(raw: string | null | undefined): void {
+    const n = Math.round(Number(raw));
+    if (Number.isFinite(n) && n >= 2 && n <= 8) void this.settings.set('stagnationSessions', n);
+  }
+  async startDeload(): Promise<void> {
+    await this.progression.startDeload();
+  }
+  async endDeload(): Promise<void> {
+    await this.progression.endDeload();
+  }
   setSuggest(on: boolean): void {
     void this.settings.set('loadSuggestions', on);
   }

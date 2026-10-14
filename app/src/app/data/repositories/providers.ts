@@ -1,3 +1,4 @@
+import { SqliteSuggestionRepository, SuggestionRepository } from './suggestion.repository';
 import { RecoveryRepository, SqliteRecoveryRepository } from './recovery.repository';
 import { PhotoRepository, SqlitePhotoRepository } from './photo.repository';
 import { inject, InjectionToken } from '@angular/core';
@@ -84,5 +85,13 @@ export const RECOVERY_REPOSITORY = new InjectionToken<RecoveryRepository>('Recov
   factory: () => {
     const database = inject(DatabaseService);
     return new SqliteRecoveryRepository(database.db, inject(CLOCK), database.deviceId);
+  },
+});
+
+export const SUGGESTION_REPOSITORY = new InjectionToken<SuggestionRepository>('SuggestionRepository', {
+  providedIn: 'root',
+  factory: () => {
+    const database = inject(DatabaseService);
+    return new SqliteSuggestionRepository(database.db, inject(CLOCK), database.deviceId);
   },
 });

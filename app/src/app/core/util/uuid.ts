@@ -34,6 +34,9 @@ export const ids = {
     stableId(`exercise_mobility_area:${exerciseId}:${areaId}`),
   /** Um registo de recuperação por dia e músculo. */
   muscleRecovery: (date: string, muscle: string) => stableId(`muscle_recovery:${date}:${muscle}`),
+  /** Uma resposta por sugestão, episódio e tipo de resposta. */
+  suggestion: (kind: string, exerciseId: string | null, episode: string, response: string | null) =>
+    stableId(`suggestion:${kind}:${exerciseId ?? ''}:${episode}:${response ?? ''}`),
   setting: (scope: string, scopeRef: string | null, key: string) =>
     stableId(`setting:${scope}:${scopeRef ?? ''}:${key}`),
 };

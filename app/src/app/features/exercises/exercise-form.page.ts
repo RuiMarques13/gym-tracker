@@ -49,6 +49,7 @@ import {
 import { Exercise, ExerciseInput, ExerciseValidationError } from '../../data/models/exercise';
 import { specOfMuscleIds } from '../../core/metrics/muscles';
 import { portionsForExercise } from '../../core/anatomy/exercise-portions';
+import { defaultRest } from '../../core/progression/rest';
 import { motionFor } from '../../core/motion/motion';
 import { SHOW_MOTION } from '../../core/motion/motion-flag';
 import { ids } from '../../core/util/uuid';
@@ -342,7 +343,10 @@ export class ExerciseFormPage implements OnInit {
   readonly isNew = computed(() => !this.id());
   readonly allowedMetrics = computed(() => METRICS_BY_KIND[this.kind()]);
   readonly restPlaceholder = computed(() =>
-    this.kind() === 'MOBILITY' ? 'Sem descanso' : `Usa o global (${this.settings.get('defaultRestSeconds')()} s)`,
+    this.kind() === 'MOBILITY' ? 'Sem descanso'
+      : this.kind() === 'STRENGTH' && this.mechanic() && this.settings.get('restByMechanic')()
+        ? `Pelo tipo: ${defaultRest(this.mechanic(), true, 0)} s (IUSCA 2021)`
+        : `Usa o global (${this.settings.get('defaultRestSeconds')()} s)`,
   );
   readonly validVideoUrl = computed(() => (/^https?:\/\/\S+$/i.test(this.videoUrl().trim()) ? this.videoUrl().trim() : null));
   /** Chave do equipamento escolhido (os IDs são determinísticos), para desenhar o implemento certo. */

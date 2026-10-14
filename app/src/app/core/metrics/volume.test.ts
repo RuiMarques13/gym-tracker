@@ -36,7 +36,7 @@ describe('volume semanal (aceitação do spec)', () => {
   });
   it('4. sem RIR e 8 reps conta', () => expect(vol([set({ rir: null })]).sets.get('peito')).toBe(1));
   it('5. e1RM', () => {
-    expect(e1rm({ weightKg: 100, reps: 5, rir: 0 })).toBeCloseTo(112.5, 5);
+    expect(e1rm({ weightKg: 100, reps: 5, rir: 0 })).toBeCloseTo(116.667, 2);
     expect(e1rm({ weightKg: 100, reps: 8, rir: 3 })).toBeNull();
   });
   it('6. hipertrofia intermédio com 8 séries de peito → below, pede ~6', () => {
