@@ -195,8 +195,14 @@ import { toastHtml } from '../../core/ui/toast-text';
                   </ion-item>
                 } @else {
                   <ion-item>
-                    <ion-input [label]="it.isUnilateral ? 'Reps por lado' : 'Reps'" type="number" inputmode="numeric"
-                      min="0" [value]="it.targetReps" (ionInput)="patch(it.id, { targetReps: toNum($any($event).detail.value) })" />
+                    <ion-label class="range-label">{{ it.isUnilateral ? 'Repetições por lado' : 'Repetições' }}</ion-label>
+                    <div class="range" slot="end">
+                      <ion-input aria-label="Mínimo" type="number" inputmode="numeric" min="1" placeholder="mín"
+                        [value]="it.targetRepsMin" (ionInput)="patch(it.id, { targetRepsMin: toNum($any($event).detail.value) })" />
+                      <span>–</span>
+                      <ion-input aria-label="Máximo" type="number" inputmode="numeric" min="1" placeholder="máx"
+                        [value]="it.targetReps" (ionInput)="patch(it.id, { targetReps: toNum($any($event).detail.value) })" />
+                    </div>
                   </ion-item>
                   @if (it.metricType === 'WEIGHT_REPS') {
                     <ion-item>
@@ -241,6 +247,9 @@ import { toastHtml } from '../../core/ui/toast-text';
     </ion-footer>
   `,
   styles: `
+    .range { display: flex; align-items: center; gap: 6px; }
+    .range ion-input { width: 56px; text-align: center; --padding-start: 0; --padding-end: 0; }
+    .range span { color: var(--ion-color-medium); }
     .page { max-width: 760px; margin: 0 auto; padding-bottom: 24px; }
     .center { display: flex; justify-content: center; padding: 48px; }
     .banner { margin: 12px 16px 0; padding: 10px 14px; border-radius: 10px; background: rgba(var(--ion-color-medium-rgb), 0.15); font-size: 0.9rem; }
@@ -323,7 +332,7 @@ export class WorkoutEditorPage {
         w.items.map((i) => ({
           id: i.id, exerciseId: i.exerciseId, exerciseName: i.exerciseName, kind: i.exerciseKind,
           metricType: i.metricType, isUnilateral: i.isUnilateral, archived: i.exerciseArchived, block: i.block, supersetGroup: i.supersetGroup,
-          targetSets: i.targetSets, targetReps: i.targetReps, targetDurationSeconds: i.targetDurationSeconds,
+          targetSets: i.targetSets, targetRepsMin: i.targetRepsMin, targetReps: i.targetReps, targetDurationSeconds: i.targetDurationSeconds,
           targetWeightKg: i.targetWeightKg, targetDistanceM: i.targetDistanceM, restSeconds: i.restSeconds,
         })),
       );

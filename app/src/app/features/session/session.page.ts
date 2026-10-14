@@ -50,6 +50,12 @@ import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories
 import { ExercisePickerComponent } from '../workouts/exercise-picker.component';
 import { formatDay } from '../history/history-format';
 import { formatTargets } from '../workouts/workout-format';
+import { repRange, suggestLoad, type LoadSuggestion } from '../../core/progression/load';
+import { SEED } from '../../core/seed/seed.generated';
+import { ids } from '../../core/util/uuid';
+
+/** id do equipamento → chave do catálogo (barbell, dumbbell…), para ler o incremento nas definições. */
+const EQUIPMENT_KEY = new Map(SEED.equipment.map((e) => [ids.equipment(e.key), e.key]));
 import { formatSetGroup } from './session-format';
 
 interface SideForm {
@@ -152,6 +158,28 @@ import { ToastService } from '../../core/ui/toast.service';
                     <ion-icon slot="icon-only" name="trash-outline" />
                   </ion-button>
                 </header>
+                @if (suggestionOf(ex); as sg) {
+                  <div class="today" [class.up]="sg.action === 'increase'" [class.down]="sg.action === 'decrease'">
+                    <div class="today-main">
+                      <span class="lbl">Hoje</span>
+                      <strong>
+                        @if (todayKg(ex) !== null) { {{ kgLabel(todayKg(ex)!) }} × }
+                        @else if (sg.rangeKg) { {{ kgLabel(sg.rangeKg[0]) }}–{{ kgLabel(sg.rangeKg[1]) }} × }
+                        {{ sg.repsMin }}–{{ sg.repsMax }}
+                      </strong>
+                      @if (sg.action === 'increase') { <span class="tag">sobe</span> }
+                      @if (sg.action === 'decrease') { <span class="tag">desce</span> }
+                    </div>
+                    @if (sg.options.length > 1) {
+                      <div class="opts">
+                        @for (o of sg.options; track o) {
+                          <button type="button" [class.on]="todayKg(ex) === o" (click)="choose(ex, o)">{{ kgLabel(o) }}</button>
+                        }
+                      </div>
+                    }
+                    <p class="why">{{ sg.reason }} <span class="basis">{{ sg.basis === 'app' ? 'Regra da app' : 'Fonte: ' + sg.basis }}</span></p>
+                  </div>
+                }
                 @if (groups(ex).length) {
                   <ion-list lines="full" class="sets">
                     @for (g of groups(ex); track g.position) {
@@ -317,6 +345,19 @@ import { ToastService } from '../../core/ui/toast.service';
     </ion-modal>
   `,
   styles: `
+    .today { margin: 4px 12px 8px; padding: 10px 12px; border-radius: 12px; background: var(--ion-color-step-50, rgba(128,128,128,.08)); }
+    .today.up { background: rgba(var(--ion-color-primary-rgb), .12); }
+    .today.down { background: rgba(var(--ion-color-warning-rgb), .14); }
+    .today-main { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .today .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ion-color-medium); }
+    .today strong { font-size: 18px; }
+    .today .tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
+    .today.down .tag { background: var(--ion-color-warning); color: var(--ion-color-warning-contrast); }
+    .opts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .opts button { font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--ion-color-medium); background: none; color: inherit; }
+    .opts button.on { border-color: var(--ion-color-primary); background: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
+    .why { margin: 6px 0 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4; }
+    .why .basis { opacity: .8; font-style: italic; }
     .page { max-width: 760px; margin: 0 auto; padding: 8px 12px 24px; }
     .center { display: grid; place-items: center; height: 60vh; }
     .day { margin: 2px 4px 8px; color: var(--ion-color-medium); font-size: 0.9rem; }
@@ -532,6 +573,11 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
 
   constructor() {
     addIcons({ add, checkmarkCircle, ellipseOutline, play, stopwatchOutline, trashOutline });
+    // Sugestão de carga para os exercícios da sessão (os novos também, quando os juntas).
+    effect(() => {
+      const s = this.session();
+      if (s) untracked(() => void this.loadSuggestions(s));
+    });
     // Cronómetro de duração chegou ao fim: usa o tempo na série que está a ser registada.
     effect(() => {
       const f = this.timer.finished();
@@ -585,10 +631,44 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   format = (ex: SessionExercise, g: ReturnType<typeof groupSets>[number]) => formatSetGroup(ex, g);
   targets = (ex: SessionExercise) =>
     formatTargets(ex.kind, ex.metricType, ex.isUnilateral, {
-      targetSets: ex.targetSets, targetReps: ex.targetReps, targetDurationSeconds: ex.targetDurationSeconds,
+      targetSets: ex.targetSets, targetRepsMin: ex.targetRepsMin, targetReps: ex.targetReps, targetDurationSeconds: ex.targetDurationSeconds,
       targetWeightKg: ex.targetWeightKg, targetDistanceM: ex.targetDistanceM, restSeconds: ex.restSeconds,
     }) || 'Sem alvo';
   isDone = (ex: SessionExercise) => !!ex.targetSets && workingSetCount(ex) >= ex.targetSets;
+
+  // --- sugestão de carga ----------------------------------------------------------------------------
+  /** Sugestão por exercício da sessão (id do session_exercise). Calculada uma vez, a partir das sessões anteriores. */
+  readonly suggestions = signal<ReadonlyMap<string, LoadSuggestion>>(new Map());
+  /** Carga escolhida noutra opção (toque num chip); por defeito vale a sugerida. */
+  readonly chosen = signal<ReadonlyMap<string, number>>(new Map());
+  private readonly asked = new Set<string>();
+  suggestionOf = (ex: SessionExercise): LoadSuggestion | null => this.suggestions().get(ex.id) ?? null;
+  todayKg = (ex: SessionExercise): number | null => this.chosen().get(ex.id) ?? this.suggestionOf(ex)?.weightKg ?? null;
+  choose(ex: SessionExercise, kg: number): void {
+    this.chosen.update((m) => new Map(m).set(ex.id, kg));
+  }
+  kgLabel = (x: number) => `${x.toLocaleString('pt-PT', { maximumFractionDigits: 2 })} kg`;
+
+  private async loadSuggestions(s: Session): Promise<void> {
+    if (s.endedAt || !this.settings.get('loadSuggestions')()) return;
+    const todo = s.exercises.filter((e) => e.kind === 'STRENGTH' && e.metricType === 'WEIGHT_REPS' && !this.asked.has(e.id));
+    if (!todo.length) return;
+    for (const e of todo) this.asked.add(e.id);
+    const increments = this.settings.get('loadIncrements')();
+    const found = new Map(this.suggestions());
+    for (const e of todo) {
+      const recent = await this.repo.recentSets(e.exerciseId, s.id, 3);
+      const history = recent.map((sets) => ({
+        sets: sets.filter((x) => x.type === 'WORKING').map((x) => ({ weightKg: x.weightKg, reps: x.reps, rir: x.rir })),
+      }));
+      const [min, max] = repRange(e);
+      const key = e.equipmentId ? EQUIPMENT_KEY.get(e.equipmentId) : undefined;
+      found.set(e.id, suggestLoad({
+        history, repsMin: min, repsMax: max, mechanic: e.mechanic, incrementKg: key ? (increments[key] ?? null) : null,
+      }));
+    }
+    this.suggestions.set(found);
+  }
   nextPosition = (ex: SessionExercise) => Math.max(0, ...ex.sets.map((s) => s.position)) + 1;
 
   // --- exercícios ---------------------------------------------------------------------------------
@@ -685,6 +765,15 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
         if (position === null && sides[side]) sides[side] = { ...sides[side]!, rom: null };
       }
       if (last && last.type === 'WARMUP' && ex.kind === 'STRENGTH') type = 'WORKING';
+      // Primeira série de trabalho do exercício hoje: carga sugerida e, depois de subir ou descer, o mínimo da faixa.
+      const sg = this.suggestionOf(ex);
+      const kg = this.todayKg(ex);
+      if (sg && kg !== null && !ex.sets.some((x) => x.type === 'WORKING')) {
+        for (const side of sidesList) {
+          const f = sides[side] ?? { ...EMPTY };
+          sides[side] = { ...f, weight: String(kg), reps: sg.action === 'hold' && f.reps ? f.reps : String(sg.repsMin) };
+        }
+      }
     }
     this.sheet.set({ exerciseId: ex.id, position, type, sides });
   }

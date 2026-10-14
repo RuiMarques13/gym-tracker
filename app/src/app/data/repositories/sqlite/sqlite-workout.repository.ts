@@ -28,6 +28,7 @@ interface ItemRow {
   block: Block;
   superset_group: string | null;
   target_sets: number | null;
+  target_reps_min: number | null;
   target_reps: number | null;
   target_duration_seconds: number | null;
   target_weight_kg: number | null;
@@ -45,14 +46,21 @@ export function normalizeTargets(kind: Kind, metric: MetricType, i: PlannedExerc
   const sets = int(i.targetSets, 1);
   const rest = int(i.restSeconds);
   if (kind === 'CARDIO') {
-    return { sets: sets ?? 1, reps: null, duration: int(i.targetDurationSeconds), weight: null, distance: num(i.targetDistanceM), rest };
+    return { sets: sets ?? 1, repsMin: null, reps: null, duration: int(i.targetDurationSeconds), weight: null, distance: num(i.targetDistanceM), rest };
   }
   if (metric === 'DURATION') {
-    return { sets, reps: null, duration: int(i.targetDurationSeconds), weight: null, distance: null, rest };
+    return { sets, repsMin: null, reps: null, duration: int(i.targetDurationSeconds), weight: null, distance: null, rest };
   }
+  // Faixa de repetições: o mínimo só vale com um máximo; se vierem trocados, troca-os.
+  let reps = int(i.targetReps);
+  let repsMin = int(i.targetRepsMin, 1);
+  if (repsMin !== null && reps === null) [reps, repsMin] = [repsMin, null];
+  if (repsMin !== null && reps !== null && repsMin > reps) [reps, repsMin] = [repsMin, reps];
+  if (repsMin !== null && repsMin === reps) repsMin = null;
   return {
     sets,
-    reps: int(i.targetReps),
+    repsMin,
+    reps,
     duration: null,
     weight: metric === 'WEIGHT_REPS' ? num(i.targetWeightKg) : null,
     distance: null,
@@ -99,7 +107,7 @@ export class SqliteWorkoutRepository implements WorkoutRepository {
     const items = await this.db.query<ItemRow>(
       `SELECT p.id, p.exercise_id, e.name AS exercise_name, e.kind AS exercise_kind, e.metric_type,
               e.is_unilateral, e.archived_at AS exercise_archived_at, p.position, p.block, p.superset_group,
-              p.target_sets, p.target_reps, p.target_duration_seconds, p.target_weight_kg, p.target_distance_m,
+              p.target_sets, p.target_reps_min, p.target_reps, p.target_duration_seconds, p.target_weight_kg, p.target_distance_m,
               p.rest_seconds
        FROM planned_exercise p JOIN exercise e ON e.id = p.exercise_id
        WHERE p.template_id = ? AND p.deleted_at IS NULL AND e.deleted_at IS NULL
@@ -159,16 +167,16 @@ export class SqliteWorkoutRepository implements WorkoutRepository {
         const itemId = item.id ?? newId();
         keep.add(itemId);
         const values: SqlValue[] = [
-          itemId, id, item.exerciseId, index + 1, item.block, item.supersetGroup ?? null, t.sets, t.reps, t.duration, t.weight, t.distance, t.rest,
+          itemId, id, item.exerciseId, index + 1, item.block, item.supersetGroup ?? null, t.sets, t.repsMin, t.reps, t.duration, t.weight, t.distance, t.rest,
           now, this.deviceId,
         ];
         await tx.run(
-          `INSERT INTO planned_exercise (id, template_id, exercise_id, position, block, superset_group, target_sets, target_reps,
-             target_duration_seconds, target_weight_kg, target_distance_m, rest_seconds, updated_at, deleted_at, device_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)
+          `INSERT INTO planned_exercise (id, template_id, exercise_id, position, block, superset_group, target_sets, target_reps_min,
+             target_reps, target_duration_seconds, target_weight_kg, target_distance_m, rest_seconds, updated_at, deleted_at, device_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)
            ON CONFLICT(id) DO UPDATE SET template_id = excluded.template_id, exercise_id = excluded.exercise_id,
              position = excluded.position, block = excluded.block, superset_group = excluded.superset_group,
-             target_sets = excluded.target_sets,
+             target_sets = excluded.target_sets, target_reps_min = excluded.target_reps_min,
              target_reps = excluded.target_reps, target_duration_seconds = excluded.target_duration_seconds,
              target_weight_kg = excluded.target_weight_kg, target_distance_m = excluded.target_distance_m,
              rest_seconds = excluded.rest_seconds, updated_at = excluded.updated_at, deleted_at = NULL,
@@ -204,6 +212,7 @@ export class SqliteWorkoutRepository implements WorkoutRepository {
         block: i.block,
         supersetGroup: i.supersetGroup,
         targetSets: i.targetSets,
+        targetRepsMin: i.targetRepsMin,
         targetReps: i.targetReps,
         targetDurationSeconds: i.targetDurationSeconds,
         targetWeightKg: i.targetWeightKg,
@@ -311,6 +320,7 @@ function toPlanned(r: ItemRow): PlannedExercise {
     block: normalizeBlock(r.block),
     supersetGroup: r.superset_group,
     targetSets: r.target_sets,
+    targetRepsMin: r.target_reps_min,
     targetReps: r.target_reps,
     targetDurationSeconds: r.target_duration_seconds,
     targetWeightKg: r.target_weight_kg,

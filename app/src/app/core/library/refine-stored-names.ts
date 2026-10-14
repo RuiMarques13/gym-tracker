@@ -35,3 +35,38 @@ export async function refineStoredNames(
   });
   return renamed;
 }
+
+/**
+ * Mecânica (multi/monoarticular) para os teus exercícios que vieram da biblioteca e ainda não a têm.
+ * Só lê as linhas sem mecânica, por isso em regime normal não escreve nada. Casa pelo id ou pelo nome (EN ou PT).
+ */
+export async function refineStoredMechanic(
+  db: DbAdapter,
+  deviceId: string,
+  nowIso: string,
+  items: readonly { key: string; name: string; namePt: string | null; kind: string; mechanic: 'COMPOUND' | 'ISOLATION' | null }[],
+): Promise<number> {
+  const rows = await db.query<{ id: string; name: string }>(
+    "SELECT id, name FROM exercise WHERE mechanic IS NULL AND kind = 'STRENGTH' AND deleted_at IS NULL",
+  );
+  if (!rows.length) return 0;
+  const withMech = items.filter((i) => i.kind === 'STRENGTH' && i.mechanic);
+  const byId = new Map(withMech.map((i) => [ids.libraryExercise(i.key), i]));
+  const byName = new Map<string, (typeof withMech)[number]>();
+  for (const i of withMech) {
+    byName.set(fold(i.name), i);
+    if (i.namePt) byName.set(fold(i.namePt), i);
+  }
+  let n = 0;
+  await db.transaction(async (tx) => {
+    for (const r of rows) {
+      const item = byId.get(r.id) ?? byName.get(fold(r.name));
+      if (!item) continue;
+      await tx.run('UPDATE exercise SET mechanic = ?, updated_at = ?, device_id = ? WHERE id = ? AND mechanic IS NULL', [
+        item.mechanic, nowIso, deviceId, r.id,
+      ]);
+      n++;
+    }
+  });
+  return n;
+}

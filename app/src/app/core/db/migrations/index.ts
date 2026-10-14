@@ -7,6 +7,7 @@ import { MIGRATION_006 } from './006-recovery';
 import { MIGRATION_007 } from './007-health';
 import { MIGRATION_008 } from './008-category';
 import { MIGRATION_009 } from './009-health-detail';
+import { MIGRATION_010 } from './010-progression';
 
 export interface Migration {
   version: number;
@@ -34,4 +35,5 @@ export const MIGRATIONS: Migration[] = [
   { version: 7, name: '007-health', sql: MIGRATION_007 },
   { version: 8, name: '008-category', sql: MIGRATION_008 },
   { version: 9, name: '009-health-detail', sql: MIGRATION_009 },
+  { version: 10, name: '010-progression', sql: MIGRATION_010 },
 ];

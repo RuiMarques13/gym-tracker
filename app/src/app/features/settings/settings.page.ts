@@ -7,6 +7,7 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonInput,
   IonItem,
   IonLabel,
   IonList,
@@ -25,6 +26,7 @@ import { SyncService } from '../../core/sync/sync.service';
 import { BackupService } from '../../core/backup/backup.service';
 import { MERGE_TABLES, MergeError, MergeReport } from '../../core/merge/merge';
 import { SettingsService } from '../../core/settings/settings.service';
+import { SEED } from '../../core/seed/seed.generated';
 import { PALETTES, PaletteId, PaletteInfo } from '../../core/theme/palettes';
 import { ThemeService } from '../../core/theme/theme.service';
 import { ToastService } from '../../core/ui/toast.service';
@@ -33,7 +35,7 @@ import { ToastService } from '../../core/ui/toast.service';
   selector: 'app-settings',
   imports: [NavButtonComponent, 
     IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonNote,
-    IonSegment, IonSegmentButton, IonButton, RouterLink, IonIcon,
+    IonSegment, IonSegmentButton, IonButton, RouterLink, IonIcon, IonToggle, IonInput,
   ],
   template: `
     <ion-header>
@@ -93,6 +95,23 @@ import { ToastService } from '../../core/ui/toast.service';
           <ion-item>
             <ion-label>Peso das séries em músculos secundários</ion-label>
             <ion-note slot="end">{{ secondary() }}</ion-note>
+          </ion-item>
+
+          <ion-list-header><ion-label>Progressão de carga</ion-label></ion-list-header>
+          <ion-item>
+            <ion-toggle [checked]="suggest()" (ionChange)="setSuggest($any($event).detail.checked)">
+              <ion-label class="ion-text-wrap">Sugerir a carga de hoje<p>Sobe 2–10% depois de 2 sessões no topo da faixa (ACSM 2009)</p></ion-label>
+            </ion-toggle>
+          </ion-item>
+          @for (e of incrementEquipment; track e.key) {
+            <ion-item>
+              <ion-input [label]="'Incremento · ' + e.name" labelPlacement="start" type="number" inputmode="decimal" min="0.25" step="0.25"
+                placeholder="—" [value]="increments()[e.key] ?? null" (ionChange)="setIncrement(e.key, $any($event).detail.value)" />
+              <ion-note slot="end">kg</ion-note>
+            </ion-item>
+          }
+          <ion-item lines="none">
+            <ion-note class="ion-text-wrap">Os incrementos são teus: nenhuma fonte os dá. Sem incremento, a app mostra o intervalo em kg sem escolher.</ion-note>
           </ion-item>
 
           <ion-list-header><ion-label>Relógio</ion-label></ion-list-header>
@@ -164,6 +183,20 @@ export class SettingsPage {
   swatch = (p: PaletteInfo) => (this.themeService.isDark() ? p.dark : p.light);
   readonly rest = this.settings.get('defaultRestSeconds');
   readonly secondary = this.settings.get('secondaryMuscleWeight');
+  readonly suggest = this.settings.get('loadSuggestions');
+  readonly increments = this.settings.get('loadIncrements');
+  /** Equipamentos com carga em kg (os outros não precisam de incremento). */
+  readonly incrementEquipment = SEED.equipment.filter((e) => ['barbell', 'dumbbell', 'cable', 'machine', 'kettlebell'].includes(e.key));
+  setSuggest(on: boolean): void {
+    void this.settings.set('loadSuggestions', on);
+  }
+  setIncrement(key: string, raw: string | null | undefined): void {
+    const next = { ...this.increments() };
+    const n = raw === null || raw === undefined || raw === '' ? NaN : Number(String(raw).replace(',', '.'));
+    if (Number.isFinite(n) && n > 0 && n <= 50) next[key] = Math.round(n * 100) / 100;
+    else delete next[key];
+    void this.settings.set('loadIncrements', next);
+  }
   private readonly lastExportAt = this.settings.get('lastExportAt');
 
 

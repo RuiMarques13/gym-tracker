@@ -1,7 +1,7 @@
 import type { DbAdapter, SqlValue } from '../../../core/db/db-adapter';
 import type { Clock } from '../../../core/util/clock';
 import { newId } from '../../../core/util/uuid';
-import type { Block, Kind, MetricType, SetType, Side } from '../../models/enums';
+import type { Block, Kind, Mechanic, MetricType, SetType, Side } from '../../models/enums';
 import { normalizeBlock } from '../../models/workout';
 import {
   ExerciseHistoryEntry,
@@ -39,12 +39,15 @@ interface ExerciseRow {
   position: number;
   superset_group: string | null;
   target_sets: number | null;
+  target_reps_min: number | null;
   target_reps: number | null;
   target_duration_seconds: number | null;
   target_weight_kg: number | null;
   target_distance_m: number | null;
   rest_seconds: number | null;
   default_rest_seconds: number | null;
+  mechanic: Mechanic | null;
+  equipment_id: string | null;
   notes: string | null;
 }
 interface SetRow {
@@ -122,12 +125,12 @@ export class SqliteSessionRepository implements SessionRepository {
       if (templateId) {
         const items = await tx.query<{
           exercise_id: string; position: number; block: string; superset_group: string | null; metric_type: MetricType;
-          is_unilateral: number; target_sets: number | null; target_reps: number | null;
+          is_unilateral: number; target_sets: number | null; target_reps_min: number | null; target_reps: number | null;
           target_duration_seconds: number | null; target_weight_kg: number | null; target_distance_m: number | null;
           rest_seconds: number | null;
         }>(
           `SELECT p.exercise_id, p.position, p.block, p.superset_group, e.metric_type, e.is_unilateral, p.target_sets,
-                  p.target_reps, p.target_duration_seconds, p.target_weight_kg, p.target_distance_m, p.rest_seconds
+                  p.target_reps_min, p.target_reps, p.target_duration_seconds, p.target_weight_kg, p.target_distance_m, p.rest_seconds
            FROM planned_exercise p JOIN exercise e ON e.id = p.exercise_id
            WHERE p.template_id = ? AND p.deleted_at IS NULL AND e.deleted_at IS NULL ORDER BY p.position`,
           [templateId],
@@ -135,12 +138,12 @@ export class SqliteSessionRepository implements SessionRepository {
         for (const [i, p] of items.entries()) {
           await tx.run(
             `INSERT INTO session_exercise (id, session_id, exercise_id, position, block, superset_group, metric_type,
-               is_unilateral, target_sets, target_reps, target_duration_seconds, target_weight_kg, target_distance_m,
+               is_unilateral, target_sets, target_reps_min, target_reps, target_duration_seconds, target_weight_kg, target_distance_m,
                rest_seconds, updated_at, deleted_at, device_id)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
             [
               newId(), id, p.exercise_id, i + 1, normalizeBlock(p.block), p.superset_group, p.metric_type, p.is_unilateral,
-              p.target_sets, p.target_reps, p.target_duration_seconds, p.target_weight_kg, p.target_distance_m,
+              p.target_sets, p.target_reps_min, p.target_reps, p.target_duration_seconds, p.target_weight_kg, p.target_distance_m,
               p.rest_seconds, now, this.deviceId,
             ],
           );
@@ -389,6 +392,19 @@ export class SqliteSessionRepository implements SessionRepository {
     return (await this.setsOf([last[0].id])).get(last[0].id) ?? [];
   }
 
+  async recentSets(exerciseId: string, excludeSessionId?: string, limit = 3): Promise<SessionSet[][]> {
+    const rows = await this.db.query<{ id: string }>(
+      `SELECT x.id FROM session_exercise x JOIN session s ON s.id = x.session_id
+       WHERE x.exercise_id = ? AND x.deleted_at IS NULL AND s.deleted_at IS NULL AND s.ended_at IS NOT NULL
+         AND s.id <> ? AND EXISTS (SELECT 1 FROM set_log l WHERE l.session_exercise_id = x.id AND l.deleted_at IS NULL)
+       ORDER BY s.started_at DESC, x.position DESC LIMIT ?`,
+      [exerciseId, excludeSessionId ?? '', limit],
+    );
+    if (!rows.length) return [];
+    const sets = await this.setsOf(rows.map((r) => r.id));
+    return rows.map((r) => sets.get(r.id) ?? []);
+  }
+
   // --- internos ---------------------------------------------------------------------------------
 
   private validateEntries(kind: Kind, metric: MetricType, unilateral: boolean, raw: SideEntry[]): SideEntry[] {
@@ -478,16 +494,17 @@ export class SqliteSessionRepository implements SessionRepository {
 
 const EXERCISE_SQL = `
   SELECT x.id, x.exercise_id, e.name AS exercise_name, e.kind, x.metric_type, x.is_unilateral, x.block, x.position,
-         x.superset_group, x.target_sets, x.target_reps, x.target_duration_seconds, x.target_weight_kg,
-         x.target_distance_m, x.rest_seconds, e.default_rest_seconds, x.notes
+         x.superset_group, x.target_sets, x.target_reps_min, x.target_reps, x.target_duration_seconds, x.target_weight_kg,
+         x.target_distance_m, x.rest_seconds, e.default_rest_seconds, x.notes, e.mechanic, e.equipment_id
   FROM session_exercise x JOIN exercise e ON e.id = x.exercise_id`;
 
 function toExercise(r: ExerciseRow, sets: SessionSet[]): SessionExercise {
   return {
     id: r.id, exerciseId: r.exercise_id, exerciseName: r.exercise_name, kind: r.kind, metricType: r.metric_type,
     isUnilateral: r.is_unilateral === 1, block: normalizeBlock(r.block), position: r.position,
-    supersetGroup: r.superset_group, targetSets: r.target_sets, targetReps: r.target_reps,
+    supersetGroup: r.superset_group, targetSets: r.target_sets, targetRepsMin: r.target_reps_min, targetReps: r.target_reps,
     targetDurationSeconds: r.target_duration_seconds, targetWeightKg: r.target_weight_kg,
-    targetDistanceM: r.target_distance_m, restSeconds: r.rest_seconds ?? r.default_rest_seconds, notes: r.notes, sets,
+    targetDistanceM: r.target_distance_m, restSeconds: r.rest_seconds ?? r.default_rest_seconds, notes: r.notes,
+    mechanic: r.mechanic ?? null, equipmentId: r.equipment_id ?? null, sets,
   };
 }

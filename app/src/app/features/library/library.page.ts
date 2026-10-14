@@ -89,25 +89,6 @@ import { ToastService } from '../../core/ui/toast.service';
                 <ion-label class="ion-text-wrap" (click)="toggleOpen(item.key)">
                   <h2>{{ item.name }}</h2>
                   <p>{{ subtitle(item) }}</p>
-                  @if (openKey() === item.key) {
-                    @if (item.kind === 'STRENGTH' || motionOf(item)) {
-                      <div class="visual">
-                        @if (motionOf(item); as mo) { <app-exercise-motion [motion]="mo" [equipment]="item.equipment ?? 'none'" /> }
-                        @if (item.kind === 'STRENGTH') { <app-muscle-map [primary]="specOf(item.primary)" [secondary]="specOf(item.secondary)" /> }
-                      </div>
-                    }
-                    <div class="facts">
-                      @if (item.mechanic) { <span>{{ mechanicLabel[item.mechanic] }}</span> }
-                      @if (item.level) { <span>{{ levelLabel[item.level] }}</span> }
-                      @if (item.namePt) { <span>PT: {{ item.namePt }}</span> }
-                    </div>
-                    @if (steps(item).length) {
-                      <ol class="steps">
-                        @for (st of steps(item); track $index) { <li>{{ st }}</li> }
-                      </ol>
-                      <p class="src">Instruções: free-exercise-db (domínio público)</p>
-                    }
-                  }
                 </ion-label>
                 <div slot="end" class="end">
                   @if (item.isUnilateral) { <ion-badge color="tertiary">Unilateral</ion-badge> }
@@ -131,6 +112,35 @@ import { ToastService } from '../../core/ui/toast.service';
                   }
                 </div>
               </ion-item>
+              @if (openKey() === item.key) {
+                <div class="detail">
+                  <div class="detail-top">
+                    @if (item.kind === 'STRENGTH') {
+                      <app-muscle-map class="map" [compact]="true" [primary]="specOf(item.primary)" [secondary]="specOf(item.secondary)" />
+                    }
+                    @if (motionOf(item); as mo) { <app-exercise-motion class="map" [motion]="mo" [equipment]="item.equipment ?? 'none'" /> }
+                    <div class="meta">
+                      <div class="chips">
+                        @if (item.mechanic) { <span class="chip">{{ mechanicLabel[item.mechanic] }}</span> }
+                        @if (item.level) { <span class="chip">{{ levelLabel[item.level] }}</span> }
+                        @if (item.isUnilateral) { <span class="chip">Unilateral</span> }
+                      </div>
+                      @if (item.namePt) { <p class="pt">{{ item.namePt }}</p> }
+                      @if (steps(item).length) {
+                        <ion-button size="small" fill="outline" (click)="showSteps.set(!showSteps())">
+                          {{ showSteps() ? 'Esconder instruções' : 'Como fazer · ' + steps(item).length + ' passos' }}
+                        </ion-button>
+                      }
+                    </div>
+                  </div>
+                  @if (showSteps() && steps(item).length) {
+                    <ol class="steps">
+                      @for (st of steps(item); track $index) { <li>{{ st }}</li> }
+                    </ol>
+                    <p class="src">Instruções em inglês do free-exercise-db (domínio público).</p>
+                  }
+                </div>
+              }
             } @empty {
               <ion-item lines="none"><ion-note>Nada encontrado com estes filtros.</ion-note></ion-item>
             }
@@ -147,9 +157,15 @@ import { ToastService } from '../../core/ui/toast.service';
     </ion-content>
   `,
   styles: `
-    .facts { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 8px; font-size: 12px; color: var(--ion-color-medium); }
-    .steps { margin: 8px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.45; color: var(--ion-text-color); }
-    .steps li { margin-bottom: 4px; }
+    .detail { padding: 8px 16px 14px; border-bottom: 1px solid var(--ion-border-color, rgba(128,128,128,.2)); }
+    .detail-top { display: flex; gap: 16px; align-items: center; }
+    .detail-top .map { flex: 0 0 176px; max-width: 46%; }
+    .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--ion-color-step-100, rgba(128,128,128,.15)); }
+    .pt { margin: 0; font-size: 13px; color: var(--ion-color-medium); }
+    .steps { margin: 12px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.5; }
+    .steps li { margin-bottom: 6px; }
     .src { margin: 4px 0 0; font-size: 11px; color: var(--ion-color-medium); }
     .visual { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: center; margin-top: 8px; }
     .visual > * { flex: 1 1 150px; min-width: 0; }
@@ -181,8 +197,10 @@ export class LibraryPage implements ViewWillEnter {
   motionOf = (item: LibraryItem) => (SHOW_MOTION ? motionFor(ruleName(item), specOfKeys(item.primary), item.kind) : null);
   /** Instruções (free-exercise-db): ficheiro à parte, só carregado quando abres um exercício. */
   readonly instructions = signal<Record<string, string[]> | null>(null);
+  readonly showSteps = signal(false);
   toggleOpen(key: string): void {
     this.openKey.update((k) => (k === key ? null : key));
+    this.showSteps.set(false);
     if (!this.instructions()) {
       void import('../../core/library/library-instructions.generated').then((m) => this.instructions.set(m.LIBRARY_INSTRUCTIONS));
     }

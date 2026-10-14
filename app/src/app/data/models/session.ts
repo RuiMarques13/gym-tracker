@@ -1,4 +1,4 @@
-import type { Block, Kind, MetricType, SetType, Side } from './enums';
+import type { Block, Kind, Mechanic, MetricType, SetType, Side } from './enums';
 
 /** Uma linha de série. Nos unilaterais, LEFT e RIGHT da mesma série partilham `position`. */
 export interface SessionSet {
@@ -37,6 +37,7 @@ export interface SessionExercise {
   position: number;
   supersetGroup: string | null;
   targetSets: number | null;
+  targetRepsMin: number | null;
   targetReps: number | null;
   targetDurationSeconds: number | null;
   targetWeightKg: number | null;
@@ -44,6 +45,9 @@ export interface SessionExercise {
   /** Descanso do treino (snapshot) ou, na falta dele, o do exercício. null = usar o global. */
   restSeconds: number | null;
   notes: string | null;
+  /** Do exercício (não do snapshot): para a sugestão de carga. */
+  mechanic: Mechanic | null;
+  equipmentId: string | null;
   sets: SessionSet[];
 }
 

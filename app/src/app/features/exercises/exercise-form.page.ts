@@ -41,6 +41,7 @@ import {
   METRIC_LABEL,
   MetricType,
   METRICS_BY_KIND,
+  Mechanic,
   MovementType,
   Region,
   REGION_LABEL,
@@ -153,6 +154,15 @@ const REGIONS: Region[] = ['UPPER', 'LOWER', 'CORE', 'FULL_BODY'];
                   <ion-segment-button value="NONE"><ion-label>—</ion-label></ion-segment-button>
                   <ion-segment-button value="PUSH"><ion-label>Push</ion-label></ion-segment-button>
                   <ion-segment-button value="PULL"><ion-label>Pull</ion-label></ion-segment-button>
+                </ion-segment>
+              </ion-item>
+              <ion-item>
+                <ion-label class="ion-text-wrap">Articulações<p>Decide quanto sobe a carga sugerida</p></ion-label>
+                <ion-segment class="small" slot="end" [value]="mechanic() ?? 'NONE'"
+                  (ionChange)="setMechanic($any($event).detail.value)">
+                  <ion-segment-button value="NONE"><ion-label>—</ion-label></ion-segment-button>
+                  <ion-segment-button value="COMPOUND"><ion-label>Multi</ion-label></ion-segment-button>
+                  <ion-segment-button value="ISOLATION"><ion-label>Mono</ion-label></ion-segment-button>
                 </ion-segment>
               </ion-item>
             }
@@ -316,6 +326,7 @@ export class ExerciseFormPage implements OnInit {
   readonly isIsometric = signal(false);
   readonly region = signal<Region | null>(null);
   readonly movementType = signal<MovementType | null>(null);
+  readonly mechanic = signal<Mechanic | null>(null);
   readonly equipmentId = signal<string | null>(null);
   readonly restSeconds = signal<number | null>(null);
   readonly notes = signal('');
@@ -378,6 +389,7 @@ export class ExerciseFormPage implements OnInit {
     this.isIsometric.set(ex.isIsometric);
     this.region.set(ex.region);
     this.movementType.set(ex.movementType);
+    this.mechanic.set(ex.mechanic);
     this.equipmentId.set(ex.equipmentId);
     this.restSeconds.set(ex.defaultRestSeconds);
     this.notes.set(ex.notes ?? '');
@@ -432,6 +444,10 @@ export class ExerciseFormPage implements OnInit {
     }
   }
 
+  setMechanic(value: string): void {
+    this.mechanic.set(value === 'COMPOUND' || value === 'ISOLATION' ? value : null);
+  }
+
   setMovement(value: string): void {
     this.movementType.set(value === 'PUSH' || value === 'PULL' ? value : null);
   }
@@ -474,6 +490,7 @@ export class ExerciseFormPage implements OnInit {
       isIsometric: this.isIsometric(),
       region: this.kind() === 'MOBILITY' ? null : this.region(),
       movementType: this.movementType(),
+      mechanic: this.mechanic(),
       equipmentId: this.equipmentId(),
       defaultRestSeconds: this.restSeconds(),
       notes: this.notes(),

@@ -493,6 +493,13 @@ for (const f of FEDB) {
   if (f.instructions?.length) instructions[key] = f.instructions;
 }
 
+// Mecânica dos itens do catálogo que o free-exercise-db não cobriu: estimada pelo nome (só força).
+const ISOLATION = /\b(curl|extension|raise|fly|crossover|pec deck|kickback|pushdown|shrug|wrist|abduction|adduction|abductor|crunch|side bend|calf|pullover|face pull|pull-apart|rotation|twist|woodchop|clamshell|fire hydrant|donkey kick|frog pump|tibialis|dorsiflexion|reverse fly|lateral walk|monster walk)\b/i;
+for (const l of library) {
+  if (l.kind !== 'STRENGTH') l.mechanic = null;
+  else if (!l.mechanic) l.mechanic = ISOLATION.test(l.name) && !/squat|lunge|press|row|deadlift/i.test(l.name) ? 'ISOLATION' : 'COMPOUND';
+}
+
 // Nomes únicos depois de juntar: um nome repetido leva o equipamento (e, se preciso, a origem).
 const EQ_EN = { dumbbell: 'Dumbbell', barbell: 'Barbell', machine: 'Machine', cable: 'Cable', band: 'Band',
   kettlebell: 'Kettlebell', bodyweight: 'Bodyweight', other: 'Other' };

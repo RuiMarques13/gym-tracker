@@ -2,6 +2,7 @@ import type { Kind, MetricType } from '../../data/models/enums';
 
 export interface TargetsLike {
   targetSets?: number | null;
+  targetRepsMin?: number | null;
   targetReps?: number | null;
   targetDurationSeconds?: number | null;
   targetWeightKg?: number | null;
@@ -22,7 +23,7 @@ export function formatDistance(m: number): string {
   return m >= 1000 ? `${(m / 1000).toLocaleString('pt-PT', { maximumFractionDigits: 2 })} km` : `${m} m`;
 }
 
-/** «4 × 8 · 60 kg · descanso 2 min», «2 × 45 s por lado», «20 min · 5 km». */
+/** «4 × 8 · 60 kg» ou «3 × 8–12»; «4 × 8 · 60 kg · descanso 2 min», «2 × 45 s por lado», «20 min · 5 km». */
 export function formatTargets(kind: Kind, metric: MetricType, unilateral: boolean, t: TargetsLike): string {
   const parts: string[] = [];
   const sets = t.targetSets ?? null;
@@ -35,7 +36,7 @@ export function formatTargets(kind: Kind, metric: MetricType, unilateral: boolea
     const d = t.targetDurationSeconds ? formatDuration(t.targetDurationSeconds) : '?';
     parts.push(sets ? `${sets} × ${d}${side}` : `${d}${side}`);
   } else {
-    const r = t.targetReps ?? '?';
+    const r = t.targetRepsMin && t.targetReps && t.targetRepsMin < t.targetReps ? `${t.targetRepsMin}–${t.targetReps}` : (t.targetReps ?? '?');
     parts.push(sets ? `${sets} × ${r}${side}` : `${r} reps${side}`);
     if (metric === 'WEIGHT_REPS' && t.targetWeightKg) parts.push(`${t.targetWeightKg.toLocaleString('pt-PT')} kg`);
   }

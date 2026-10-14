@@ -26,6 +26,9 @@ export interface PlannedExercise {
   block: Block;
   supersetGroup: string | null;
   targetSets: number | null;
+  /** Faixa de repetições: mínimo (null = alvo único em `targetReps`). */
+  targetRepsMin: number | null;
+  /** Máximo da faixa, ou o alvo único. */
   targetReps: number | null;
   targetDurationSeconds: number | null;
   targetWeightKg: number | null;
@@ -60,6 +63,7 @@ export interface PlannedExerciseInput {
   /** Exercícios seguidos com o mesmo grupo fazem superset (A, B…); a repo normaliza. */
   supersetGroup?: string | null;
   targetSets?: number | null;
+  targetRepsMin?: number | null;
   targetReps?: number | null;
   targetDurationSeconds?: number | null;
   targetWeightKg?: number | null;
@@ -91,8 +95,8 @@ export function defaultTargets(kind: Kind, metric: MetricType): Omit<PlannedExer
     return metric === 'DURATION' ? { targetSets: 2, targetDurationSeconds: 30 } : { targetSets: 2, targetReps: 10 };
   }
   if (metric === 'DURATION') return { targetSets: 3, targetDurationSeconds: 30 };
-  if (metric === 'REPS') return { targetSets: 3, targetReps: 12 };
-  return { targetSets: 3, targetReps: 10 };
+  if (metric === 'REPS') return { targetSets: 3, targetRepsMin: 8, targetReps: 12 };
+  return { targetSets: 3, targetRepsMin: 8, targetReps: 12 };
 }
 
 /** Bloco natural para um tipo de exercício. */

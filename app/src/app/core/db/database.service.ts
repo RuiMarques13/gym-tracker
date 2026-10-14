@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { SEED } from '../seed/seed.generated';
 import { loadSeed } from '../seed/seed-loader';
 import { refineStoredMuscles, fixStoredMovement } from '../library/refine-stored-muscles';
-import { refineStoredNames } from '../library/refine-stored-names';
+import { refineStoredMechanic, refineStoredNames } from '../library/refine-stored-names';
 import { refineStoredCategories } from '../library/refine-stored-category';
 import { CLOCK } from '../util/clock';
 import { CapacitorSqliteAdapter } from './adapters/capacitor-adapter';
@@ -60,6 +60,7 @@ export class DatabaseService {
     const { LIBRARY } = await import('../library/library-data');
     await refineStoredCategories(db, deviceId, this.clock.nowIso(), LIBRARY.items);
     await refineStoredNames(db, deviceId, this.clock.nowIso(), LIBRARY.items);
+    await refineStoredMechanic(db, deviceId, this.clock.nowIso(), LIBRARY.items);
   }
 
   async init(): Promise<void> {

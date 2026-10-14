@@ -1,4 +1,4 @@
-import type { Category, Kind, MetricType, MovementType, Region } from './enums';
+import type { Category, Kind, Mechanic, MetricType, MovementType, Region } from './enums';
 
 export interface Exercise {
   id: string;
@@ -13,6 +13,8 @@ export interface Exercise {
   equipmentId: string | null;
   equipmentName: string | null;
   defaultRestSeconds: number | null;
+  /** Multiarticular ou monoarticular (decide quanto subir a carga); null = não indicado. */
+  mechanic: Mechanic | null;
   notes: string | null;
   videoUrl: string | null;
   archivedAt: string | null;
@@ -52,6 +54,7 @@ export interface ExerciseInput {
   movementType?: MovementType | null;
   equipmentId?: string | null;
   defaultRestSeconds?: number | null;
+  mechanic?: Mechanic | null;
   notes?: string | null;
   videoUrl?: string | null;
   primaryMuscleIds?: string[];

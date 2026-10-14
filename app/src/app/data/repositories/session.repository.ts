@@ -27,4 +27,6 @@ export interface SessionRepository {
   discard(id: string): Promise<void>;
   /** Séries da sessão anterior mais recente que tenha este exercício, para pré-preencher. */
   previousSets(exerciseId: string, excludeSessionId?: string): Promise<SessionSet[]>;
+  /** Séries das últimas sessões terminadas com este exercício, da mais recente para a mais antiga. */
+  recentSets(exerciseId: string, excludeSessionId?: string, limit?: number): Promise<SessionSet[][]>;
 }

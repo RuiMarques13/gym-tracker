@@ -39,6 +39,11 @@ function def<T>(d: SettingDef<T>): SettingDef<T> {
   return d;
 }
 
+/** Mapa chave de equipamento → incremento em kg (> 0 e ≤ 50). */
+const isIncrementMap = (v: unknown): v is Record<string, number> =>
+  !!v && typeof v === 'object' && !Array.isArray(v) &&
+  Object.values(v as Record<string, unknown>).every((x) => typeof x === 'number' && x > 0 && x <= 50);
+
 export const SETTINGS = {
   theme: def<'system' | 'light' | 'dark'>({
     key: 'ui.theme', scope: 'DEVICE', schemaVersion: 1, defaultValue: 'system',
@@ -67,6 +72,19 @@ export const SETTINGS = {
   secondaryMuscleWeight: def<number>({
     key: 'metrics.secondaryMuscleWeight', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 0.5,
     validate: isNumberInRange(0, 1), label: 'Peso das séries em músculos secundários',
+  }),
+  /**
+   * Incremento de carga por equipamento (chave do catálogo: barbell, dumbbell, cable, machine…), em kg.
+   * Não há fonte para estes valores: são teus (barras, halteres e polias 2,5 kg; máquinas 5 kg por defeito).
+   */
+  loadIncrements: def<Record<string, number>>({
+    key: 'progression.loadIncrements', scope: 'ACCOUNT', schemaVersion: 1,
+    defaultValue: { barbell: 2.5, dumbbell: 2.5, cable: 2.5, machine: 5, kettlebell: 4 },
+    validate: isIncrementMap, label: 'Incrementos de carga por equipamento',
+  }),
+  loadSuggestions: def<boolean>({
+    key: 'progression.loadSuggestions', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: true,
+    validate: isBool, label: 'Sugerir a carga de cada exercício',
   }),
   showRomScore: def<boolean>({
     key: 'mobility.showRomScore', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: true,

@@ -11,6 +11,9 @@ export type Category =
 export type MetricType = 'WEIGHT_REPS' | 'REPS' | 'DURATION';
 export type Region = 'UPPER' | 'LOWER' | 'CORE' | 'FULL_BODY';
 export type MovementType = 'PUSH' | 'PULL';
+/** Multiarticular ou monoarticular. */
+export type Mechanic = 'COMPOUND' | 'ISOLATION';
+export const MECHANIC_LABEL: Record<Mechanic, string> = { COMPOUND: 'Multiarticular', ISOLATION: 'Monoarticular' };
 /**
  * Blocos de um treino. Só há dois: qualquer exercício (força, mobilidade ou cardio) pode estar em qualquer um.
  * A base ainda aceita 'MOBILITY' (migração 001), mas a app nunca o escreve; ao ler, passa a 'MAIN'.

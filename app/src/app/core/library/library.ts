@@ -16,6 +16,7 @@ export function libraryItemToInput(item: LibraryItem): ExerciseInput {
     movementType: item.movementType,
     equipmentId: item.equipment ? ids.equipment(item.equipment) : null,
     defaultRestSeconds: null,
+    mechanic: item.kind === 'STRENGTH' ? item.mechanic : null,
     notes: item.variants ? `Variações: ${item.variants}` : null,
     primaryMuscleIds: item.primary.map((k) => ids.muscle(k)),
     secondaryMuscleIds: item.secondary.map((k) => ids.muscle(k)),

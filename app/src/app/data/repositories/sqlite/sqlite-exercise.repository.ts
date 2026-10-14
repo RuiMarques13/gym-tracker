@@ -1,5 +1,6 @@
 import type { DbAdapter, SqlValue } from '../../../core/db/db-adapter';
 import type { Clock } from '../../../core/util/clock';
+import type { Mechanic } from '../../models/enums';
 import { ids, newId } from '../../../core/util/uuid';
 import {
   Category, Kind, KIND_OF_CATEGORY, MetricType, METRICS_BY_KIND, MovementType, Region, defaultCategory, isCategory, resolveCategory,
@@ -15,6 +16,7 @@ interface ExerciseRow {
   metric_type: MetricType;
   is_unilateral: number;
   is_isometric: number;
+  mechanic: Mechanic | null;
   region: Region | null;
   movement_type: MovementType | null;
   equipment_id: string | null;
@@ -72,18 +74,18 @@ export class SqliteExerciseRepository implements ExerciseRepository {
       // Upsert: também reativa uma linha apagada ou arquivada com o mesmo id (ex.: biblioteca).
       await tx.run(
         `INSERT INTO exercise (id, name, kind, category, metric_type, is_unilateral, region, movement_type, is_isometric,
-           equipment_id, default_rest_seconds, notes, video_url, archived_at, updated_at, deleted_at, device_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?)
+           equipment_id, default_rest_seconds, mechanic, notes, video_url, archived_at, updated_at, deleted_at, device_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?)
          ON CONFLICT(id) DO UPDATE SET name = excluded.name, kind = excluded.kind, category = excluded.category,
            metric_type = excluded.metric_type, is_unilateral = excluded.is_unilateral, region = excluded.region,
            movement_type = excluded.movement_type, is_isometric = excluded.is_isometric,
            equipment_id = excluded.equipment_id, default_rest_seconds = excluded.default_rest_seconds,
-           notes = excluded.notes, video_url = excluded.video_url, archived_at = NULL,
+           mechanic = excluded.mechanic, notes = excluded.notes, video_url = excluded.video_url, archived_at = NULL,
            updated_at = excluded.updated_at, deleted_at = NULL, device_id = excluded.device_id`,
         [
           id, name, input.kind, category, input.metricType, input.kind !== 'CARDIO' && input.isUnilateral ? 1 : 0, input.region ?? null,
           isStrength ? (input.movementType ?? null) : null, isStrength && input.isIsometric ? 1 : 0, input.equipmentId ?? null,
-          input.defaultRestSeconds ?? null, emptyToNull(input.notes), emptyToNull(input.videoUrl), now, this.deviceId,
+          input.defaultRestSeconds ?? null, isStrength ? (input.mechanic ?? null) : null, emptyToNull(input.notes), emptyToNull(input.videoUrl), now, this.deviceId,
         ],
       );
       await this.syncLinks(
@@ -296,6 +298,7 @@ export class SqliteExerciseRepository implements ExerciseRepository {
       metricType: r.metric_type,
       isUnilateral: r.is_unilateral === 1,
       isIsometric: r.is_isometric === 1,
+      mechanic: r.mechanic ?? null,
       region: r.region,
       movementType: r.movement_type,
       equipmentId: r.equipment_id,
