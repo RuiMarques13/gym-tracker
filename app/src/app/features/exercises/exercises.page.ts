@@ -24,9 +24,11 @@ import {
   IonToggle,
   IonToolbar,
   ViewWillEnter,
+  AlertController,
 } from '@ionic/angular';
+import { ToastService } from '../../core/ui/toast.service';
 import { addIcons } from 'ionicons';
-import { add, libraryOutline, optionsOutline } from 'ionicons/icons';
+import { add, libraryOutline, optionsOutline, removeCircleOutline } from 'ionicons/icons';
 import {
   Category,
   CATEGORIES,
@@ -120,6 +122,12 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
                 @if (e.archivedAt) { <ion-badge color="medium">Arquivado</ion-badge> }
                 @if (e.isUnilateral) { <ion-badge color="tertiary">Unilateral</ion-badge> }
                 <ion-badge [color]="kindColor[e.kind]">{{ categoryLabel[e.category] }}</ion-badge>
+                @if (!e.archivedAt) {
+                  <ion-button fill="clear" color="medium" size="small" class="remove" aria-label="Tirar da lista"
+                    (click)="$event.stopPropagation(); $event.preventDefault(); removeFromList(e)">
+                    <ion-icon slot="icon-only" name="remove-circle-outline" />
+                  </ion-button>
+                }
               </div>
             </ion-item>
           } @empty {
@@ -218,7 +226,8 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
     .chip-row::-webkit-scrollbar { display: none; }
     ion-chip { flex: 0 0 auto; }
     ion-chip.small { height: 28px; font-size: 0.8rem; }
-    .badges { display: flex; gap: 6px; }
+    .badges { display: flex; gap: 6px; align-items: center; }
+    .badges .remove { margin: 0 -8px 0 0; --padding-start: 6px; --padding-end: 6px; }
     ion-badge { font-weight: 500; }
     h2 { font-weight: 600; }
     .count-badge { position: absolute; top: 2px; right: 0; font-size: 0.65rem; padding: 3px 5px; }
@@ -226,6 +235,38 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
 })
 export class ExercisesPage implements ViewWillEnter {
   private readonly repo = inject(EXERCISE_REPOSITORY);
+  private readonly alerts = inject(AlertController);
+  private readonly toasts = inject(ToastService);
+
+  /**
+   * Tira o exercício da tua lista; continua na biblioteca (e volta com «Adicionar» ou «Restaurar»).
+   * Nunca usado: apaga. Usado em treinos ou sessões: arquiva, para o histórico e os gráficos ficarem.
+   */
+  async removeFromList(e: Exercise): Promise<void> {
+    const used = await this.repo.isUsed(e.id);
+    const alert = await this.alerts.create({
+      header: `Tirar «${e.name}» da lista?`,
+      message: used
+        ? 'Já o usaste: o histórico e os treinos onde está ficam como estão. Continua na biblioteca, de onde o podes restaurar.'
+        : 'Continua na biblioteca, de onde o podes voltar a adicionar.',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Tirar', role: 'destructive', handler: () => { void this.doRemove(e, used); } },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async doRemove(e: Exercise, used: boolean): Promise<void> {
+    try {
+      if (used) await this.repo.archive(e.id);
+      else await this.repo.remove(e.id);
+      this.exercises.reload();
+      await this.toasts.success(`«${e.name}» saiu da lista.`);
+    } catch {
+      await this.toasts.error('Não foi possível tirar o exercício.');
+    }
+  }
   private readonly lookupRepo = inject(LOOKUP_REPOSITORY);
 
   readonly kindLabel = KIND_LABEL;
@@ -313,7 +354,7 @@ export class ExercisesPage implements ViewWillEnter {
   });
 
   constructor() {
-    addIcons({ add, libraryOutline, optionsOutline });
+    addIcons({ add, libraryOutline, optionsOutline, removeCircleOutline });
   }
 
   /** Ao voltar do formulário ou da biblioteca, mostra as alterações. */
