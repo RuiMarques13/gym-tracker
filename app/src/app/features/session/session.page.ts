@@ -44,7 +44,7 @@ import type { SetType, Side } from '../../data/models/enums';
 import type { Exercise } from '../../data/models/exercise';
 import { groupSets, Session, SessionError, SessionExercise, SessionSet, SideEntry, workingSetCount } from '../../data/models/session';
 import { BLOCK_LABEL, BLOCK_ORDER } from '../../data/models/workout';
-import { MUSCLE_LABEL, specOfMuscleIds } from '../../core/metrics/muscles';
+import { figureOfMuscleIds, MUSCLE_LABEL, specOfMuscleIds } from '../../core/metrics/muscles';
 import { MetricExercise, MetricSet, sessionWarnings } from '../../core/metrics/volume';
 import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories/providers';
 import { ExercisePickerComponent } from '../workouts/exercise-picker.component';
@@ -501,10 +501,13 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   private readonly primaryMuscles = resource({
     params: () => [...new Set((this.session()?.exercises ?? []).map((e) => e.exerciseId))].sort().join(','),
     loader: async ({ params }) => {
-      const out = new Map<string, MetricExercise & { support: string[] }>();
+      const out = new Map<string, MetricExercise & { support: string[]; figPrimary: string[]; figSupport: string[] }>();
       for (const id of params ? params.split(',') : []) {
         const ex = await this.exerciseRepo.get(id);
-        out.set(id, { id, primaryMuscles: specOfMuscleIds(ex?.primaryMuscleIds ?? []), secondaryMuscles: [], support: specOfMuscleIds(ex?.secondaryMuscleIds ?? []) });
+        out.set(id, {
+          id, primaryMuscles: specOfMuscleIds(ex?.primaryMuscleIds ?? []), secondaryMuscles: [], support: specOfMuscleIds(ex?.secondaryMuscleIds ?? []),
+          figPrimary: figureOfMuscleIds(ex?.primaryMuscleIds ?? []), figSupport: figureOfMuscleIds(ex?.secondaryMuscleIds ?? []),
+        });
       }
       return out;
     },
@@ -529,11 +532,11 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
         if (l !== r) split = true;
         for (const [on, tgt] of [[l, left], [r, right]] as const) {
           if (!on) continue;
-          m.primaryMuscles.forEach((x) => tgt.primary.add(x));
-          m.support.forEach((x) => tgt.support.add(x));
+          m.figPrimary.forEach((x) => tgt.primary.add(x));
+          m.figSupport.forEach((x) => tgt.support.add(x));
         }
-        m.primaryMuscles.forEach((x) => both.primary.add(x));
-        m.support.forEach((x) => both.support.add(x));
+        m.figPrimary.forEach((x) => both.primary.add(x));
+        m.figSupport.forEach((x) => both.support.add(x));
       }
     }
     const out = (x: Sets) => ({ primary: [...x.primary], secondary: [...x.support] });

@@ -47,7 +47,7 @@ import {
   REGION_LABEL,
 } from '../../data/models/enums';
 import { Exercise, ExerciseInput, ExerciseValidationError } from '../../data/models/exercise';
-import { specOfMuscleIds } from '../../core/metrics/muscles';
+import { figureOfMuscleIds, specOfMuscleIds } from '../../core/metrics/muscles';
 import { motionFor } from '../../core/motion/motion';
 import { SHOW_MOTION } from '../../core/motion/motion-flag';
 import { ids } from '../../core/util/uuid';
@@ -193,7 +193,7 @@ const REGIONS: Region[] = ['UPPER', 'LOWER', 'CORE', 'FULL_BODY'];
               </ion-list-header>
               <div class="visual">
                 @if (kind() === 'STRENGTH' && motion(); as mo) { <app-exercise-motion [motion]="mo" [equipment]="equipmentKey()" /> }
-                <app-muscle-map [primary]="specPrimary()" [secondary]="specSecondary()" />
+                <app-muscle-map [primary]="figPrimary()" [secondary]="figSecondary()" />
               </div>
               @for (group of muscleGroups(); track group.region) {
                 <div class="chips-block">
@@ -352,6 +352,13 @@ export class ExerciseFormPage implements OnInit {
   );
   readonly specSecondary = computed(() =>
     specOfMuscleIds([...this.muscleRoles()].filter(([, r]) => r === 'secondary').map(([id]) => id)),
+  );
+  /** Zonas do boneco (mais finas que o spec: oblíquos, glúteo médio, tibial). */
+  readonly figPrimary = computed(() =>
+    figureOfMuscleIds([...this.muscleRoles()].filter(([, r]) => r === 'primary').map(([id]) => id)),
+  );
+  readonly figSecondary = computed(() =>
+    figureOfMuscleIds([...this.muscleRoles()].filter(([, r]) => r === 'secondary').map(([id]) => id)),
   );
   readonly muscleGroups = computed(() =>
     REGIONS.map((r) => ({ region: r, label: REGION_LABEL[r], muscles: this.muscles().filter((m) => (m.region ?? 'FULL_BODY') === r) }))

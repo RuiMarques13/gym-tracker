@@ -22,7 +22,7 @@ import { addIcons } from 'ionicons';
 import { add, checkmark, refreshOutline } from 'ionicons/icons';
 import { libraryItemToInput, LibraryItemState } from '../../core/library/library';
 import { ruleName, type LibraryItem } from '../../core/library/library-types';
-import { specOfKeys } from '../../core/metrics/muscles';
+import { figureOfKeys, specOfKeys } from '../../core/metrics/muscles';
 import { motionFor } from '../../core/motion/motion';
 import { SHOW_MOTION } from '../../core/motion/motion-flag';
 import { ExerciseMotionComponent } from '../../shared/exercise-motion.component';
@@ -116,7 +116,7 @@ import { ToastService } from '../../core/ui/toast.service';
                 <div class="detail">
                   <div class="detail-top">
                     @if (item.kind === 'STRENGTH') {
-                      <app-muscle-map class="map" [compact]="true" [primary]="specOf(item.primary)" [secondary]="specOf(item.secondary)" />
+                      <app-muscle-map class="map" [compact]="true" [primary]="figOf(item.primary)" [secondary]="figOf(item.secondary)" />
                     }
                     @if (motionOf(item); as mo) { <app-exercise-motion class="map" [motion]="mo" [equipment]="item.equipment ?? 'none'" /> }
                     <div class="meta">
@@ -193,6 +193,7 @@ export class LibraryPage implements ViewWillEnter {
   readonly busy = signal<string | null>(null);
   readonly openKey = signal<string | null>(null);
   readonly specOf = specOfKeys;
+  readonly figOf = figureOfKeys;
   readonly categoryLabel = CATEGORY_LABEL;
   motionOf = (item: LibraryItem) => (SHOW_MOTION ? motionFor(ruleName(item), specOfKeys(item.primary), item.kind) : null);
   /** Instruções (free-exercise-db): ficheiro à parte, só carregado quando abres um exercício. */
