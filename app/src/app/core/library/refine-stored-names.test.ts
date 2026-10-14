@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createTestDb } from '../testing/test-db';
 import { ids } from '../util/uuid';
-import { refineStoredNames } from './refine-stored-names';
+import { refineStoredMechanic, refineStoredNames } from './refine-stored-names';
 
 const NOW = '2026-10-14T22:00:00.000Z';
 const ITEMS = [
@@ -40,5 +40,19 @@ describe('refineStoredNames', () => {
     await insert(db, 'b', 'Barbell Bench Press');
     expect(await refineStoredNames(db, deviceId, NOW, ITEMS)).toBe(0);
     expect((await nameOf(db, 'a')).name).toBe('Supino plano (barra)');
+  });
+});
+
+describe('refineStoredMechanic', () => {
+  it('dá a mecânica da biblioteca a exercícios de força sem ela, sem mexer na que escolheste', async () => {
+    const { db, deviceId } = await createTestDb();
+    const items = [{ key: 'curl--band', name: 'Band Curl', namePt: 'Curl', kind: 'STRENGTH', mechanic: 'ISOLATION' as const }];
+    await insert(db, 'a', 'Band Curl');
+    await insert(db, 'b', 'Curl');
+    await db.run("UPDATE exercise SET mechanic = 'COMPOUND' WHERE id = 'b'");
+    expect(await refineStoredMechanic(db, deviceId, NOW, items)).toBe(1);
+    const rows = await db.query<{ id: string; mechanic: string }>('SELECT id, mechanic FROM exercise ORDER BY id');
+    expect(rows).toEqual([{ id: 'a', mechanic: 'ISOLATION' }, { id: 'b', mechanic: 'COMPOUND' }]);
+    expect(await refineStoredMechanic(db, deviceId, NOW, items)).toBe(0);
   });
 });
