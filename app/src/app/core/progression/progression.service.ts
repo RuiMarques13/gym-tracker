@@ -1,17 +1,20 @@
 import { inject, Injectable } from '@angular/core';
 import {
-  EXERCISE_REPOSITORY, METRICS_REPOSITORY, RECOVERY_REPOSITORY, SESSION_REPOSITORY, SUGGESTION_REPOSITORY, WORKOUT_REPOSITORY,
+  BODY_METRIC_REPOSITORY, EXERCISE_REPOSITORY, METRICS_REPOSITORY, RECOVERY_REPOSITORY, SESSION_REPOSITORY, SUGGESTION_REPOSITORY, WORKOUT_REPOSITORY,
 } from '../../data/repositories/providers';
 import type { SuggestionKind, SuggestionRecord, SuggestionResponse } from '../../data/repositories/suggestion.repository';
 import type { Workout } from '../../data/models/workout';
 import { MUSCLE_LABEL } from '../metrics/muscles';
-import { performanceTrend, previousVolume, weeklyVolume, type MetricSet } from '../metrics/volume';
+import { performanceTrend, previousVolume, weeklyVolume, type Level, type MetricSet } from '../metrics/volume';
+import { fourWeekChange, PACE, paceBand, paceMessage, paceStatus, weeklyPace, type WeightRecord } from './body';
+import { consistentMonths, levelSuggestion } from './level';
 import { VOLUME_RULES } from '../metrics/volume-rules';
 import { SettingsService } from '../settings/settings.service';
 import { CLOCK } from '../util/clock';
 import { toLocalDate, weekStartOf } from '../util/week';
 import { fatigueSignals, type FatigueSignal } from './fatigue';
 import { repRange } from './load';
+import { defaultRepRange } from './goals';
 import { detectStagnation, nextResponse, rangeOptions, volumePlan, type StagSession, type StimulusResponse } from './stagnation';
 
 const DAY = 86_400_000;
@@ -44,6 +47,17 @@ export interface SuggestionCard {
   payload: Record<string, unknown>;
 }
 
+/** Aviso informativo (ritmo de peso, nível sugerido): uma ação opcional e «OK». */
+export interface Notice {
+  key: string;
+  title: string;
+  text: string;
+  rules: string[];
+  action: { label: string; level?: Level } | null;
+}
+
+const LEVEL_LABEL: Record<Level, string> = { beginner: 'Iniciante', intermediate: 'Intermédio', advanced: 'Avançado' };
+
 export interface DeloadState {
   until: Date;
   /** «até quarta, 22 out.» */
@@ -62,6 +76,7 @@ export class ProgressionService {
   private readonly exercises = inject(EXERCISE_REPOSITORY);
   private readonly workouts = inject(WORKOUT_REPOSITORY);
   private readonly suggestions = inject(SUGGESTION_REPOSITORY);
+  private readonly body = inject(BODY_METRIC_REPOSITORY);
   private readonly settings = inject(SettingsService);
   private readonly clock = inject(CLOCK);
 
@@ -136,6 +151,16 @@ export class ProgressionService {
         primaryMuscleIds: ex.primaryMuscleIds,
       })), n: stag.sessionsWithout });
     }
+    // A ganhar massa, com o peso parado 4 semanas: juntar o sinal da alimentação (rules.ts `pace.stall`).
+    if (out.length && this.settings.get('profileGoal')() === 'hypertrophy') {
+      const change = fourWeekChange(await this.weights(), toLocalDate(now));
+      if (change !== null && change < PACE.stallTotal) {
+        for (const c of out) {
+          c.text += ` O teu peso subiu menos de 0,25% em 4 semanas: revê também a alimentação.`;
+          c.rules = [...c.rules, 'pace.stall'];
+        }
+      }
+    }
     // Home: os 3 exercícios parados há mais tempo (uma sugestão de cada vez; os outros aparecem no fim da sessão).
     out.sort((a, b) => b.n - a.n);
     if (!scope.exerciseIds) out = out.slice(0, HOME_MAX);
@@ -177,14 +202,14 @@ export class ProgressionService {
 
   private maxSets(): number {
     const goal = this.settings.get('profileGoal')();
-    if (goal === 'hypertrophy') return VOLUME_RULES.goals.hypertrophy[this.settings.get('profileLevel')()].max;
+    if (goal === 'hypertrophy' || goal === 'strength') return VOLUME_RULES.goals.hypertrophy[this.settings.get('profileLevel')()].max;
     if (goal === 'cut') return VOLUME_RULES.goals.cut.any.max;
     return VOLUME_RULES.goals.maintenance.under_60.max;
   }
 
   private levelRirMin(): number {
     const goal = this.settings.get('profileGoal')();
-    if (goal === 'hypertrophy') return VOLUME_RULES.goals.hypertrophy[this.settings.get('profileLevel')()].rir[0];
+    if (goal === 'hypertrophy' || goal === 'strength') return VOLUME_RULES.goals.hypertrophy[this.settings.get('profileLevel')()].rir[0];
     return goal === 'cut' ? VOLUME_RULES.goals.cut.any.rir[0] : VOLUME_RULES.goals.maintenance.under_60.rir[0];
   }
 
@@ -219,7 +244,8 @@ export class ProgressionService {
       case 'range': {
         const where = await this.templatesWith(c.exerciseId);
         const item = where[0]?.items.find((i) => i.exerciseId === c.exerciseId);
-        const [min, max] = item ? repRange(item) : [8, 12];
+        const fallback = defaultRepRange(this.settings.get('profileGoal')(), this.settings.get('profileLevel')());
+        const [min, max] = item ? repRange(item, fallback) : fallback;
         const opts = rangeOptions(min, max);
         return {
           ...base, rules: ['stagnation.detect', 'stagnation.range', 'stagnation.order'],
@@ -264,6 +290,60 @@ export class ProgressionService {
       .sort((a, b) => Number(inTemplates.has(a.id)) - Number(inTemplates.has(b.id)))
       .slice(0, 3)
       .map((e) => ({ id: e.id, name: e.name }));
+  }
+
+  private async weights(): Promise<WeightRecord[]> {
+    return (await this.body.list('WEIGHT_KG', 120)).map((m) => ({ date: m.date, value: m.value }));
+  }
+
+  // --- avisos (ritmo de peso, nível) -----------------------------------------------------------------
+
+  /** Avisos para a Home: ritmo de peso fora da faixa do objetivo e nível sugerido pelo histórico. */
+  async notices(): Promise<Notice[]> {
+    const now = this.clock.now();
+    const today = toLocalDate(now);
+    const goal = this.settings.get('profileGoal')();
+    const level = this.settings.get('profileLevel')();
+    const dismissed = new Set(this.settings.get('dismissedNotices')());
+    const out: Notice[] = [];
+
+    const pace = weeklyPace(await this.weights(), today);
+    const band = paceBand(goal, level);
+    if (pace !== null && band) {
+      const msg = paceMessage(goal, level, pace);
+      const key = `pace:${weekStartOf(today)}:${paceStatus(pace, band)}`;
+      if (msg && !dismissed.has(key)) {
+        out.push({ key, title: 'Ritmo de peso', text: msg, rules: ['pace.measure', band.rule], action: null });
+      }
+    }
+
+    const md = await this.metrics.metricData(new Date(now.getTime() - 4 * 365 * DAY), new Date(now.getTime() + 1000));
+    const days = [...new Set(md.sets.map((s) => toLocalDate(s.performedAt)))];
+    const months = consistentMonths(days, today);
+    const sug = levelSuggestion(level, months);
+    if (sug && !dismissed.has(`level:${sug}`)) {
+      const m = Math.floor(months);
+      out.push({
+        key: `level:${sug}`, title: `Nível: ${LEVEL_LABEL[sug]}?`,
+        text: `Treinas com regularidade há ${m} ${m === 1 ? 'mês' : 'meses'}. O ACSM 2009 chama ${sug === 'intermediate' ? 'intermédio a quem tem cerca de 6 meses' : 'avançado a quem tem anos'} de treino consistente. Mudar o nível muda as faixas de séries por semana${goal === 'strength' ? ' e as repetições por defeito' : ''}.`,
+        rules: ['level.definition', 'level.suggest'], action: { label: `Passar a ${LEVEL_LABEL[sug].toLowerCase()}`, level: sug },
+      });
+    }
+    return out;
+  }
+
+  async acceptNotice(n: Notice): Promise<string | null> {
+    await this.dismissNotice(n);
+    if (n.action?.level) {
+      await this.settings.set('profileLevel', n.action.level);
+      return `Nível: ${LEVEL_LABEL[n.action.level].toLowerCase()}.`;
+    }
+    return null;
+  }
+
+  async dismissNotice(n: Notice): Promise<void> {
+    const cur = this.settings.get('dismissedNotices')();
+    if (!cur.includes(n.key)) await this.settings.set('dismissedNotices', [...cur, n.key].slice(-200));
   }
 
   // --- respostas -----------------------------------------------------------------------------------

@@ -58,6 +58,8 @@ import { formatDay } from '../history/history-format';
 import { formatTargets } from '../workouts/workout-format';
 import { repRange, suggestLoad, type LoadSuggestion } from '../../core/progression/load';
 import { defaultRest } from '../../core/progression/rest';
+import { defaultRepRange, strengthTarget } from '../../core/progression/goals';
+import { reliable1RM } from '../../core/metrics/one-rm';
 import { nextTimeText } from '../../core/progression/next-time';
 import { SEED } from '../../core/seed/seed.generated';
 import { ids } from '../../core/util/uuid';
@@ -191,6 +193,7 @@ const figOf = (ex: Exercise | null | undefined) => {
                       @if (sg.action === 'increase') { <span class="tag">sobe</span> }
                       @if (sg.action === 'decrease') { <span class="tag">desce</span> }
                     </div>
+                    @if (sg.strength; as st) { <p class="why">Força: ~80% do teu 1RM estimado ({{ kgLabel(st.e1rm) }}) ≈ {{ kgLabel(st.kg) }}.</p> }
                     @if (deload() && ex.targetSets) { <p class="why">Descarga: {{ deloadSets(ex) }} de {{ ex.targetSets }} séries.</p> }
                     @if (sg.options.length > 1) {
                       <div class="opts">
@@ -749,9 +752,16 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       sets: sets.filter((x) => x.type === 'WORKING').map((x) => ({ weightKg: x.weightKg, reps: x.reps, rir: x.rir })),
     });
     const history = [...(today ? [working(today)] : []), ...recent.map(working)];
-    const [min, max] = repRange(e);
+    const goal = this.settings.get('profileGoal')();
+    const [min, max] = repRange(e, defaultRepRange(goal, this.settings.get('profileLevel')()));
     const key = e.equipmentId ? EQUIPMENT_KEY.get(e.equipmentId) : undefined;
-    const sg = suggestLoad({ history, repsMin: min, repsMax: max, mechanic: e.mechanic, incrementKg: key ? (increments[key] ?? null) : null });
+    const inc = key ? (increments[key] ?? null) : null;
+    const sg = suggestLoad({ history, repsMin: min, repsMax: max, mechanic: e.mechanic, incrementKg: inc });
+    // Objetivo Força: ~80% do 1RM estimado (ACSM 2026, comunicado), a partir das séries até 10 repetições.
+    if (goal === 'strength' && !today) {
+      const e1 = Math.max(0, ...history.flatMap((h) => h.sets.map((x) => reliable1RM(x.weightKg, x.reps, x.rir) ?? 0)));
+      if (e1 > 0) sg.strength = { e1rm: Math.round(e1 * 10) / 10, kg: strengthTarget(e1, inc) };
+    }
     // Semana de descarga: a mesma carga, sem subir (Bell 2023: o volume cai, a intensidade pode manter-se).
     if (!today && this.progression.deload() && sg.action === 'increase') {
       const last = Math.max(0, ...(history[0]?.sets ?? []).map((x) => x.weightKg ?? 0));
@@ -994,7 +1004,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       return;
     }
     const seconds = ex.restSeconds
-      ?? (ex.kind === 'STRENGTH' ? defaultRest(ex.mechanic, this.settings.get('restByMechanic')(), this.settings.get('defaultRestSeconds')()) : 0);
+      ?? (ex.kind === 'STRENGTH' ? defaultRest(ex.mechanic, this.settings.get('restByMechanic')(), this.settings.get('defaultRestSeconds')(), this.settings.get('profileGoal')()) : 0);
     if (seconds > 0) this.timer.start('REST', ex.exerciseName, seconds);
   }
 

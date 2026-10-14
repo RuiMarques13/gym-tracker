@@ -106,6 +106,11 @@ export const SETTINGS = {
     key: 'progression.deloadUntil', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: null,
     validate: isIsoOrNull, label: 'Descarga até',
   }),
+  /** Avisos que já viste (ritmo de peso por semana, nível sugerido): não voltam a aparecer. */
+  dismissedNotices: def<string[]>({
+    key: 'progression.dismissedNotices', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: [],
+    validate: isStringArray, label: 'Avisos dispensados',
+  }),
   showRomScore: def<boolean>({
     key: 'mobility.showRomScore', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: true,
     validate: isBool, label: 'Mostrar nota de amplitude na mobilidade',
@@ -131,9 +136,9 @@ export const SETTINGS = {
     key: 'profile.heightCm', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: null,
     validate: (v): v is number | null => v === null || isNumberInRange(50, 260)(v), label: 'Altura (cm)',
   }),
-  profileGoal: def<'hypertrophy' | 'maintenance' | 'cut'>({
+  profileGoal: def<'hypertrophy' | 'strength' | 'maintenance' | 'cut'>({
     key: 'profile.goal', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 'hypertrophy',
-    validate: isOneOf('hypertrophy', 'maintenance', 'cut'), label: 'Objetivo',
+    validate: isOneOf('hypertrophy', 'strength', 'maintenance', 'cut'), label: 'Objetivo',
   }),
   profileLevel: def<'beginner' | 'intermediate' | 'advanced'>({
     key: 'profile.level', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 'intermediate',

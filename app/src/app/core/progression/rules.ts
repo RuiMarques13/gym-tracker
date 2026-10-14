@@ -6,7 +6,7 @@
  */
 
 export type RuleMark = 'source' | 'app';
-export type RuleArea = 'carga' | 'estagnacao' | 'descarga' | 'volume' | 'descanso' | '1rm';
+export type RuleArea = 'carga' | 'estagnacao' | 'descarga' | 'volume' | 'descanso' | '1rm' | 'objetivo' | 'corpo' | 'nivel';
 
 export interface RuleRef {
   label: string;
@@ -35,6 +35,9 @@ export const AREA_LABEL: Record<RuleArea, string> = {
   volume: 'Volume semanal',
   descanso: 'Descanso entre séries',
   '1rm': '1RM estimado',
+  objetivo: 'Objetivo',
+  corpo: 'Ritmo de peso',
+  nivel: 'Nível',
 };
 
 export const REF = {
@@ -51,6 +54,10 @@ export const REF = {
   singer2024: { label: 'Singer et al. 2024, descanso e hipertrofia', url: 'https://www.frontiersin.org/articles/10.3389/fspor.2024.1429789/full' },
   reynolds2006: { label: 'Reynolds, Gordon e Robergs 2006, previsão do 1RM', url: 'https://www.unm.edu/~rrobergs/478RMStrengthPrediction.pdf' },
   lacio2010: { label: 'Lacio et al. 2010, equações de 1RM no supino', url: 'https://www.redalyc.org/pdf/2730/273019708005.pdf' },
+  acsm2026: { label: 'ACSM 2026, posição sobre treino de força', url: 'https://acsm.org/science-spotlight-acsm-releases-new-position-stand-on-resistance-training/', note: 'só o comunicado; o artigo não abriu' },
+  iraki2019: { label: 'Iraki et al. 2019, culturistas fora de competição', url: 'https://mdpi.com/486090' },
+  helms2014: { label: 'Helms, Aragon e Fitschen 2014, culturismo natural', url: 'https://link.springer.com/content/pdf/10.1186/1550-2783-11-20.pdf' },
+  garthe2011: { label: 'Garthe et al. 2011, dois ritmos de perda de peso', url: 'https://lida.sport-iat.de/ta/Record/4020931?lng=en', note: 'só o resumo' },
 } satisfies Record<string, RuleRef>;
 
 export const RULES: Rule[] = [
@@ -123,6 +130,48 @@ export const RULES: Rule[] = [
   { key: 'fatigue.signals', area: 'descarga', mark: 'app', refs: [],
     title: 'Sinais de fadiga',
     value: 'Qualquer um: esforço da sessão 9 ou 10 em 2 das últimas 3 sessões; mais de metade das séries de trabalho a 0 em reserva nas últimas 2 sessões (com pelo menos 4 séries com reserva registada), quando o teu nível pede 1 ou mais; dor muscular 4 ou 5 nos últimos 3 dias; o 1RM estimado dos exercícios principais a cair mais de 2% por semana em 2 semanas.' },
+  // ---- objetivo ----
+  { key: 'goal.hypertrophy.reps', area: 'objetivo', mark: 'source', refs: [REF.acsm2009],
+    title: 'Hipertrofia: repetições por defeito',
+    value: '8–12 repetições (grau A no ACSM 2009, para noviços e intermédios).' },
+  { key: 'goal.strength.reps', area: 'objetivo', mark: 'app', refs: [REF.acsm2009],
+    title: 'Força: repetições por defeito',
+    value: '8–12 no iniciante (ACSM 2009, A); 4–6 no intermédio e avançado. O ACSM 2009 dá 1–6 RM no avançado; os 4–6 são escolha da app dentro dessa faixa.' },
+  { key: 'goal.strength.load', area: 'objetivo', mark: 'source', refs: [REF.acsm2026],
+    title: 'Força: carga e séries',
+    value: 'Cerca de 80% do 1RM em 2–3 séries por exercício. A app mostra o valor a partir do teu 1RM estimado e arredonda para baixo ao incremento.' },
+  { key: 'goal.strength.rest', area: 'objetivo', mark: 'source', refs: [REF.acsm2009],
+    title: 'Força: descanso',
+    value: '2–3 min nos exercícios principais (B). A app usa 3 min nos multiarticulares e 90 s nos restantes.' },
+  { key: 'goal.strength.volume', area: 'objetivo', mark: 'app', refs: [],
+    title: 'Força: séries por músculo por semana',
+    value: 'Nenhuma fonte aberta dá este número para força; a app usa as faixas da hipertrofia do teu nível.' },
+  { key: 'goal.nutrition', area: 'objetivo', mark: 'source', refs: [REF.iraki2019, REF.helms2014],
+    title: 'Proteína (só informação)',
+    value: '1,6–2,2 g/kg/dia no ganho (Iraki 2019); 2,3–3,1 g/kg de massa magra em definição (Helms 2014). Escritas para culturistas e atletas. A app não regista alimentação e não faz contas com estes valores.' },
+  // ---- corpo ----
+  { key: 'pace.measure', area: 'corpo', mark: 'app', refs: [],
+    title: 'Como a app mede o ritmo',
+    value: 'Média do peso dos últimos 7 dias contra a dos 7 anteriores, em % por semana. Precisa de 3 pesagens em cada janela; com menos, não conclui nada.' },
+  { key: 'pace.hypertrophy', area: 'corpo', mark: 'source', refs: [REF.iraki2019],
+    title: 'Ganhar massa',
+    value: '+0,25 a +0,5% do peso por semana em iniciantes e intermédios. Nos avançados a fonte diz «mais devagar» sem número; a app usa 0 a +0,25%.' },
+  { key: 'pace.cut', area: 'corpo', mark: 'source', refs: [REF.helms2014, REF.garthe2011],
+    title: 'Definição',
+    value: '−0,5 a −1% do peso por semana, com aviso acima de 1%. Em atletas, 0,7% por semana deu +2,1% de massa magra e 1,4% por semana não a alterou.' },
+  { key: 'pace.maintenance', area: 'corpo', mark: 'app', refs: [],
+    title: 'Manutenção',
+    value: 'Peso estável: entre −0,25% e +0,25% por semana.' },
+  { key: 'pace.stall', area: 'corpo', mark: 'app', refs: [REF.iraki2019],
+    title: 'Peso parado e exercícios estagnados',
+    value: 'A ganhar massa, se o peso subiu menos de 0,25% em 4 semanas e há exercícios estagnados, o cartão sugere também rever a alimentação.' },
+  // ---- nível ----
+  { key: 'level.definition', area: 'nivel', mark: 'source', refs: [REF.acsm2009],
+    title: 'Níveis de treino',
+    value: 'Noviço: sem experiência ou sem treinar há vários anos. Intermédio: cerca de 6 meses de treino consistente. Avançado: anos de experiência.' },
+  { key: 'level.suggest', area: 'nivel', mark: 'app', refs: [REF.acsm2009],
+    title: 'Nível sugerido pelo histórico',
+    value: 'Conta os meses de treino de força sem pausas de 3 ou mais semanas. 6 meses: intermédio; 3 anos: avançado. Só sugere subir, porque o histórico na app pode ser mais curto que os teus anos de treino, e só muda com a tua confirmação.' },
 ];
 
 export const RULE: Record<string, Rule> = Object.fromEntries(RULES.map((r) => [r.key, r]));

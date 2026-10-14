@@ -31,6 +31,7 @@ import { add, copyOutline, linkOutline, trashOutline } from 'ionicons/icons';
 import { newId } from '../../core/util/uuid';
 import type { Block, Kind, Mechanic, MetricType } from '../../data/models/enums';
 import { defaultRest } from '../../core/progression/rest';
+import { defaultRepRange } from '../../core/progression/goals';
 import { SettingsService } from '../../core/settings/settings.service';
 import type { Exercise } from '../../data/models/exercise';
 import {
@@ -352,7 +353,7 @@ export class WorkoutEditorPage {
   restHint(it: EditItem): string {
     if (it.kind !== 'STRENGTH') return 'Opcional';
     if (it.exerciseRest) return `Do exercício: ${it.exerciseRest} s`;
-    const s = defaultRest(it.mechanic ?? null, this.settings.get('restByMechanic')(), this.settings.get('defaultRestSeconds')());
+    const s = defaultRest(it.mechanic ?? null, this.settings.get('restByMechanic')(), this.settings.get('defaultRestSeconds')(), this.settings.get('profileGoal')());
     return it.mechanic && this.settings.get('restByMechanic')()
       ? `Sugerido: ${s} s (${it.mechanic === 'COMPOUND' ? 'multiarticular' : 'monoarticular'})`
       : `Global: ${s} s`;
@@ -375,7 +376,7 @@ export class WorkoutEditorPage {
     if (role !== 'confirm' || !data?.length) return;
     const added: EditItem[] = data.map((e) => ({
       id: newId(), exerciseId: e.id, exerciseName: e.name, kind: e.kind, metricType: e.metricType,
-      isUnilateral: e.isUnilateral, archived: false, block, ...defaultTargets(e.kind, e.metricType),
+      isUnilateral: e.isUnilateral, archived: false, block, ...defaultTargets(e.kind, e.metricType, defaultRepRange(this.settings.get('profileGoal')(), this.settings.get('profileLevel')())),
       mechanic: e.mechanic, exerciseRest: e.defaultRestSeconds,
     }));
     this.items.update((list) => [...list, ...added]);

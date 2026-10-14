@@ -50,6 +50,8 @@ export interface LoadSuggestion {
   basis: 'ACSM 2009' | 'app';
   /** Chave da regra em rules.ts (para o «Porquê?»). */
   rule: string;
+  /** Objetivo Força: 1RM estimado e ~80% dele, arredondado ao incremento (preenchido pelo ecrã). */
+  strength?: { e1rm: number; kg: number };
 }
 
 export const LOAD_RULES = {

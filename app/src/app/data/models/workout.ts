@@ -92,14 +92,15 @@ export class WorkoutValidationError extends Error {
 }
 
 /** Alvos por defeito ao acrescentar um exercício a um treino. */
-export function defaultTargets(kind: Kind, metric: MetricType): Omit<PlannedExerciseInput, 'exerciseId' | 'block'> {
+/** `range`: faixa de repetições do objetivo (core/progression/goals.ts), só nos exercícios de força com carga. */
+export function defaultTargets(kind: Kind, metric: MetricType, range: [number, number] = [8, 12]): Omit<PlannedExerciseInput, 'exerciseId' | 'block'> {
   if (kind === 'CARDIO') return { targetSets: 1, targetDurationSeconds: 20 * 60 };
   if (kind === 'MOBILITY') {
     return metric === 'DURATION' ? { targetSets: 2, targetDurationSeconds: 30 } : { targetSets: 2, targetReps: 10 };
   }
   if (metric === 'DURATION') return { targetSets: 3, targetDurationSeconds: 30 };
   if (metric === 'REPS') return { targetSets: 3, targetRepsMin: 8, targetReps: 12 };
-  return { targetSets: 3, targetRepsMin: 8, targetReps: 12 };
+  return { targetSets: 3, targetRepsMin: range[0], targetReps: range[1] };
 }
 
 /** Bloco natural para um tipo de exercício. */

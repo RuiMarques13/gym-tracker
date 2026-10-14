@@ -22,14 +22,14 @@ import { formatDay, formatTime } from '../history/history-format';
 import { HomeWidgetsComponent } from './home-widgets.component';
 import { HomeLayoutEditorComponent } from './home-layout-editor.component';
 import { SessionLauncher } from '../session/session-launcher';
-import { SuggestionCardsComponent } from '../../shared/suggestion-cards.component';
+import { NoticeCardsComponent, SuggestionCardsComponent } from '../../shared/suggestion-cards.component';
 import { ProgressionService } from '../../core/progression/progression.service';
 
 @Component({
   selector: 'app-home',
   imports: [NavButtonComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonContent,
-    IonButton, HomeWidgetsComponent, HomeLayoutEditorComponent, IonButtons, IonIcon, SuggestionCardsComponent,
+    IonButton, HomeWidgetsComponent, HomeLayoutEditorComponent, IonButtons, IonIcon, SuggestionCardsComponent, NoticeCardsComponent,
   ],
   template: `
     <ion-header>
@@ -87,10 +87,11 @@ import { ProgressionService } from '../../core/progression/progression.service';
             <ion-button size="small" fill="outline" (click)="endDeload()">Terminar</ion-button>
           </div>
         }
-        @if (suggestions.value()?.length) {
+        @if (suggestions.value()?.length || notices.value()?.length) {
           <section class="sugg" aria-label="Sugestões">
             <h2>Sugestões</h2>
-            <app-suggestion-cards [cards]="suggestions.value()!" (changed)="suggestions.reload()" />
+            <app-notice-cards [notices]="notices.value() ?? []" (changed)="notices.reload()" />
+            <app-suggestion-cards [cards]="suggestions.value() ?? []" (changed)="suggestions.reload()" />
           </section>
         }
 
@@ -125,6 +126,11 @@ export class HomePage implements ViewWillEnter {
   readonly suggestions = resource({
     params: () => ({ t: this.tick(), d: this.settingsSvc.get('deloadUntil')() }),
     loader: () => this.progression.cards(),
+  });
+  /** Ritmo de peso e nível sugerido (fase 4). */
+  readonly notices = resource({
+    params: () => ({ t: this.tick(), g: this.settingsSvc.get('profileGoal')(), l: this.settingsSvc.get('profileLevel')() }),
+    loader: () => this.progression.notices(),
   });
   readonly deload = computed(() => (this.settingsSvc.get('deloadUntil')(), this.tick(), this.progression.deload()));
   async endDeload(): Promise<void> {

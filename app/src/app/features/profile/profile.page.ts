@@ -1,3 +1,8 @@
+import { ProgressionService } from '../../core/progression/progression.service';
+import { defaultRepRange } from '../../core/progression/goals';
+import { formatPace, paceBand, weeklyPace } from '../../core/progression/body';
+import { RuleWhyComponent } from '../../shared/rule-why.component';
+import { NoticeCardsComponent } from '../../shared/suggestion-cards.component';
 import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import {
@@ -20,7 +25,7 @@ import { ToastService } from '../../core/ui/toast.service';
   selector: 'app-profile',
   imports: [NavButtonComponent, 
     IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonInput, IonNote, IonSelect,
-    IonSelectOption, IonSegment, IonSegmentButton, IonButton, IonIcon,
+    IonSelectOption, IonSegment, IonSegmentButton, IonButton, IonIcon, RuleWhyComponent, NoticeCardsComponent,
   ],
   template: `
     <ion-header><ion-toolbar><app-nav-button slot="start" /><ion-title>Perfil</ion-title></ion-toolbar></ion-header>
@@ -56,6 +61,7 @@ import { ToastService } from '../../core/ui/toast.service';
             <ion-select label="Objetivo" labelPlacement="stacked" [value]="goal()" interface="popover"
               (ionChange)="saveGoal($any($event).detail.value)">
               <ion-select-option value="hypertrophy">Ganhar massa (hipertrofia)</ion-select-option>
+              <ion-select-option value="strength">Força</ion-select-option>
               <ion-select-option value="maintenance">Manutenção</ion-select-option>
               <ion-select-option value="cut">Definição (perder gordura)</ion-select-option>
             </ion-select>
@@ -63,14 +69,23 @@ import { ToastService } from '../../core/ui/toast.service';
           <ion-item>
             <ion-select label="Nível" labelPlacement="stacked" [value]="level()" interface="popover"
               (ionChange)="settings.set('profileLevel', $any($event).detail.value)">
-              <ion-select-option value="beginner">Iniciante (menos de 1 ano)</ion-select-option>
-              <ion-select-option value="intermediate">Intermédio (1 a 3 anos)</ion-select-option>
+              <ion-select-option value="beginner">Iniciante (menos de ~6 meses)</ion-select-option>
+              <ion-select-option value="intermediate">Intermédio (~6 meses a 3 anos)</ion-select-option>
               <ion-select-option value="advanced">Avançado (mais de 3 anos)</ion-select-option>
             </ion-select>
           </ion-item>
           <ion-item lines="none">
-            <ion-note class="ion-text-wrap">Anos de treino consistente. Define as faixas de séries por semana de cada músculo.</ion-note>
+            <ion-label class="ion-text-wrap goal-info">
+              <p>{{ goalInfo() }}</p>
+              <p><button type="button" class="whybtn" (click)="whyGoal.set(!whyGoal())">{{ whyGoal() ? 'Fechar' : 'Porquê? e proteína' }}</button></p>
+              @if (whyGoal()) {
+                <div class="rules">@for (r of goalRules(); track r) { <app-rule-why [key]="r" /> }</div>
+              }
+            </ion-label>
           </ion-item>
+          @if (levelNotices().length) {
+            <div class="notices"><app-notice-cards [notices]="levelNotices()" (changed)="notices.reload()" /></div>
+          }
         </ion-list>
 
         <ion-list lines="full">
@@ -86,6 +101,7 @@ import { ToastService } from '../../core/ui/toast.service';
             <ion-label>
               <h2 class="big">{{ latest() ? fmt(latest()!.value) + ' ' + unit() : '–' }}</h2>
               @if (delta() !== null) { <p>{{ delta()! > 0 ? '+' : '' }}{{ fmt(delta()!) }} {{ unit() }} desde a medição anterior</p> }
+              @if (type() === 'WEIGHT_KG' && paceText(); as pt) { <p class="pace">{{ pt }}</p> }
             </ion-label>
             @if (bmiValue() !== null && type() === 'WEIGHT_KG') {
               <ion-note slot="end">IMC {{ fmt(bmiValue()!) }}<br />{{ bmiText() }}</ion-note>
@@ -122,6 +138,11 @@ import { ToastService } from '../../core/ui/toast.service';
     ion-segment { margin: 4px 0 8px; }
     .big { font-size: 1.8rem; font-weight: 700; color: var(--ion-color-primary); }
     .error { color: var(--ion-color-danger); }
+    .goal-info p { font-size: 13px; }
+    .whybtn { font: inherit; font-size: 13px; font-weight: 600; border: 0; background: none; color: var(--ion-color-primary); padding: 0; }
+    .rules { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .notices { padding: 8px 16px 0; }
+    .pace { color: var(--ion-color-medium); }
     ion-item ion-input + ion-input { margin-inline-start: 12px; }
   `,
 })
@@ -161,7 +182,38 @@ export class ProfilePage {
     addIcons({ trashOutline });
   }
 
-  async saveGoal(v: 'hypertrophy' | 'maintenance' | 'cut'): Promise<void> {
+  private readonly progression = inject(ProgressionService);
+  readonly whyGoal = signal(false);
+  readonly notices = resource({ params: () => this.level(), loader: () => this.progression.notices() });
+  readonly levelNotices = computed(() => (this.notices.value() ?? []).filter((n) => n.key.startsWith('level:')));
+  readonly goalInfo = computed(() => {
+    const [a, b] = defaultRepRange(this.goal(), this.level());
+    switch (this.goal()) {
+      case 'strength':
+        return `Treinos novos com ${a}–${b} repetições, 3 séries; carga perto de 80% do teu 1RM estimado; 3 min de descanso nos multiarticulares. O peso não é vigiado.`;
+      case 'cut':
+        return `A app vigia o ritmo de peso (−0,5 a −1% por semana) e baixa o volume 25% se o desempenho cair 2 semanas.`;
+      case 'maintenance':
+        return `Volume mínimo para manter; a app vigia se o peso fica estável (±0,25% por semana).`;
+      default:
+        return `Treinos novos com ${a}–${b} repetições; a app vigia o ritmo de peso (${paceBand('hypertrophy', this.level())!.text}).`;
+    }
+  });
+  readonly goalRules = computed(() => {
+    const g = this.goal();
+    const pace = paceBand(g, this.level())?.rule;
+    const base = g === 'strength' ? ['goal.strength.reps', 'goal.strength.load', 'goal.strength.rest', 'goal.strength.volume'] : ['goal.hypertrophy.reps'];
+    return [...base, ...(pace ? ['pace.measure', pace] : []), 'level.definition', 'goal.nutrition'];
+  });
+  private readonly weightHistory = resource({ params: () => this.history.value(), loader: () => this.bodyRepo.list('WEIGHT_KG', 60) });
+  readonly paceText = computed(() => {
+    const pct = weeklyPace((this.weightHistory.value() ?? []).map((m) => ({ date: m.date, value: m.value })), toLocalDate(this.clock.now()));
+    if (pct === null) return 'Ritmo: faltam pesagens (3 em cada uma das últimas 2 semanas).';
+    const band = paceBand(this.goal(), this.level());
+    return `Ritmo: ${formatPace(pct)}${band ? ` · alvo ${band.text}` : ''}`;
+  });
+
+  async saveGoal(v: 'hypertrophy' | 'strength' | 'maintenance' | 'cut'): Promise<void> {
     if (v === this.goal()) return;
     await this.settings.set('profileGoal', v);
     await this.settings.set('profileGoalChangedAt', this.clock.nowIso());

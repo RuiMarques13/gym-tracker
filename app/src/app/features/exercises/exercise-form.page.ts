@@ -345,7 +345,7 @@ export class ExerciseFormPage implements OnInit {
   readonly restPlaceholder = computed(() =>
     this.kind() === 'MOBILITY' ? 'Sem descanso'
       : this.kind() === 'STRENGTH' && this.mechanic() && this.settings.get('restByMechanic')()
-        ? `Pelo tipo: ${defaultRest(this.mechanic(), true, 0)} s (IUSCA 2021)`
+        ? `Pelo tipo: ${defaultRest(this.mechanic(), true, 0, this.settings.get('profileGoal')())} s`
         : `Usa o global (${this.settings.get('defaultRestSeconds')()} s)`,
   );
   readonly validVideoUrl = computed(() => (/^https?:\/\/\S+$/i.test(this.videoUrl().trim()) ? this.videoUrl().trim() : null));
