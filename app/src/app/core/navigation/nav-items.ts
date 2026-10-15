@@ -13,6 +13,7 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/exercicios', label: 'Exercícios', icon: 'barbell-outline' },
   { path: '/historico', label: 'Histórico', icon: 'time-outline' },
   { path: '/planeados', label: 'Planeados', icon: 'calendar-outline' },
+  { path: '/ciclos', label: 'Ciclos', icon: 'repeat-outline' },
   { path: '/volume', label: 'Volume semanal', icon: 'body-outline' },
   { path: '/saude', label: 'Saúde (relógio)', icon: 'heart-outline' },
   { path: '/fotos', label: 'Fotos', icon: 'camera-outline' },

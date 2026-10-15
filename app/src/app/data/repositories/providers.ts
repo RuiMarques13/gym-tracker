@@ -1,3 +1,4 @@
+import { CycleRepository, SqliteCycleRepository } from './cycle.repository';
 import { SqliteSuggestionRepository, SuggestionRepository } from './suggestion.repository';
 import { RecoveryRepository, SqliteRecoveryRepository } from './recovery.repository';
 import { PhotoRepository, SqlitePhotoRepository } from './photo.repository';
@@ -93,5 +94,13 @@ export const SUGGESTION_REPOSITORY = new InjectionToken<SuggestionRepository>('S
   factory: () => {
     const database = inject(DatabaseService);
     return new SqliteSuggestionRepository(database.db, inject(CLOCK), database.deviceId);
+  },
+});
+
+export const CYCLE_REPOSITORY = new InjectionToken<CycleRepository>('CycleRepository', {
+  providedIn: 'root',
+  factory: () => {
+    const database = inject(DatabaseService);
+    return new SqliteCycleRepository(database.db, inject(CLOCK), database.deviceId);
   },
 });

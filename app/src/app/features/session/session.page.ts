@@ -59,6 +59,8 @@ import { formatTargets } from '../workouts/workout-format';
 import { repRange, suggestLoad, type LoadSuggestion } from '../../core/progression/load';
 import { defaultRest } from '../../core/progression/rest';
 import { defaultRepRange, strengthTarget } from '../../core/progression/goals';
+import { CycleService, type ActiveCycle } from '../../core/progression/cycle.service';
+import { WEEK_LABEL, weekSets } from '../../core/progression/cycles';
 import { reliable1RM } from '../../core/metrics/one-rm';
 import { nextTimeText } from '../../core/progression/next-time';
 import { SEED } from '../../core/seed/seed.generated';
@@ -194,7 +196,9 @@ const figOf = (ex: Exercise | null | undefined) => {
                       @if (sg.action === 'decrease') { <span class="tag">desce</span> }
                     </div>
                     @if (sg.strength; as st) { <p class="why">Força: ~80% do teu 1RM estimado ({{ kgLabel(st.e1rm) }}) ≈ {{ kgLabel(st.kg) }}.</p> }
-                    @if (deload() && ex.targetSets) { <p class="why">Descarga: {{ deloadSets(ex) }} de {{ ex.targetSets }} séries.</p> }
+                    @if (cycleWeek(); as cw) {
+                      <p class="why">Ciclo · {{ cw.block }}, semana {{ cw.week }}/{{ cw.weeks }} ({{ cw.type }})@if (ex.targetSets) { · {{ setsFor(ex) }} séries }@if (cw.rir !== null) { · RIR {{ cw.rir }} }</p>
+                    } @else if (deload() && ex.targetSets) { <p class="why">Descarga: {{ setsFor(ex) }} de {{ ex.targetSets }} séries.</p> }
                     @if (sg.options.length > 1) {
                       <div class="opts">
                         @for (o of sg.options; track o) {
@@ -698,7 +702,32 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       targetSets: ex.targetSets, targetRepsMin: ex.targetRepsMin, targetReps: ex.targetReps, targetDurationSeconds: ex.targetDurationSeconds,
       targetWeightKg: ex.targetWeightKg, targetDistanceM: ex.targetDistanceM, restSeconds: ex.restSeconds,
     }) || 'Sem alvo';
-  isDone = (ex: SessionExercise) => !!ex.targetSets && workingSetCount(ex) >= (this.deload() ? this.deloadSets(ex) : ex.targetSets);
+  isDone = (ex: SessionExercise) => !!ex.targetSets && workingSetCount(ex) >= this.setsFor(ex);
+  /** Séries de hoje: as do ciclo (multiplicador da semana) ou, numa descarga fora do ciclo, metade. */
+  setsFor = (ex: SessionExercise): number => {
+    const t = ex.targetSets ?? 0;
+    const c = this.cycle();
+    if (c) return weekSets(c.a.pos.week, t);
+    return this.deload() ? this.deloadSets(ex) : t;
+  };
+  // --- ciclo ---
+  private readonly cycles = inject(CycleService);
+  readonly cycle = signal<{ a: ActiveCycle; reps: [number, number] | null } | null>(null);
+  private cycleLoaded: Promise<void> | null = null;
+  private loadCycle(s: Session): Promise<void> {
+    return (this.cycleLoaded ??= (async () => {
+      const a = await this.cycles.active();
+      this.cycle.set(a ? { a, reps: await this.cycles.repsFor(a, s.id) } : null);
+    })());
+  }
+  readonly cycleWeek = computed(() => {
+    const c = this.cycle();
+    if (!c) return null;
+    const p = c.a.pos;
+    return { block: p.block.name, week: p.weekIndex + 1, weeks: p.block.weeks.length, type: WEEK_LABEL[p.week.type].toLowerCase(), rir: p.week.rir };
+  });
+  /** Descarga por resposta/definições ou por ser semana de descarga do ciclo. */
+  private deloadNow = () => !!this.progression.deload() || this.cycle()?.a.pos.week.type === 'deload';
   /** Semana de descarga: metade das séries (arredondado para cima; escolha da app, rules.ts `deload.amount`). */
   deloadSets = (ex: SessionExercise) => Math.max(1, Math.ceil((ex.targetSets ?? 0) / 2));
   private readonly progression = inject(ProgressionService);
@@ -736,6 +765,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
 
   private async loadSuggestions(s: Session): Promise<void> {
     if (s.endedAt || !this.settings.get('loadSuggestions')()) return;
+    await this.loadCycle(s);
     const todo = s.exercises.filter((e) => e.kind === 'STRENGTH' && e.metricType === 'WEIGHT_REPS' && !this.asked.has(e.id));
     if (!todo.length) return;
     for (const e of todo) this.asked.add(e.id);
@@ -753,7 +783,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     });
     const history = [...(today ? [working(today)] : []), ...recent.map(working)];
     const goal = this.settings.get('profileGoal')();
-    const [min, max] = repRange(e, defaultRepRange(goal, this.settings.get('profileLevel')()));
+    const [min, max] = this.cycle()?.reps ?? repRange(e, defaultRepRange(goal, this.settings.get('profileLevel')()));
     const key = e.equipmentId ? EQUIPMENT_KEY.get(e.equipmentId) : undefined;
     const inc = key ? (increments[key] ?? null) : null;
     const sg = suggestLoad({ history, repsMin: min, repsMax: max, mechanic: e.mechanic, incrementKg: inc });
@@ -763,7 +793,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       if (e1 > 0) sg.strength = { e1rm: Math.round(e1 * 10) / 10, kg: strengthTarget(e1, inc) };
     }
     // Semana de descarga: a mesma carga, sem subir (Bell 2023: o volume cai, a intensidade pode manter-se).
-    if (!today && this.progression.deload() && sg.action === 'increase') {
+    if (!today && this.deloadNow() && sg.action === 'increase') {
       const last = Math.max(0, ...(history[0]?.sets ?? []).map((x) => x.weightKg ?? 0));
       return { ...sg, action: 'hold', weightKg: last || null, options: [], rangeKg: null, rule: 'deload.how',
         reason: `Semana de descarga: mantém ${this.kgLabel(last)}; a subida fica para depois.` };

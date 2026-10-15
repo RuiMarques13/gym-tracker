@@ -21,6 +21,7 @@ import {
   alertCircleOutline,
   barbellOutline,
   calendarOutline,
+  repeatOutline,
   checkmarkCircleOutline,
   clipboardOutline,
   bodyOutline,
@@ -169,7 +170,7 @@ export class App {
     // Sem sessão não se mexe na app: qualquer navegação volta ao login.
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => void this.requireLogin());
     addIcons({
-      homeOutline, calendarOutline, clipboardOutline, barbellOutline, timeOutline, statsChartOutline,
+      homeOutline, calendarOutline, repeatOutline, clipboardOutline, barbellOutline, timeOutline, statsChartOutline,
       personOutline, settingsOutline, bodyOutline, cameraOutline, cloudDoneOutline, heartOutline, logOutOutline, optionsOutline, checkmarkCircleOutline, alertCircleOutline,
     });
   }

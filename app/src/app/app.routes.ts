@@ -48,6 +48,8 @@ export const routes: Routes = [
   },
   { path: 'sessao', loadComponent: () => import('./features/session/session.page').then((m) => m.SessionPage) },
   { path: 'sessao/cardio/:id', loadComponent: () => import('./features/session/cardio-live.page').then((m) => m.CardioLivePage) },
+  { path: 'ciclos', loadComponent: () => import('./features/cycles/cycles.page').then((m) => m.CyclesPage) },
+  { path: 'ciclos/:id', loadComponent: () => import('./features/cycles/cycle-detail.page').then((m) => m.CycleDetailPage) },
   { path: 'planeados', loadComponent: () => import('./features/planned/planned.page').then((m) => m.PlannedPage) },
   { path: 'historico', loadComponent: () => import('./features/history/history.page').then((m) => m.HistoryPage) },
   { path: 'historico/:id', loadComponent: () => import('./features/session/session.page').then((m) => m.SessionPage) },

@@ -24,6 +24,8 @@ import { HomeLayoutEditorComponent } from './home-layout-editor.component';
 import { SessionLauncher } from '../session/session-launcher';
 import { NoticeCardsComponent, SuggestionCardsComponent } from '../../shared/suggestion-cards.component';
 import { ProgressionService } from '../../core/progression/progression.service';
+import { CycleService, type BlockEndSummary } from '../../core/progression/cycle.service';
+import { WEEK_LABEL, type NextBlockProposal } from '../../core/progression/cycles';
 
 @Component({
   selector: 'app-home',
@@ -87,6 +89,29 @@ import { ProgressionService } from '../../core/progression/progression.service';
             <ion-button size="small" fill="outline" (click)="endDeload()">Terminar</ion-button>
           </div>
         }
+        @if (cycleNow.value(); as cn) {
+          <a class="cycle" [routerLink]="['/ciclos', cn.cycle.id]">
+            <div>
+              <strong>{{ cn.cycle.name }} · {{ cn.pos.block.name }}</strong>
+              <span>Semana {{ cn.pos.weekIndex + 1 }} de {{ cn.pos.block.weeks.length }} · {{ weekLabel[cn.pos.week.type].toLowerCase() }}
+                @if (cn.pos.week.reps) { · {{ cn.pos.week.reps[0] }}–{{ cn.pos.week.reps[1] }} reps }
+                @if (cn.pos.week.sets !== 1) { · séries ×{{ cn.pos.week.sets.toLocaleString('pt-PT') }} }
+                @if (cn.pos.week.rir !== null) { · RIR {{ cn.pos.week.rir }} }</span>
+              <span>{{ cn.pos.nextDeload ? 'Próxima descarga: semana de ' + day(cn.pos.nextDeload) : 'Sem descarga marcada' }}</span>
+            </div>
+          </a>
+        }
+        @if (blockEnd.value(); as be) {
+          <div class="block-end">
+            <strong>Fim do mesociclo</strong>
+            <p>{{ be.text }}</p>
+            <div class="opts">
+              @for (o of be.options; track o.label) {
+                <ion-button size="small" [fill]="o.proposal.kind === be.recommended.kind ? 'solid' : 'outline'" (click)="applyBlockEnd(be, o.proposal)">{{ o.label }}</ion-button>
+              }
+            </div>
+          </div>
+        }
         @if (suggestions.value()?.length || notices.value()?.length) {
           <section class="sugg" aria-label="Sugestões">
             <h2>Sugestões</h2>
@@ -116,6 +141,12 @@ import { ProgressionService } from '../../core/progression/progression.service';
     .active span { color: var(--ion-color-medium); font-size: 0.9rem; }
     .deload { background: rgba(var(--ion-color-tertiary-rgb, 128,128,128), 0.14); }
     .sugg { margin: 0 0 18px; }
+    .cycle { display: block; text-decoration: none; color: inherit; padding: 12px 16px; margin: 0 0 14px; border-radius: 14px; background: rgba(128,128,128,.1); }
+    .cycle strong { display: block; }
+    .cycle span { display: block; font-size: 0.85rem; color: var(--ion-color-medium); }
+    .block-end { padding: 12px 16px; margin: 0 0 14px; border-radius: 14px; background: rgba(var(--ion-color-primary-rgb), .1); }
+    .block-end p { margin: 4px 0 8px; font-size: 14px; }
+    .block-end .opts { display: flex; flex-wrap: wrap; gap: 4px; }
     .sugg h2 { font-size: 1rem; margin: 0 0 8px; }
   `,
 })
@@ -127,6 +158,15 @@ export class HomePage implements ViewWillEnter {
     params: () => ({ t: this.tick(), d: this.settingsSvc.get('deloadUntil')() }),
     loader: () => this.progression.cards(),
   });
+  private readonly cycles = inject(CycleService);
+  readonly weekLabel = WEEK_LABEL;
+  readonly cycleNow = resource({ params: () => ({ t: this.tick() }), loader: () => this.cycles.active() });
+  readonly blockEnd = resource({ params: () => ({ t: this.tick() }), loader: () => this.cycles.blockEnd() });
+  day = (d: string) => new Date(d + 'T12:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' }).replace('.', '');
+  async applyBlockEnd(be: BlockEndSummary, p: NextBlockProposal): Promise<void> {
+    await this.cycles.applyBlockEnd(be, p);
+    this.blockEnd.reload();
+  }
   /** Ritmo de peso e nível sugerido (fase 4). */
   readonly notices = resource({
     params: () => ({ t: this.tick(), g: this.settingsSvc.get('profileGoal')(), l: this.settingsSvc.get('profileLevel')() }),

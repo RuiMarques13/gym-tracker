@@ -110,7 +110,7 @@ export class ProgressionService {
    * Cartões para mostrar. `exerciseIds`: só estes exercícios (fim da sessão); sem isso, os usados nos últimos 14 dias
    * (Home), mais o cartão de fadiga quando a sugestão automática está ligada.
    */
-  async cards(scope: { exerciseIds?: string[] } = {}): Promise<SuggestionCard[]> {
+  async cards(scope: { exerciseIds?: string[]; all?: boolean } = {}): Promise<SuggestionCard[]> {
     if (this.deload()) return [];
     const now = this.clock.now();
     const md = await this.metrics.metricData(new Date(now.getTime() - 180 * DAY), new Date(now.getTime() + 1000));
@@ -163,7 +163,7 @@ export class ProgressionService {
     }
     // Home: os 3 exercícios parados há mais tempo (uma sugestão de cada vez; os outros aparecem no fim da sessão).
     out.sort((a, b) => b.n - a.n);
-    if (!scope.exerciseIds) out = out.slice(0, HOME_MAX);
+    if (!scope.exerciseIds && !scope.all) out = out.slice(0, HOME_MAX);
 
     if (!scope.exerciseIds && fatigue.length && this.settings.get('deloadSuggestions')() && !out.some((c) => c.response === 'deload')) {
       const episode = weekStartOf(toLocalDate(now));

@@ -6,7 +6,7 @@
  */
 
 export type RuleMark = 'source' | 'app';
-export type RuleArea = 'carga' | 'estagnacao' | 'descarga' | 'volume' | 'descanso' | '1rm' | 'objetivo' | 'corpo' | 'nivel';
+export type RuleArea = 'carga' | 'estagnacao' | 'descarga' | 'volume' | 'descanso' | '1rm' | 'objetivo' | 'corpo' | 'nivel' | 'ciclos';
 
 export interface RuleRef {
   label: string;
@@ -38,6 +38,7 @@ export const AREA_LABEL: Record<RuleArea, string> = {
   objetivo: 'Objetivo',
   corpo: 'Ritmo de peso',
   nivel: 'Nível',
+  ciclos: 'Ciclos',
 };
 
 export const REF = {
@@ -58,6 +59,9 @@ export const REF = {
   iraki2019: { label: 'Iraki et al. 2019, culturistas fora de competição', url: 'https://mdpi.com/486090' },
   helms2014: { label: 'Helms, Aragon e Fitschen 2014, culturismo natural', url: 'https://link.springer.com/content/pdf/10.1186/1550-2783-11-20.pdf' },
   garthe2011: { label: 'Garthe et al. 2011, dois ritmos de perda de peso', url: 'https://lida.sport-iat.de/ta/Record/4020931?lng=en', note: 'só o resumo' },
+  williams2017: { label: 'Williams et al. 2017, periodizado contra não periodizado', url: 'https://www.fisiologiadelejercicio.com/wp-content/uploads/2017/05/Comparison-of-Periodized-and-Non-Periodized-Resistance.pdf', note: 'cópia alojada por terceiros' },
+  evans2019: { label: 'Evans 2019, mini-revisão de periodização', url: 'https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2019.00013/full' },
+  sardeli2018: { label: 'Sardeli et al. 2018, treino de força em restrição calórica', url: 'https://www.mdpi.com/2072-6643/10/4/423' },
 } satisfies Record<string, RuleRef>;
 
 export const RULES: Rule[] = [
@@ -172,6 +176,34 @@ export const RULES: Rule[] = [
   { key: 'level.suggest', area: 'nivel', mark: 'app', refs: [REF.acsm2009],
     title: 'Nível sugerido pelo histórico',
     value: 'Conta os meses de treino de força sem pausas de 3 ou mais semanas. 6 meses: intermédio; 3 anos: avançado. Só sugere subir, porque o histórico na app pode ser mais curto que os teus anos de treino, e só muda com a tua confirmação.' },
+  // ---- ciclos ----
+  { key: 'cycle.levels', area: 'ciclos', mark: 'source', refs: [REF.evans2019],
+    title: 'Macro, meso e microciclo',
+    value: 'Macrociclo: o ciclo mais longo, normalmente um ano. Mesociclo: cerca de um mês (na app, 3 a 8 semanas). Microciclo: a semana.' },
+  { key: 'cycle.simple', area: 'ciclos', mark: 'source', refs: [REF.acsm2026, REF.bell2023],
+    title: 'Template Simples (por defeito)',
+    value: 'Sem periodização: a periodização complexa não mostrou vantagem consistente em adultos saudáveis (ACSM 2026, comunicado). Descarga só quando há fadiga (Bell 2023).' },
+  { key: 'cycle.beginner', area: 'ciclos', mark: 'source', refs: [REF.acsm2009, REF.iusca2021],
+    title: 'Template Iniciante',
+    value: '8–12 repetições e 1–3 séries para noviços (ACSM 2009, A); iniciantes crescem sem treinar perto da falha (IUSCA 2021). Os RIR por semana são escolha da app.' },
+  { key: 'cycle.volume', area: 'ciclos', mark: 'app', refs: [REF.iusca2021, REF.bell2023],
+    title: 'Template Hipertrofia por volume',
+    value: 'Subir o volume ao longo do ciclo e acabar com recuperação (IUSCA 2021, que diz faltar evidência empírica), no máximo ~20% por ciclo; descarga na última semana (Bell 2023, 95%). Os multiplicadores 1,0 / 1,1 / 1,2 / 0,5 e os RIR são escolha da app.' },
+  { key: 'cycle.linear', area: 'ciclos', mark: 'app', refs: [REF.acsm2009, REF.williams2017],
+    title: 'Template Força linear',
+    value: 'De 1–12 RM para 1–6 RM no avançado (ACSM 2009); periodizado melhor que não periodizado na força (Williams 2017). As faixas 8–12, 6–8, 3–6 e as semanas são escolha da app.' },
+  { key: 'cycle.undulating', area: 'ciclos', mark: 'app', refs: [REF.williams2017, REF.iusca2021],
+    title: 'Template Ondulatório',
+    value: 'Ondulatório à frente do linear na força, com resultado equívoco (Williams 2017); combinar faixas pode ajudar, evidência preliminar (IUSCA 2021). As faixas 12–15, 8–10, 4–6 são escolha da app.' },
+  { key: 'cycle.cut', area: 'ciclos', mark: 'source', refs: [REF.sardeli2018, REF.helms2014, REF.garthe2011],
+    title: 'Template Definição',
+    value: 'Manter o treino de força preserva a massa magra durante a restrição calórica (Sardeli 2018); ritmo de peso como no objetivo de definição.' },
+  { key: 'cycle.week', area: 'ciclos', mark: 'app', refs: [],
+    title: 'Como a semana do ciclo muda a sessão',
+    value: 'A faixa da semana substitui a do treino; as séries multiplicam-se pelo fator da semana (arredondado, pelo menos 1); numa semana de descarga a carga não sobe. O RIR alvo aparece como indicação.' },
+  { key: 'cycle.next', area: 'ciclos', mark: 'app', refs: [REF.iusca2021, REF.lopez2021],
+    title: 'Fim de mesociclo',
+    value: 'Na última semana, um resumo propõe o mesociclo seguinte: com exercícios estagnados e volume abaixo do máximo, +10% de séries; já no máximo, outra faixa; sem estagnação, repetir.' },
 ];
 
 export const RULE: Record<string, Rule> = Object.fromEntries(RULES.map((r) => [r.key, r]));
