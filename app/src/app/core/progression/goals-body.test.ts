@@ -74,3 +74,19 @@ describe('nível pelo histórico', () => {
     expect(levelSuggestion('intermediate', 8)).toBeNull();
   });
 });
+
+describe('potência e resistência muscular', () => {
+  it('faixas, descanso e carga alvo', async () => {
+    const { loadTarget } = await import('./goals');
+    expect(defaultRepRange('power', 'advanced')).toEqual([3, 6]);
+    expect(defaultRepRange('endurance', 'beginner')).toEqual([10, 15]);
+    expect(defaultRepRange('endurance', 'advanced')).toEqual([15, 25]);
+    expect(restByGoal('COMPOUND', 'power')).toBe(180);
+    expect(restByGoal('COMPOUND', 'endurance')).toBe(60);
+    expect(loadTarget('power', 100, 2.5)).toMatchObject({ lo: 30, hi: 70, cue: expect.any(String) });
+    expect(loadTarget('endurance', 100, 2.5)).toMatchObject({ lo: 40, hi: 60 });
+    expect(loadTarget('strength', 100, 2.5)).toMatchObject({ lo: 80, hi: 80 });
+    expect(loadTarget('hypertrophy', 100, 2.5)).toBeNull();
+    for (const k of ['goal.power.load', 'goal.endurance.load', 'goal.strength.load', 'cycle.power', 'cycle.endurance']) expect(RULE[k], k).toBeTruthy();
+  });
+});

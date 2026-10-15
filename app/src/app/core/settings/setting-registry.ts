@@ -136,9 +136,9 @@ export const SETTINGS = {
     key: 'profile.heightCm', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: null,
     validate: (v): v is number | null => v === null || isNumberInRange(50, 260)(v), label: 'Altura (cm)',
   }),
-  profileGoal: def<'hypertrophy' | 'strength' | 'maintenance' | 'cut'>({
+  profileGoal: def<'hypertrophy' | 'strength' | 'power' | 'endurance' | 'maintenance' | 'cut'>({
     key: 'profile.goal', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 'hypertrophy',
-    validate: isOneOf('hypertrophy', 'strength', 'maintenance', 'cut'), label: 'Objetivo',
+    validate: isOneOf('hypertrophy', 'strength', 'power', 'endurance', 'maintenance', 'cut'), label: 'Objetivo',
   }),
   profileLevel: def<'beginner' | 'intermediate' | 'advanced'>({
     key: 'profile.level', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 'intermediate',

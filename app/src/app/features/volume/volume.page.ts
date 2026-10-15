@@ -7,7 +7,7 @@ import { RecoveryCardComponent } from '../../shared/recovery-card.component';
 import { SettingsService } from '../../core/settings/settings.service';
 import { NavButtonComponent } from '../../shared/nav-button.component';
 
-const GOAL_LABEL = { hypertrophy: 'Ganhar massa', strength: 'Força', maintenance: 'Manutenção', cut: 'Definição' } as const;
+const GOAL_LABEL = { hypertrophy: 'Ganhar massa', strength: 'Força', power: 'Potência', endurance: 'Resistência muscular', maintenance: 'Manutenção', cut: 'Definição' } as const;
 const LEVEL_LABEL = { beginner: 'Iniciante', intermediate: 'Intermédio', advanced: 'Avançado' } as const;
 /** Volume semanal por músculo (últimos 7 dias): séries efetivas fracionais vs faixa recomendada. */
 @Component({

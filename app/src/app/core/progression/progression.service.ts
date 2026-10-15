@@ -14,7 +14,7 @@ import { CLOCK } from '../util/clock';
 import { toLocalDate, weekStartOf } from '../util/week';
 import { fatigueSignals, type FatigueSignal } from './fatigue';
 import { repRange } from './load';
-import { defaultRepRange } from './goals';
+import { defaultRepRange, usesHypertrophyVolume } from './goals';
 import { detectStagnation, nextResponse, rangeOptions, volumePlan, type StagSession, type StimulusResponse } from './stagnation';
 
 const DAY = 86_400_000;
@@ -202,14 +202,14 @@ export class ProgressionService {
 
   private maxSets(): number {
     const goal = this.settings.get('profileGoal')();
-    if (goal === 'hypertrophy' || goal === 'strength') return VOLUME_RULES.goals.hypertrophy[this.settings.get('profileLevel')()].max;
+    if (usesHypertrophyVolume(goal)) return VOLUME_RULES.goals.hypertrophy[this.settings.get('profileLevel')()].max;
     if (goal === 'cut') return VOLUME_RULES.goals.cut.any.max;
     return VOLUME_RULES.goals.maintenance.under_60.max;
   }
 
   private levelRirMin(): number {
     const goal = this.settings.get('profileGoal')();
-    if (goal === 'hypertrophy' || goal === 'strength') return VOLUME_RULES.goals.hypertrophy[this.settings.get('profileLevel')()].rir[0];
+    if (usesHypertrophyVolume(goal)) return VOLUME_RULES.goals.hypertrophy[this.settings.get('profileLevel')()].rir[0];
     return goal === 'cut' ? VOLUME_RULES.goals.cut.any.rir[0] : VOLUME_RULES.goals.maintenance.under_60.rir[0];
   }
 
@@ -325,7 +325,7 @@ export class ProgressionService {
       const m = Math.floor(months);
       out.push({
         key: `level:${sug}`, title: `Nível: ${LEVEL_LABEL[sug]}?`,
-        text: `Treinas com regularidade há ${m} ${m === 1 ? 'mês' : 'meses'}. O ACSM 2009 chama ${sug === 'intermediate' ? 'intermédio a quem tem cerca de 6 meses' : 'avançado a quem tem anos'} de treino consistente. Mudar o nível muda as faixas de séries por semana${goal === 'strength' ? ' e as repetições por defeito' : ''}.`,
+        text: `Treinas com regularidade há ${m} ${m === 1 ? 'mês' : 'meses'}. O ACSM 2009 chama ${sug === 'intermediate' ? 'intermédio a quem tem cerca de 6 meses' : 'avançado a quem tem anos'} de treino consistente. Mudar o nível muda as faixas de séries por semana${goal === 'strength' || goal === 'endurance' ? ' e as repetições por defeito' : ''}.`,
         rules: ['level.definition', 'level.suggest'], action: { label: `Passar a ${LEVEL_LABEL[sug].toLowerCase()}`, level: sug },
       });
     }

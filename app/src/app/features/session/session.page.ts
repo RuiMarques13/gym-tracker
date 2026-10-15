@@ -58,7 +58,7 @@ import { formatDay } from '../history/history-format';
 import { formatTargets } from '../workouts/workout-format';
 import { repRange, suggestLoad, type LoadSuggestion } from '../../core/progression/load';
 import { defaultRest } from '../../core/progression/rest';
-import { defaultRepRange, strengthTarget } from '../../core/progression/goals';
+import { defaultRepRange, GOAL_LABEL, loadTarget } from '../../core/progression/goals';
 import { CycleService, type ActiveCycle } from '../../core/progression/cycle.service';
 import { WEEK_LABEL, weekSets } from '../../core/progression/cycles';
 import { reliable1RM } from '../../core/metrics/one-rm';
@@ -195,7 +195,9 @@ const figOf = (ex: Exercise | null | undefined) => {
                       @if (sg.action === 'increase') { <span class="tag">sobe</span> }
                       @if (sg.action === 'decrease') { <span class="tag">desce</span> }
                     </div>
-                    @if (sg.strength; as st) { <p class="why">Força: ~80% do teu 1RM estimado ({{ kgLabel(st.e1rm) }}) ≈ {{ kgLabel(st.kg) }}.</p> }
+                    @if (sg.target; as st) {
+                      <p class="why">{{ goalLabel() }}: {{ st.label }} estimado ({{ kgLabel(st.e1rm) }}) ≈ {{ st.lo === st.hi ? kgLabel(st.lo) : num(st.lo) + '–' + kgLabel(st.hi) }}@if (st.cue) {, {{ st.cue }}}.</p>
+                    }
                     @if (cycleWeek(); as cw) {
                       <p class="why">Ciclo · {{ cw.block }}, semana {{ cw.week }}/{{ cw.weeks }} ({{ cw.type }})@if (ex.targetSets) { · {{ setsFor(ex) }} séries }@if (cw.rir !== null) { · RIR {{ cw.rir }} }</p>
                     } @else if (deload() && ex.targetSets) { <p class="why">Descarga: {{ setsFor(ex) }} de {{ ex.targetSets }} séries.</p> }
@@ -758,6 +760,8 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   }
   /** Exercícios com o «Porquê?» aberto. */
   readonly whyOpen = signal<ReadonlySet<string>>(new Set());
+  num = (x: number) => x.toLocaleString('pt-PT', { maximumFractionDigits: 2 });
+  readonly goalLabel = computed(() => GOAL_LABEL[this.settings.get('profileGoal')()]);
   toggleWhy(id: string): void {
     this.whyOpen.update((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   }
@@ -788,9 +792,11 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     const inc = key ? (increments[key] ?? null) : null;
     const sg = suggestLoad({ history, repsMin: min, repsMax: max, mechanic: e.mechanic, incrementKg: inc });
     // Objetivo Força: ~80% do 1RM estimado (ACSM 2026, comunicado), a partir das séries até 10 repetições.
-    if (goal === 'strength' && !today) {
+    // Força, potência e resistência: carga alvo em % do 1RM estimado (só séries até 10 repetições).
+    if (!today) {
       const e1 = Math.max(0, ...history.flatMap((h) => h.sets.map((x) => reliable1RM(x.weightKg, x.reps, x.rir) ?? 0)));
-      if (e1 > 0) sg.strength = { e1rm: Math.round(e1 * 10) / 10, kg: strengthTarget(e1, inc) };
+      const t = e1 > 0 ? loadTarget(goal, e1, inc) : null;
+      if (t && t.hi > 0) sg.target = { e1rm: Math.round(e1 * 10) / 10, label: t.label, lo: t.lo, hi: t.hi, cue: t.cue };
     }
     // Semana de descarga: a mesma carga, sem subir (Bell 2023: o volume cai, a intensidade pode manter-se).
     if (!today && this.deloadNow() && sg.action === 'increase') {

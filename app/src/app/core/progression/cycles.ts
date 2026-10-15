@@ -7,8 +7,8 @@ import { addDays, weekStartOf } from '../util/week';
  * Os números dos templates são escolhas da app construídas a partir das fontes (ver rules.ts `cycle.*`); tudo editável.
  */
 export type WeekType = 'normal' | 'overload' | 'deload' | 'test';
-export type BlockFocus = 'base' | 'volume' | 'strength' | 'cut' | 'deload';
-export type TemplateId = 'simple' | 'beginner' | 'volume' | 'linear' | 'undulating' | 'cut';
+export type BlockFocus = 'base' | 'volume' | 'strength' | 'power' | 'endurance' | 'cut' | 'deload';
+export type TemplateId = 'simple' | 'beginner' | 'volume' | 'linear' | 'undulating' | 'power' | 'endurance' | 'cut';
 
 export interface CycleWeek {
   type: WeekType;
@@ -46,7 +46,7 @@ export interface Cycle {
 }
 
 export const WEEK_LABEL: Record<WeekType, string> = { normal: 'Normal', overload: 'Sobrecarga', deload: 'Descarga', test: 'Teste' };
-export const FOCUS_LABEL: Record<BlockFocus, string> = { base: 'Base', volume: 'Volume', strength: 'Força', cut: 'Definição', deload: 'Descarga' };
+export const FOCUS_LABEL: Record<BlockFocus, string> = { base: 'Base', volume: 'Volume', strength: 'Força', power: 'Potência', endurance: 'Resistência', cut: 'Definição', deload: 'Descarga' };
 
 const w = (type: WeekType, reps: [number, number] | null, sets: number, rir: number | null): CycleWeek => ({ type, reps, sets, rir });
 const DELOAD = (reps: [number, number] | null = null): CycleWeek => w('deload', reps, 0.5, 3);
@@ -93,6 +93,18 @@ export const TEMPLATES: TemplateDef[] = [
     blocks: [1, 2, 3].map((i) => ({
       name: `Ondulatório ${i}`, focus: 'strength' as const,
       weeks: [...[1, 2, 3].map((): CycleWeek => ({ ...w('normal', null, 1, 2), undulating: [[12, 15], [8, 10], [4, 6]] })), DELOAD()],
+    })),
+  },
+  {
+    id: 'power', name: 'Potência', who: 'Saltos, sprints, desporto', goal: 'power', rule: 'cycle.power',
+    text: '3–6 repetições a 30–70% do 1RM, o mais rápido possível, longe da falha; descarga na 4.ª semana.',
+    blocks: [1, 2, 3].map((i) => ({ name: `Potência ${i}`, focus: 'power' as const, weeks: [w('normal', [3, 6], 1, 3), w('normal', [3, 6], 1, 3), w('normal', [3, 6], 1, 3), DELOAD([3, 6])] })),
+  },
+  {
+    id: 'endurance', name: 'Resistência muscular', who: 'Muitas repetições, carga leve', goal: 'endurance', rule: 'cycle.endurance',
+    text: '12–15, depois 15–20, depois 15–25 repetições com carga leve; descarga na última semana de cada mesociclo.',
+    blocks: ([[12, 15], [15, 20], [15, 25]] as [number, number][]).map((r, i) => ({
+      name: `Resistência ${i + 1}`, focus: 'endurance' as const, weeks: [w('normal', r, 1, 2), w('normal', r, 1, 2), w('normal', r, 1, 1), DELOAD(r)],
     })),
   },
   {

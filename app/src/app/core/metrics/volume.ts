@@ -1,7 +1,7 @@
 import { reliable1RM } from './one-rm';
 import { VOLUME_RULES, VolumeRules } from './volume-rules';
 
-export type Goal = 'hypertrophy' | 'strength' | 'maintenance' | 'cut';
+export type Goal = 'hypertrophy' | 'strength' | 'power' | 'endurance' | 'maintenance' | 'cut';
 export type Level = 'beginner' | 'intermediate' | 'advanced';
 
 export interface MetricExercise {
@@ -187,7 +187,7 @@ export function rangeFor(
   rules: VolumeRules = VOLUME_RULES,
 ): Range {
   // Força: nenhuma fonte aberta dá séries por músculo por semana; a app usa as faixas da hipertrofia (escolha da app).
-  if (profile.goal === 'hypertrophy' || profile.goal === 'strength') return rules.goals.hypertrophy[profile.level];
+  if (profile.goal !== 'maintenance' && profile.goal !== 'cut') return rules.goals.hypertrophy[profile.level];
   if (profile.goal === 'maintenance') {
     const age = profile.birthYear === null ? 0 : now.getFullYear() - profile.birthYear;
     if (age >= 60) return rules.goals.maintenance['60_plus'];

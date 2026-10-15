@@ -62,6 +62,8 @@ import { ToastService } from '../../core/ui/toast.service';
               (ionChange)="saveGoal($any($event).detail.value)">
               <ion-select-option value="hypertrophy">Ganhar massa (hipertrofia)</ion-select-option>
               <ion-select-option value="strength">Força</ion-select-option>
+              <ion-select-option value="power">Potência</ion-select-option>
+              <ion-select-option value="endurance">Resistência muscular</ion-select-option>
               <ion-select-option value="maintenance">Manutenção</ion-select-option>
               <ion-select-option value="cut">Definição (perder gordura)</ion-select-option>
             </ion-select>
@@ -191,6 +193,10 @@ export class ProfilePage {
     switch (this.goal()) {
       case 'strength':
         return `Treinos novos com ${a}–${b} repetições, 3 séries; carga perto de 80% do teu 1RM estimado; 3 min de descanso nos multiarticulares. O peso não é vigiado.`;
+      case 'power':
+        return `Treinos novos com ${a}–${b} repetições; carga a 30–70% do teu 1RM estimado, o mais rápido possível na subida; 3 min nos multiarticulares. A app não mede a velocidade. O peso não é vigiado.`;
+      case 'endurance':
+        return `Treinos novos com ${a}–${b} repetições; carga leve (40–60% do teu 1RM estimado); 1 min de descanso. O peso não é vigiado.`;
       case 'cut':
         return `A app vigia o ritmo de peso (−0,5 a −1% por semana) e baixa o volume 25% se o desempenho cair 2 semanas.`;
       case 'maintenance':
@@ -202,7 +208,10 @@ export class ProfilePage {
   readonly goalRules = computed(() => {
     const g = this.goal();
     const pace = paceBand(g, this.level())?.rule;
-    const base = g === 'strength' ? ['goal.strength.reps', 'goal.strength.load', 'goal.strength.rest', 'goal.strength.volume'] : ['goal.hypertrophy.reps'];
+    const base = g === 'strength' ? ['goal.strength.reps', 'goal.strength.load', 'goal.strength.rest', 'goal.strength.volume']
+      : g === 'power' ? ['goal.power.reps', 'goal.power.load', 'goal.power.rest', 'goal.strength.volume']
+      : g === 'endurance' ? ['goal.endurance.reps', 'goal.endurance.load', 'goal.endurance.rest', 'goal.strength.volume']
+      : ['goal.hypertrophy.reps'];
     return [...base, ...(pace ? ['pace.measure', pace] : []), 'level.definition', 'goal.nutrition'];
   });
   private readonly weightHistory = resource({ params: () => this.history.value(), loader: () => this.bodyRepo.list('WEIGHT_KG', 60) });
@@ -213,7 +222,7 @@ export class ProfilePage {
     return `Ritmo: ${formatPace(pct)}${band ? ` · alvo ${band.text}` : ''}`;
   });
 
-  async saveGoal(v: 'hypertrophy' | 'strength' | 'maintenance' | 'cut'): Promise<void> {
+  async saveGoal(v: 'hypertrophy' | 'strength' | 'power' | 'endurance' | 'maintenance' | 'cut'): Promise<void> {
     if (v === this.goal()) return;
     await this.settings.set('profileGoal', v);
     await this.settings.set('profileGoalChangedAt', this.clock.nowIso());
