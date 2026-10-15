@@ -13,6 +13,21 @@ export interface ScheduledRepository {
   setStatus(id: string, status: ScheduledStatus): Promise<void>;
   move(id: string, date: string): Promise<void>;
   remove(id: string): Promise<void>;
+  /** Linhas ligadas a um ciclo ou com estes ids, incluindo apagadas (para a semana-tipo saber o que mudaste). */
+  cycleState(cycleId: string, ids: string[]): Promise<CycleScheduledRow[]>;
+  /** Cria ou reativa o planeado do ciclo com id determinístico. */
+  upsertFromCycle(id: string, date: string, templateId: string, cycleId: string): Promise<void>;
+  /** O ciclo tira um planeado seu (deixa de estar ligado, para poder voltar a criá-lo). */
+  removeFromCycle(id: string): Promise<void>;
+}
+
+export interface CycleScheduledRow {
+  id: string;
+  date: string;
+  templateId: string;
+  status: ScheduledStatus;
+  cycleId: string | null;
+  deleted: boolean;
 }
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -23,11 +38,12 @@ interface Row {
   template_id: string;
   template_name: string;
   status: ScheduledStatus;
+  cycle_id: string | null;
 }
-const SELECT = `SELECT w.id, w.date, w.template_id, t.name AS template_name, w.status
+const SELECT = `SELECT w.id, w.date, w.template_id, t.name AS template_name, w.status, w.cycle_id
   FROM scheduled_workout w JOIN workout_template t ON t.id = w.template_id`;
 const map = (r: Row): ScheduledWorkout => ({
-  id: r.id, date: r.date, templateId: r.template_id, templateName: r.template_name, status: r.status,
+  id: r.id, date: r.date, templateId: r.template_id, templateName: r.template_name, status: r.status, cycleId: r.cycle_id ?? null,
 });
 
 export class SqliteScheduledRepository implements ScheduledRepository {
@@ -79,9 +95,35 @@ export class SqliteScheduledRepository implements ScheduledRepository {
 
   async move(id: string, date: string): Promise<void> {
     if (!DATE.test(date)) throw new ScheduleError('Data inválida.');
-    await this.db.run('UPDATE scheduled_workout SET date = ?, updated_at = ?, device_id = ? WHERE id = ? AND deleted_at IS NULL', [
+    // Mover um planeado do ciclo torna-o teu: o ciclo deixa de lhe mexer.
+    await this.db.run('UPDATE scheduled_workout SET date = ?, cycle_id = NULL, updated_at = ?, device_id = ? WHERE id = ? AND deleted_at IS NULL', [
       date, this.clock.nowIso(), this.deviceId, id,
     ]);
+  }
+
+  async cycleState(cycleId: string, ids: string[]): Promise<CycleScheduledRow[]> {
+    const marks = ids.map(() => '?').join(',');
+    const rows = await this.db.query<{ id: string; date: string; template_id: string; status: ScheduledStatus; cycle_id: string | null; deleted_at: string | null }>(
+      `SELECT id, date, template_id, status, cycle_id, deleted_at FROM scheduled_workout WHERE cycle_id = ?${ids.length ? ` OR id IN (${marks})` : ''}`,
+      [cycleId, ...ids],
+    );
+    return rows.map((r) => ({ id: r.id, date: r.date, templateId: r.template_id, status: r.status, cycleId: r.cycle_id, deleted: r.deleted_at !== null }));
+  }
+
+  async upsertFromCycle(id: string, date: string, templateId: string, cycleId: string): Promise<void> {
+    const now = this.clock.nowIso();
+    await this.db.run(
+      `INSERT INTO scheduled_workout (id, date, template_id, status, cycle_id, updated_at, deleted_at, device_id)
+       VALUES (?, ?, ?, 'PLANNED', ?, ?, NULL, ?)
+       ON CONFLICT(id) DO UPDATE SET date = excluded.date, template_id = excluded.template_id, status = 'PLANNED',
+         cycle_id = excluded.cycle_id, updated_at = excluded.updated_at, deleted_at = NULL, device_id = excluded.device_id`,
+      [id, date, templateId, cycleId, now, this.deviceId],
+    );
+  }
+
+  async removeFromCycle(id: string): Promise<void> {
+    const now = this.clock.nowIso();
+    await this.db.run('UPDATE scheduled_workout SET deleted_at = ?, cycle_id = NULL, updated_at = ?, device_id = ? WHERE id = ?', [now, now, this.deviceId, id]);
   }
 
   async remove(id: string): Promise<void> {

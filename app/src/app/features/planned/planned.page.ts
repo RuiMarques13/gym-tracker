@@ -50,6 +50,7 @@ import { ToastService } from '../../core/ui/toast.service';
               <div class="item" [class.skipped]="w.status === 'SKIPPED'">
                 <div class="what">
                   <span class="name">{{ w.templateName }}</span>
+                  @if (w.cycleId) { <ion-badge color="tertiary">Ciclo</ion-badge> }
                   @if (w.status !== 'PLANNED') { <ion-badge [color]="w.status === 'DONE' ? 'success' : 'medium'">{{ label[w.status] }}</ion-badge> }
                 </div>
                 <div class="actions">

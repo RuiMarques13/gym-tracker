@@ -67,3 +67,22 @@ describe('SqliteScheduledRepository', () => {
     expect((await repo.list('2026-10-05', '2026-10-05'))[0].status).toBe('PLANNED');
   });
 });
+
+describe('planeados do ciclo', () => {
+  it('upsert, estado, mover torna-o teu e o ciclo pode tirá-lo', async () => {
+    const t = await createTestDb();
+    await loadSeed(t.db, TEST_SEED, t.deviceId);
+    const clock = new FixedClock(new Date('2026-10-15T08:00:00Z'));
+    const w = await new SqliteWorkoutRepository(t.db, clock, t.deviceId).save({ name: 'Push', items: [] });
+    const repo = new SqliteScheduledRepository(t.db, clock, t.deviceId);
+    const id = 'aaaaaaaa-0000-5000-8000-000000000001';
+    await repo.upsertFromCycle(id, '2026-10-16', w.id, 'c1');
+    expect((await repo.list('2026-10-16', '2026-10-16'))[0]).toMatchObject({ id, cycleId: 'c1' });
+    await repo.move(id, '2026-10-17');
+    expect((await repo.cycleState('c1', [id]))[0]).toMatchObject({ cycleId: null, date: '2026-10-17', deleted: false });
+    await repo.removeFromCycle(id);
+    expect((await repo.cycleState('c1', [id]))[0]).toMatchObject({ cycleId: null, deleted: true });
+    await repo.upsertFromCycle(id, '2026-10-16', w.id, 'c1');
+    expect((await repo.list('2026-10-16', '2026-10-16'))[0]).toMatchObject({ id, cycleId: 'c1', status: 'PLANNED' });
+  });
+});

@@ -20,16 +20,25 @@ export interface CycleWeek {
   sets: number;
   /** RIR alvo; null = o do nível. */
   rir: number | null;
+  /** Exceção à semana-tipo do mesociclo: treino por dia (segunda a domingo; null = descanso). */
+  days?: (string | null)[];
 }
 
 export interface CycleBlock {
   name: string;
   focus: BlockFocus;
   weeks: CycleWeek[];
+  /** Semana-tipo: id do treino por dia, de segunda a domingo (null = descanso). Sem isto, o ciclo não planeia dias. */
+  pattern?: (string | null)[];
 }
+
+/** O que escolheste quando o ciclo e um planeado teu caem no mesmo dia. */
+export type ConflictChoice = 'mine' | 'cycle' | 'both';
 
 export interface CyclePlan {
   blocks: CycleBlock[];
+  /** Escolhas nos conflitos com planeados teus, por «data|treino do ciclo». */
+  resolved?: Record<string, ConflictChoice>;
 }
 
 export interface Cycle {

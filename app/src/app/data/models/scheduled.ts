@@ -7,6 +7,8 @@ export interface ScheduledWorkout {
   templateId: string;
   templateName: string;
   status: ScheduledStatus;
+  /** Ciclo que o criou (semana-tipo); null = planeado teu. */
+  cycleId: string | null;
 }
 
 export const STATUS_LABEL: Record<ScheduledStatus, string> = {

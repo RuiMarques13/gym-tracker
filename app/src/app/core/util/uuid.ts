@@ -37,6 +37,8 @@ export const ids = {
   /** Uma resposta por sugestão, episódio e tipo de resposta. */
   suggestion: (kind: string, exerciseId: string | null, episode: string, response: string | null) =>
     stableId(`suggestion:${kind}:${exerciseId ?? ''}:${episode}:${response ?? ''}`),
+  /** Treino planeado por um ciclo: o mesmo ciclo, dia e treino dão o mesmo id em qualquer dispositivo. */
+  cycleScheduled: (cycleId: string, date: string, templateId: string) => stableId(`cycle_scheduled:${cycleId}:${date}:${templateId}`),
   setting: (scope: string, scopeRef: string | null, key: string) =>
     stableId(`setting:${scope}:${scopeRef ?? ''}:${key}`),
 };

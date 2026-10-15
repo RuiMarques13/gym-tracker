@@ -2,13 +2,16 @@ import { Component, computed, inject, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonListHeader, IonModal, IonNote,
-  IonTitle, IonToolbar, NavController, ViewWillEnter,
+  IonTitle, IonToolbar, NavController, ViewWillEnter, AlertController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add } from 'ionicons/icons';
 import { CLOCK } from '../../core/util/clock';
 import { toLocalDate, weekStartOf } from '../../core/util/week';
-import { CYCLE_REPOSITORY } from '../../data/repositories/providers';
+import { CYCLE_REPOSITORY, WORKOUT_REPOSITORY } from '../../data/repositories/providers';
+import { CycleService } from '../../core/progression/cycle.service';
+import { WeekPatternComponent } from '../../shared/week-pattern.component';
+import { askConflicts } from './conflicts';
 import { CycleError } from '../../data/repositories/cycle.repository';
 import { endDate, planFrom, positionOn, TEMPLATES, totalWeeks, type Cycle, type TemplateId } from '../../core/progression/cycles';
 import { GOAL_LABEL } from '../../core/progression/goals';
@@ -21,7 +24,7 @@ const fmtDay = (d: string) => new Date(d + 'T12:00').toLocaleDateString('pt-PT',
 /** Ciclos: a lista de macrociclos e criar um a partir de um template. Os ciclos são opcionais. */
 @Component({
   selector: 'app-cycles',
-  imports: [NavButtonComponent, RouterLink, RuleWhyComponent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent,
+  imports: [NavButtonComponent, RouterLink, RuleWhyComponent, WeekPatternComponent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent,
     IonList, IonListHeader, IonItem, IonLabel, IonNote, IonModal, IonInput],
   template: `
     <ion-header>
@@ -82,6 +85,11 @@ const fmtDay = (d: string) => new Date(d + 'T12:00').toLocaleDateString('pt-PT',
               <ion-item>
                 <ion-input label="Começa na semana de" labelPlacement="stacked" type="date" [value]="start()" (ionChange)="start.set($any($event).detail.value ?? start())" />
               </ion-item>
+              <ion-list-header><ion-label>Semana-tipo (opcional)</ion-label></ion-list-header>
+              <div class="pattern">
+                <app-week-pattern [days]="pattern()" [workouts]="workouts.value() ?? []" (changed)="pattern.set($event)" />
+                <ion-note class="hint">Que treino fazes em cada dia. Vale para todos os mesociclos e enche os Planeados; podes mudar por mesociclo ou por semana depois. Sem semana-tipo, o ciclo aplica-se a qualquer treino que faças.</ion-note>
+              </div>
               <ion-note class="hint">Começa sempre numa segunda-feira; acaba a {{ endLabel() }}. O objetivo do perfil não muda.</ion-note>
               <ion-button expand="block" (click)="create()" [disabled]="!name().trim()">Criar ciclo</ion-button>
             </div>
@@ -104,10 +112,15 @@ const fmtDay = (d: string) => new Date(d + 'T12:00').toLocaleDateString('pt-PT',
     .tpl .meta { color: var(--ion-color-medium); font-size: 12px; }
     .tpl .why { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(128,128,128,.2); }
     .hint { display: block; padding: 8px 16px 12px; font-size: 13px; }
+    .pattern { padding: 0 8px; }
+    .pattern .hint { padding: 6px 4px 0; }
   `,
 })
 export class CyclesPage implements ViewWillEnter {
   private readonly repo = inject(CYCLE_REPOSITORY);
+  private readonly workoutRepo = inject(WORKOUT_REPOSITORY);
+  private readonly cycles = inject(CycleService);
+  private readonly alerts = inject(AlertController);
   private readonly clock = inject(CLOCK);
   private readonly nav = inject(NavController);
   private readonly toasts = inject(ToastService);
@@ -127,6 +140,8 @@ export class CyclesPage implements ViewWillEnter {
   });
 
   readonly newOpen = signal(false);
+  readonly pattern = signal<(string | null)[] | null>(null);
+  readonly workouts = resource({ loader: async () => (await this.workoutRepo.list()).map((w) => ({ id: w.id, name: w.name })) });
   readonly tpl = signal<TemplateId>('simple');
   readonly name = signal('Simples');
   readonly start = signal(weekStartOf(toLocalDate(new Date())));
@@ -145,6 +160,8 @@ export class CyclesPage implements ViewWillEnter {
     this.tpl.set('simple');
     this.name.set('Simples');
     this.start.set(weekStartOf(toLocalDate(this.clock.now())));
+    this.pattern.set(null);
+    this.workouts.reload();
     this.newOpen.set(true);
   }
   pickTemplate(t: TemplateId): void {
@@ -156,8 +173,12 @@ export class CyclesPage implements ViewWillEnter {
   async create(): Promise<void> {
     try {
       const t = TEMPLATES.find((x) => x.id === this.tpl())!;
-      const c = await this.repo.save({ name: this.name(), goal: t.goal, template: t.id, startDate: weekStartOf(this.start()), plan: planFrom(t.id) });
+      const plan = planFrom(t.id);
+      const p = this.pattern();
+      if (p?.some(Boolean)) for (const b of plan.blocks) b.pattern = [...p];
+      const c = await this.repo.save({ name: this.name(), goal: t.goal, template: t.id, startDate: weekStartOf(this.start()), plan });
       this.newOpen.set(false);
+      await askConflicts(this.alerts, this.cycles, await this.cycles.syncSchedule(c.id));
       await this.toasts.success(`Ciclo «${c.name}» criado.`);
       void this.nav.navigateForward(['/ciclos', c.id]);
     } catch (e) {

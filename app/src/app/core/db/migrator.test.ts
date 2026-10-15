@@ -17,8 +17,8 @@ describe('migrações', () => {
   it('cria o esquema numa base vazia', async () => {
     const db = await createEmptyDb();
     const result = await migrate(db);
-    expect(result).toEqual({ from: 0, to: 12, applied: ['001-init', '002-cardio', '003-sync-state', '004-rir', '005-progress-photo', '006-recovery', '007-health', '008-category', '009-health-detail', '010-progression', '011-suggestion', '012-cycle'] });
-    expect(await currentSchemaVersion(db)).toBe(12);
+    expect(result).toEqual({ from: 0, to: 13, applied: ['001-init', '002-cardio', '003-sync-state', '004-rir', '005-progress-photo', '006-recovery', '007-health', '008-category', '009-health-detail', '010-progression', '011-suggestion', '012-cycle', '013-cycle-schedule'] });
+    expect(await currentSchemaVersion(db)).toBe(13);
 
     const tables = (
       await db.query<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table'")
@@ -40,7 +40,7 @@ describe('migrações', () => {
     await migrate(db);
     const again = await migrate(db);
     expect(again.applied).toEqual([]);
-    expect(again.from).toBe(12);
+    expect(again.from).toBe(13);
   });
 
   it('uma migração que falha não deixa nada a meio', async () => {
@@ -48,10 +48,10 @@ describe('migrações', () => {
     await migrate(db);
     const broken = [
       ...MIGRATIONS,
-      { version: 13, name: '013-broken', sql: 'CREATE TABLE half_done (id TEXT); SELECT * FROM nao_existe;' },
+      { version: 14, name: '014-broken', sql: 'CREATE TABLE half_done (id TEXT); SELECT * FROM nao_existe;' },
     ];
     await expect(migrate(db, broken)).rejects.toThrow();
-    expect(await currentSchemaVersion(db)).toBe(12);
+    expect(await currentSchemaVersion(db)).toBe(13);
     const half = await db.query("SELECT name FROM sqlite_master WHERE name = 'half_done'");
     expect(half).toEqual([]);
   });
@@ -66,7 +66,7 @@ describe('migrações', () => {
     await db.run(`INSERT INTO exercise_muscle (id, exercise_id, muscle_group_id, is_primary, updated_at, device_id)
                   VALUES ('em', 'e', 'm', 1, ${t})`);
 
-    expect((await migrate(db)).applied).toEqual(['002-cardio', '003-sync-state', '004-rir', '005-progress-photo', '006-recovery', '007-health', '008-category', '009-health-detail', '010-progression', '011-suggestion', '012-cycle']);
+    expect((await migrate(db)).applied).toEqual(['002-cardio', '003-sync-state', '004-rir', '005-progress-photo', '006-recovery', '007-health', '008-category', '009-health-detail', '010-progression', '011-suggestion', '012-cycle', '013-cycle-schedule']);
     expect(await db.query('SELECT id, name, archived_at FROM exercise')).toEqual([
       { id: 'e', name: 'Supino', archived_at: '2026-01-01' },
     ]);
