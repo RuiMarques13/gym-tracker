@@ -99,6 +99,7 @@ const fmtDay = (d: string) => new Date(d + 'T12:00').toLocaleDateString('pt-PT',
     .tpl { border: 1px solid rgba(128,128,128,.3); border-radius: 12px; padding: 10px 12px; margin: 8px 4px; cursor: pointer; }
     .tpl.on { border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), .08); }
     .tpl p { margin: 4px 0 0; font-size: 13px; line-height: 1.4; }
+    .tpl-head { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; row-gap: 2px; }
     .tpl .who { font-size: 12px; color: var(--ion-color-medium); }
     .tpl .meta { color: var(--ion-color-medium); font-size: 12px; }
     .tpl .why { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(128,128,128,.2); }
