@@ -10,7 +10,7 @@ import { asUser, freshServer } from '../testing/pg-server';
 import { createTestDb, TEST_SEED } from '../testing/test-db';
 import { FixedClock } from '../util/clock';
 import { ids } from '../util/uuid';
-import { hasDirty, resetSyncState, syncOnce } from './sync-engine';
+import { forgetTable, hasDirty, resetPullCursor, resetSyncState, syncOnce } from './sync-engine';
 import { SyncError, type SyncPullResponse, type SyncPushRequest, type SyncPushResponse, type SyncTransport } from './sync-types';
 
 const SCHEMA = MIGRATIONS.at(-1)!.version;
@@ -49,8 +49,11 @@ async function device(startIso = '2026-10-10T08:00:00.000Z') {
     clock,
     workouts: new SqliteWorkoutRepository(t.db, clock, t.deviceId),
     sessions: new SqliteSessionRepository(t.db, clock, t.deviceId),
-    sync: (tr: SyncTransport, opts: { userId?: string; pullPage?: number } = {}) =>
-      syncOnce(t.db, tr, { deviceId: t.deviceId, userId: opts.userId ?? USER, schemaVersion: SCHEMA, nowIso: () => clock.nowIso(), pullPage: opts.pullPage }),
+    sync: (tr: SyncTransport, opts: { userId?: string; pullPage?: number; photos?: boolean } = {}) =>
+      syncOnce(t.db, tr, {
+        deviceId: t.deviceId, userId: opts.userId ?? USER, schemaVersion: SCHEMA, nowIso: () => clock.nowIso(), pullPage: opts.pullPage,
+        skipTables: opts.photos === false ? ['progress_photo'] : [],
+      }),
   };
 }
 type Dev = Awaited<ReturnType<typeof device>>;
@@ -106,6 +109,52 @@ describe('motor de sync contra Postgres real', () => {
     await b.sync(tr);
     const left = await new SqlitePhotoRepository(b.db, b.clock, b.deviceId).list();
     expect(left.map((p) => p.id).sort()).toEqual(ids3.slice(1).sort());
+  });
+
+  it('com as fotos desligadas, as fotos não sobem e as que chegam do servidor não entram', async () => {
+    const a = await device();
+    const b = await device();
+    const img = 'data:image/jpeg;base64,AAAA';
+    await new SqlitePhotoRepository(a.db, a.clock, a.deviceId).add({ date: '2026-10-01', pose: 'FRONT', image: img });
+    await train(a);
+    await a.sync(server, { photos: false });
+    expect(await hasDirty(a.db, ['progress_photo'])).toBe(false);
+    expect(await hasDirty(a.db)).toBe(true); // a foto continua «por enviar» se um dia ligares
+    const onServer = (await pg.query(`SELECT count(*)::int AS n FROM progress_photo`)).rows[0];
+    expect(onServer).toEqual({ n: 0 });
+    expect(await all(b, 'progress_photo')).toEqual([]);
+    // o resto sincronizou normalmente
+    await b.sync(server, { photos: false });
+    expect(await all(b, 'set_log')).toEqual(await all(a, 'set_log'));
+  });
+
+  it('desligado no B: ignora as fotos do A; ao ligar, resetPullCursor trá-las', async () => {
+    const a = await device();
+    const b = await device();
+    const photos = new SqlitePhotoRepository(a.db, a.clock, a.deviceId);
+    await photos.add({ date: '2026-10-01', pose: 'FRONT', image: 'data:image/jpeg;base64,AAAA' });
+    await a.sync(server); // A tem as fotos ligadas
+    await b.sync(server, { photos: false });
+    expect(await all(b, 'progress_photo')).toEqual([]);
+    await b.sync(server); // ligar sem recomeçar: o cursor já passou as fotos
+    expect(await all(b, 'progress_photo')).toEqual([]);
+    await resetPullCursor(b.db);
+    await b.sync(server);
+    expect(await all(b, 'progress_photo')).toEqual(await all(a, 'progress_photo'));
+  });
+
+  it('forgetTable: depois de apagar as fotos da nuvem, voltar a ligar envia-as outra vez', async () => {
+    const a = await device();
+    await new SqlitePhotoRepository(a.db, a.clock, a.deviceId).add({ date: '2026-10-01', pose: 'FRONT', image: 'data:image/jpeg;base64,AAAA' });
+    await a.sync(server);
+    await asUser(pg, USER, () => pg.query(`SELECT delete_my_photos()`));
+    await a.sync(server);
+    expect(await hasDirty(a.db)).toBe(false); // sem forgetTable, a app julga que o servidor ainda as tem
+    await forgetTable(a.db, 'progress_photo');
+    expect(await hasDirty(a.db)).toBe(true);
+    await a.sync(server);
+    const n = (await pg.query(`SELECT count(*)::int AS n FROM progress_photo`)).rows[0];
+    expect(n).toEqual({ n: 1 });
   });
 
   it('depois de sincronizado não há nada por enviar nem por trazer; repetir não faz nada', async () => {

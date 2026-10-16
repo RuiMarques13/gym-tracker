@@ -10,6 +10,8 @@ import { CLOCK } from '../../core/util/clock';
 import { toLocalDate } from '../../core/util/week';
 import { PhotoError, PhotoPose, POSE_LABEL, ProgressPhoto } from '../../data/models/photo';
 import { PHOTO_REPOSITORY } from '../../data/repositories/providers';
+import { RouterLink } from '@angular/router';
+import { SettingsService } from '../../core/settings/settings.service';
 import { NavButtonComponent } from '../../shared/nav-button.component';
 
 const POSES: PhotoPose[] = ['FRONT', 'SIDE', 'BACK', 'OTHER'];
@@ -19,7 +21,7 @@ import { ToastService } from '../../core/ui/toast.service';
 
 @Component({
   selector: 'app-photos',
-  imports: [NavButtonComponent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonSegment, IonSegmentButton, IonLabel],
+  imports: [NavButtonComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonSegment, IonSegmentButton, IonLabel],
   template: `
     <ion-header>
       <ion-toolbar>
@@ -50,7 +52,11 @@ import { ToastService } from '../../core/ui/toast.service';
             </ion-button>
             <input #file type="file" accept="image/*" hidden (change)="onFile($any($event.target))" />
           </div>
-          <p class="hint">As fotos ficam só na tua conta (reduzidas para ≈ 80 KB cada) e sincronizam entre dispositivos.</p>
+          <p class="hint">
+            Reduzidas para ≈ 80 KB cada.
+            {{ photosSync() ? 'Sincronizam com a tua conta.' : 'Ficam só neste dispositivo.' }}
+            <a routerLink="/conta">Mudar</a>
+          </p>
         </div>
 
         @if (comparing()) {
@@ -125,6 +131,8 @@ export class PhotosPage {
   private readonly clock = inject(CLOCK);
   private readonly toasts = inject(ToastService);
   private readonly alerts = inject(AlertController);
+  /** As fotos só saem do dispositivo com «Sincronizar fotos» ligado (Conta). */
+  readonly photosSync = inject(SettingsService).get('syncPhotos');
 
   readonly poses = POSES;
   readonly label = POSE_LABEL;

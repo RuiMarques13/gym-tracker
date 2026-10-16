@@ -2,9 +2,10 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   AlertController, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonInput, IonItem, IonLabel, IonList,
-  IonListHeader, IonNote, IonSegment, IonSegmentButton, IonTitle, IonToolbar,
+  IonListHeader, IonNote, IonSegment, IonSegmentButton, IonTitle, IonToggle, IonToolbar,
 } from '@ionic/angular';
 import { AuthService } from '../../core/cloud/auth.service';
+import { SettingsService } from '../../core/settings/settings.service';
 import { SyncService } from '../../core/sync/sync.service';
 
 /** Conta na nuvem: entrar, criar conta, sair e apagar os dados da nuvem. Opcional: a app funciona sem conta. */
@@ -12,7 +13,7 @@ import { SyncService } from '../../core/sync/sync.service';
   selector: 'app-account',
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent, IonList, IonListHeader, IonItem, IonLabel,
-    IonInput, IonButton, IonNote, IonSegment, IonSegmentButton,
+    IonInput, IonButton, IonNote, IonSegment, IonSegmentButton, IonToggle,
   ],
   template: `
     <ion-header>
@@ -81,6 +82,22 @@ import { SyncService } from '../../core/sync/sync.service';
               <ion-button expand="block" fill="outline" (click)="signOut()" [disabled]="busy()">Sair</ion-button>
             </div>
             <ion-list lines="none">
+              <ion-list-header><ion-label>Fotos de progresso</ion-label></ion-list-header>
+              <ion-item>
+                <ion-toggle [checked]="photosOn()" (ionChange)="togglePhotos($any($event).detail.checked, $any($event).target)" [disabled]="busy()">
+                  <ion-label class="ion-text-wrap">
+                    <h3>Sincronizar fotos</h3>
+                    <p>{{ photosOn()
+                      ? 'As fotos deste dispositivo são enviadas para a tua conta e chegam aos outros dispositivos com esta opção ligada.'
+                      : 'Desligado: as fotos ficam só neste dispositivo. O resto dos dados continua a sincronizar.' }}</p>
+                  </ion-label>
+                </ion-toggle>
+              </ion-item>
+            </ion-list>
+            <div class="actions">
+              <ion-button expand="block" fill="clear" color="danger" (click)="confirmDeletePhotos()" [disabled]="busy()">Apagar fotos na nuvem</ion-button>
+            </div>
+            <ion-list lines="none">
               <ion-list-header><ion-label>Dados na nuvem</ion-label></ion-list-header>
               <ion-item>
                 <ion-label class="ion-text-wrap">
@@ -114,6 +131,9 @@ export class AccountPage {
   protected readonly sync = inject(SyncService);
   private readonly router = inject(Router);
   private readonly alerts = inject(AlertController);
+  private readonly settings = inject(SettingsService);
+
+  readonly photosOn = this.settings.get('syncPhotos');
 
   readonly mode = signal<'in' | 'up'>('in');
   readonly email = signal('');
@@ -195,6 +215,53 @@ export class AccountPage {
     if (r.ok) await this.sync.pauseAndReset();
     this.busy.set(false);
     this.show(r.ok ? 'Dados da nuvem apagados. A sincronização ficou em pausa: retoma quando quiseres enviar tudo outra vez.' : r.message, !r.ok);
+  }
+
+  /** Ligar pede confirmação: as fotos são dados de saúde e passam a sair do dispositivo. Desligar é imediato. */
+  async togglePhotos(on: boolean, toggle?: { checked: boolean }): Promise<void> {
+    if (on === this.photosOn()) return;
+    if (!on) {
+      await this.sync.setPhotoSync(false);
+      this.show('As fotos deste dispositivo deixam de ser enviadas. As que já estão na nuvem ficam até as apagares.', false);
+      return;
+    }
+    const alert = await this.alerts.create({
+      header: 'Enviar fotos para a nuvem?',
+      message: 'As fotos de progresso deste dispositivo passam a ser guardadas na tua conta (Supabase) e chegam aos teus outros dispositivos que também tenham esta opção ligada. Podes desligar e apagá-las da nuvem quando quiseres.',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Enviar', role: 'confirm' },
+      ],
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role === 'confirm') {
+      await this.sync.setPhotoSync(true);
+      this.show('Fotos a sincronizar.', false);
+    } else if (toggle) {
+      toggle.checked = false; // cancelaste: o interruptor volta a desligado (o valor guardado nunca mudou)
+    }
+  }
+
+  async confirmDeletePhotos(): Promise<void> {
+    const alert = await this.alerts.create({
+      header: 'Apagar fotos na nuvem?',
+      message: 'Remove da nuvem todas as fotos de progresso desta conta. As fotos guardadas nos dispositivos ficam. Se outro dispositivo tiver «Sincronizar fotos» ligado, volta a enviar as dele. Não dá para desfazer.',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Apagar', role: 'destructive', handler: () => void this.deletePhotos() },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async deletePhotos(): Promise<void> {
+    this.busy.set(true);
+    if (this.photosOn()) await this.sync.setPhotoSync(false);
+    const r = await this.auth.deleteCloudPhotos();
+    if (r.ok) await this.sync.forgetPhotos();
+    this.busy.set(false);
+    this.show(r.ok ? 'Fotos apagadas da nuvem. Ficam só nos dispositivos e o envio está desligado.' : r.message, !r.ok);
   }
 
   private show(text: string, error: boolean): void {

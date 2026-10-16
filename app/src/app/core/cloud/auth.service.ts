@@ -95,6 +95,17 @@ export class AuthService {
     }
   }
 
+  /** Apaga na nuvem só as fotos de progresso desta conta (função delete_my_photos). As fotos locais ficam. */
+  async deleteCloudPhotos(): Promise<AuthResult> {
+    try {
+      const { error } = await (await this.client()).rpc('delete_my_photos');
+      if (error) return { ok: false, message: translateAuthError(error as { message?: string }) };
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: translateAuthError(e as Error) };
+    }
+  }
+
   private apply(session: Session | null): void {
     this.email.set(session?.user.email ?? null);
     this.userId.set(session?.user.id ?? null);
