@@ -23,3 +23,13 @@ export class ScheduleError extends Error {
     this.name = 'ScheduleError';
   }
 }
+
+/** Estado de um planeado do ciclo, para a lógica de calendário (core/progression/cycle-schedule). */
+export interface CycleScheduledRow {
+  id: string;
+  date: string;
+  templateId: string;
+  status: ScheduledStatus;
+  cycleId: string | null;
+  deleted: boolean;
+}

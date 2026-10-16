@@ -5,15 +5,15 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { stopCircle } from 'ionicons/icons';
-import { BodyProfileService } from '../../core/health/body-profile.service';
+import { BodyProfileService } from '../../services/health/body-profile.service';
 import { cardioMet, estimateActiveKcal } from '../../core/health/calories';
-import { HealthService } from '../../core/health/health.service';
-import { CardioRunService } from '../../core/timer/cardio-run.service';
+import { HealthService } from '../../services/health/health.service';
+import { CardioRunService } from '../../services/timer/cardio-run.service';
 import { phaseOf } from '../../core/timer/cardio-run';
 import { formatClock } from '../../core/timer/timer-math';
-import { CLOCK } from '../../core/util/clock';
-import { ToastService } from '../../core/ui/toast.service';
-import { SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { CLOCK } from '../../services/clock';
+import { ToastService } from '../../services/ui/toast.service';
+import { SESSION_REPOSITORY } from '../../services/repositories';
 import { StatTile, StatTilesComponent } from '../../shared/stat-tiles.component';
 
 const RING = 2 * Math.PI * 92;

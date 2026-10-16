@@ -3,10 +3,10 @@ import {
   AlertController, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonInput, IonItem, IonLabel, IonList, IonModal,
   IonSegment, IonSegmentButton, IonSpinner, IonTitle, IonToggle, IonToolbar, NavController,
 } from '@ionic/angular';
-import { CLOCK } from '../../core/util/clock';
+import { CLOCK } from '../../services/clock';
 import { addDays, toLocalDate } from '../../core/util/week';
-import { CYCLE_REPOSITORY, SCHEDULED_REPOSITORY, WORKOUT_REPOSITORY } from '../../data/repositories/providers';
-import { CycleService } from '../../core/progression/cycle.service';
+import { CYCLE_REPOSITORY, SCHEDULED_REPOSITORY, WORKOUT_REPOSITORY } from '../../services/repositories';
+import { CycleService } from '../../services/progression/cycle.service';
 import { frequencyWarnings } from '../../core/progression/cycle-schedule';
 import { MUSCLE_LABEL } from '../../core/metrics/muscles';
 import { WeekPatternComponent } from '../../shared/week-pattern.component';
@@ -16,7 +16,7 @@ import {
 } from '../../core/progression/cycles';
 import { GOAL_LABEL } from '../../core/progression/goals';
 import { RuleWhyComponent } from '../../shared/rule-why.component';
-import { ToastService } from '../../core/ui/toast.service';
+import { ToastService } from '../../services/ui/toast.service';
 
 const fmt = (d: string) => new Date(d + 'T12:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' }).replace('.', '');
 const num = (v: unknown): number | null => {

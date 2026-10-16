@@ -1,7 +1,6 @@
 import { ids } from '../util/uuid';
 import { addDays, weekStartOf } from '../util/week';
-import type { CycleScheduledRow } from '../../data/repositories/scheduled.repository';
-import type { ScheduledWorkout } from '../../data/models/scheduled';
+import type { CycleScheduledRow, ScheduledWorkout } from '../../data/models/scheduled';
 import type { Cycle, CycleBlock, CycleWeek, ConflictChoice } from './cycles';
 
 /**

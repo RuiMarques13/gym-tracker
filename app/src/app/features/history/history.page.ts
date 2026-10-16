@@ -8,10 +8,10 @@ import {
 import { addIcons } from 'ionicons';
 import { timeOutline } from 'ionicons/icons';
 import type { SessionSummary } from '../../data/models/session';
-import { SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { SESSION_REPOSITORY } from '../../services/repositories';
 import { effortLabel } from '../../shared/effort-scale';
 import { formatDay, formatMonth, formatSpan, formatVolume } from './history-format';
-import { toastHtml } from '../../core/ui/toast-text';
+import { toastHtml } from '../../services/ui/toast-text';
 
 /** Sessões terminadas, da mais recente para a mais antiga, agrupadas por mês. */
 @Component({

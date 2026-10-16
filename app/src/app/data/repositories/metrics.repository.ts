@@ -1,4 +1,4 @@
-import type { DbAdapter } from '../../core/db/db-adapter';
+import type { DbAdapter } from '../db/db-adapter';
 import { addDays } from '../../core/util/week';
 import { SPEC_MUSCLE_OF_KEY } from '../../core/metrics/muscles';
 import type { MetricExercise, MetricSet } from '../../core/metrics/volume';

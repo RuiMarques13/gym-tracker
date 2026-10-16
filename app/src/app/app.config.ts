@@ -1,5 +1,5 @@
-import { HEALTH_PROVIDER } from './core/health/health-provider';
-import { CapacitorHealthProvider } from './core/health/capacitor-health.provider';
+import { HEALTH_PROVIDER } from './services/health/health-provider';
+import { CapacitorHealthProvider } from './services/health/capacitor-health.provider';
 import {
   ApplicationConfig,
   inject,
@@ -12,12 +12,12 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { Capacitor } from '@capacitor/core';
 import { provideRouter, RouteReuseStrategy, withComponentInputBinding } from '@angular/router';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular';
-import { AuthService } from './core/cloud/auth.service';
-import { SyncService } from './core/sync/sync.service';
-import { UpdateService } from './core/pwa/update.service';
-import { DatabaseService } from './core/db/database.service';
-import { SettingsService } from './core/settings/settings.service';
-import { ThemeService } from './core/theme/theme.service';
+import { AuthService } from './services/cloud/auth.service';
+import { SyncService } from './services/sync/sync.service';
+import { UpdateService } from './services/pwa/update.service';
+import { DatabaseService } from './services/db/database.service';
+import { SettingsService } from './services/settings/settings.service';
+import { ThemeService } from './services/theme/theme.service';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {

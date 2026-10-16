@@ -4,7 +4,7 @@ import {
   IonReorder, IonReorderGroup, IonTitle, IonToggle, IonToolbar,
 } from '@ionic/angular';
 import { orderedNav } from '../../core/navigation/nav-items';
-import { SettingsService } from '../../core/settings/settings.service';
+import { SettingsService } from '../../services/settings/settings.service';
 
 /** Personalizar o menu lateral: arrastar para reordenar, interruptor para esconder. */
 @Component({

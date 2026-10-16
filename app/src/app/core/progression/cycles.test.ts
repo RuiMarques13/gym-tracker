@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { RULE } from './rules';
 import { activeCycle, applyProposal, endDate, planFrom, positionOn, TEMPLATES, totalWeeks, weekReps, weekSets } from './cycles';
-import { createTestDb } from '../testing/test-db';
+import { createTestDb } from '../../data/testing/test-db';
 import { FixedClock } from '../util/clock';
 import { SqliteCycleRepository } from '../../data/repositories/cycle.repository';
 

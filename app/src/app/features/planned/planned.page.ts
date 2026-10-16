@@ -5,14 +5,14 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add, chevronBack, chevronForward, closeCircleOutline, play, trashOutline } from 'ionicons/icons';
-import { CLOCK } from '../../core/util/clock';
+import { CLOCK } from '../../services/clock';
 import { addDays, toLocalDate, weekDays, weekStartOf } from '../../core/util/week';
 import { ScheduledWorkout, STATUS_LABEL } from '../../data/models/scheduled';
-import { SCHEDULED_REPOSITORY, WORKOUT_REPOSITORY } from '../../data/repositories/providers';
+import { SCHEDULED_REPOSITORY, WORKOUT_REPOSITORY } from '../../services/repositories';
 import { SessionLauncher } from '../session/session-launcher';
 
 /** Semana de treinos planeados: planear um treino num dia, iniciar, saltar ou tirar. */
-import { ToastService } from '../../core/ui/toast.service';
+import { ToastService } from '../../services/ui/toast.service';
 
 @Component({
   selector: 'app-planned',

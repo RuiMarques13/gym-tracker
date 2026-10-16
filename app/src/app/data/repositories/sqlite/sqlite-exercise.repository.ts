@@ -1,4 +1,4 @@
-import type { DbAdapter, SqlValue } from '../../../core/db/db-adapter';
+import type { DbAdapter, SqlValue } from '../../db/db-adapter';
 import type { Clock } from '../../../core/util/clock';
 import type { Mechanic } from '../../models/enums';
 import { ids, newId } from '../../../core/util/uuid';

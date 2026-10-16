@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { SEED } from '../../../core/seed/seed.generated';
-import { loadSeed } from '../../../core/seed/seed-loader';
-import { createTestDb, TEST_SEED } from '../../../core/testing/test-db';
+import { SEED } from '../../seed/seed.generated';
+import { loadSeed } from '../../seed/seed-loader';
+import { createTestDb, TEST_SEED } from '../../testing/test-db';
 import { FixedClock } from '../../../core/util/clock';
 import { ids } from '../../../core/util/uuid';
 import { SqliteExerciseRepository } from './sqlite-exercise.repository';

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { LIBRARY } from '../../../core/library/library-data';
 import { libraryItemToInput } from '../../../core/library/library';
-import { SEED } from '../../../core/seed/seed.generated';
-import { loadSeed } from '../../../core/seed/seed-loader';
-import { createTestDb, TEST_SEED } from '../../../core/testing/test-db';
+import { SEED } from '../../seed/seed.generated';
+import { loadSeed } from '../../seed/seed-loader';
+import { createTestDb, TEST_SEED } from '../../testing/test-db';
 import { FixedClock } from '../../../core/util/clock';
 import { ids } from '../../../core/util/uuid';
 import { ExerciseValidationError } from '../../models/exercise';

@@ -68,7 +68,7 @@ sobe `version` e gera o seed:
 cd tools/import-excel && npm install
 node import-excel.mjs "/caminho/para/o/teu.xlsx" --dry-run   # ver o que entra
 node import-excel.mjs "/caminho/para/o/teu.xlsx"             # acrescenta ao catalog.json
-node build-seed.mjs                                           # gera app/src/app/core/seed/seed.generated.ts
+node build-seed.mjs                                           # gera app/src/app/data/seed/seed.generated.ts
 ```
 
 O seed só insere linhas novas: nunca sobrepõe exercícios que editaste, arquivaste ou apagaste.

@@ -1,4 +1,4 @@
-import { ProgressionService } from '../../core/progression/progression.service';
+import { ProgressionService } from '../../services/progression/progression.service';
 import { defaultRepRange } from '../../core/progression/goals';
 import { formatPace, paceBand, weeklyPace } from '../../core/progression/body';
 import { RuleWhyComponent } from '../../shared/rule-why.component';
@@ -11,15 +11,15 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { trashOutline } from 'ionicons/icons';
-import { SettingsService } from '../../core/settings/settings.service';
+import { SettingsService } from '../../services/settings/settings.service';
 import { ageOn, bmi, bmiLabel } from '../../core/util/body';
-import { CLOCK } from '../../core/util/clock';
+import { CLOCK } from '../../services/clock';
 import { toLocalDate } from '../../core/util/week';
 import { BODY_TYPES, BodyMetric, BodyMetricError } from '../../data/models/body';
-import { BODY_METRIC_REPOSITORY } from '../../data/repositories/providers';
+import { BODY_METRIC_REPOSITORY } from '../../services/repositories';
 
 /** Perfil (nome, nascimento, sexo, altura) e medições corporais ao longo do tempo. */
-import { ToastService } from '../../core/ui/toast.service';
+import { ToastService } from '../../services/ui/toast.service';
 
 @Component({
   selector: 'app-profile',

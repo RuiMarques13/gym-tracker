@@ -6,10 +6,10 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add } from 'ionicons/icons';
-import { CLOCK } from '../../core/util/clock';
+import { CLOCK } from '../../services/clock';
 import { toLocalDate, weekStartOf } from '../../core/util/week';
-import { CYCLE_REPOSITORY, WORKOUT_REPOSITORY } from '../../data/repositories/providers';
-import { CycleService } from '../../core/progression/cycle.service';
+import { CYCLE_REPOSITORY, WORKOUT_REPOSITORY } from '../../services/repositories';
+import { CycleService } from '../../services/progression/cycle.service';
 import { WeekPatternComponent } from '../../shared/week-pattern.component';
 import { askConflicts } from './conflicts';
 import { CycleError } from '../../data/repositories/cycle.repository';
@@ -17,7 +17,7 @@ import { endDate, planFrom, positionOn, TEMPLATES, totalWeeks, type Cycle, type 
 import { GOAL_LABEL } from '../../core/progression/goals';
 import { NavButtonComponent } from '../../shared/nav-button.component';
 import { RuleWhyComponent } from '../../shared/rule-why.component';
-import { ToastService } from '../../core/ui/toast.service';
+import { ToastService } from '../../services/ui/toast.service';
 
 const fmtDay = (d: string) => new Date(d + 'T12:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '');
 

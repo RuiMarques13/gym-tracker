@@ -1,4 +1,4 @@
-import type { DbAdapter } from '../../core/db/db-adapter';
+import type { DbAdapter } from '../db/db-adapter';
 import type { CaloriesBasis, HrPoint, HrSummary } from '../../core/health/health.logic';
 
 /** Dados do relógio de uma sessão, além das amostras de FC. Tudo opcional: depende do que o relógio escreveu. */

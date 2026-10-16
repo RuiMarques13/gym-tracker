@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { desiredDays, diffSchedule, frequencyWarnings, slotOfDay, conflictKey } from './cycle-schedule';
 import { planFrom } from './cycles';
 import { ids } from '../util/uuid';
-import type { ScheduledWorkout } from '../../data/models/scheduled';
-import type { CycleScheduledRow } from '../../data/repositories/scheduled.repository';
+import type { CycleScheduledRow, ScheduledWorkout } from '../../data/models/scheduled';
 
 const A = 'a0000000-0000-5000-8000-000000000001', B = 'b0000000-0000-5000-8000-000000000002';
 const cycle = () => {

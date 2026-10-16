@@ -4,9 +4,9 @@ import {
   IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonSpinner, IonTitle, IonToolbar,
 } from '@ionic/angular';
 import { chartSeries, HR_ZONES, hrMaxTanaka, timeInZones } from '../../core/health/health.logic';
-import { BodyProfileService } from '../../core/health/body-profile.service';
-import { HealthService } from '../../core/health/health.service';
-import { SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { BodyProfileService } from '../../services/health/body-profile.service';
+import { HealthService } from '../../services/health/health.service';
+import { SESSION_REPOSITORY } from '../../services/repositories';
 import { ChartComponent, ChartPoint } from '../../shared/chart.component';
 import { effortLabel } from '../../shared/effort-scale';
 import { formatDay, formatSpan, formatTime, formatVolume } from '../history/history-format';

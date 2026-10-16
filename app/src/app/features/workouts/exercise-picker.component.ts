@@ -20,7 +20,7 @@ import {
 import { buildGroupLookup, groupOfExercise } from '../../core/library/exercise-group';
 import { CATEGORY_LABEL, Kind, METRIC_LABEL } from '../../data/models/enums';
 import type { Exercise } from '../../data/models/exercise';
-import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
+import { EXERCISE_REPOSITORY } from '../../services/repositories';
 
 type KindFilter = 'ALL' | Kind;
 

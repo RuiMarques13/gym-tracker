@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { SEED } from '../../core/seed/seed.generated';
-import { loadSeed } from '../../core/seed/seed-loader';
-import { createTestDb } from '../../core/testing/test-db';
+import { SEED } from '../seed/seed.generated';
+import { loadSeed } from '../seed/seed-loader';
+import { createTestDb } from '../testing/test-db';
 import { FixedClock } from '../../core/util/clock';
 import { EquipmentError, SqliteLookupRepository } from './lookup.repository';
 import { ids } from '../../core/util/uuid';
-import { toastHtml } from '../../core/ui/toast-text';
+import { toastHtml } from '../../services/ui/toast-text';
 
 describe('SqliteLookupRepository', () => {
   it('lista músculos por região e equipamentos/áreas por nome', async () => {

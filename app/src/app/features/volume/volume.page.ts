@@ -1,10 +1,10 @@
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonHeader, IonTitle, IonToolbar, ViewWillEnter } from '@ionic/angular';
-import { VolumeService } from '../../core/metrics/volume.service';
+import { VolumeService } from '../../services/metrics/volume.service';
 import { MuscleBarsComponent } from '../../shared/muscle-bars.component';
 import { RecoveryCardComponent } from '../../shared/recovery-card.component';
-import { SettingsService } from '../../core/settings/settings.service';
+import { SettingsService } from '../../services/settings/settings.service';
 import { NavButtonComponent } from '../../shared/nav-button.component';
 
 const GOAL_LABEL = { hypertrophy: 'Ganhar massa', strength: 'Força', power: 'Potência', endurance: 'Resistência muscular', maintenance: 'Manutenção', cut: 'Definição' } as const;

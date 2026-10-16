@@ -1,4 +1,4 @@
-import type { DbAdapter } from '../../core/db/db-adapter';
+import type { DbAdapter } from '../db/db-adapter';
 import type { Soreness } from '../../core/metrics/recovery';
 import type { Clock } from '../../core/util/clock';
 import { ids } from '../../core/util/uuid';

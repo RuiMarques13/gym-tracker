@@ -1,9 +1,9 @@
 import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import { IonContent, IonHeader, IonSelect, IonSelectOption, IonTitle, IonToolbar, ViewWillEnter } from '@ionic/angular';
-import { CLOCK } from '../../core/util/clock';
+import { CLOCK } from '../../services/clock';
 import { addDays, fromLocalDate, toLocalDate, weekStartOf } from '../../core/util/week';
-import { BODY_METRIC_REPOSITORY, EXERCISE_REPOSITORY, METRICS_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { BODY_METRIC_REPOSITORY, EXERCISE_REPOSITORY, METRICS_REPOSITORY, SESSION_REPOSITORY } from '../../services/repositories';
 import { Category, CATEGORIES, CATEGORY_LABEL } from '../../data/models/enums';
 import type { CategoryMetric } from '../../data/repositories/metrics.repository';
 import { epley } from '../history/history-format';

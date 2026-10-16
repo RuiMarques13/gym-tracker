@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createTestDb } from '../../../core/testing/test-db';
+import { createTestDb } from '../../testing/test-db';
 import { FixedClock } from '../../../core/util/clock';
 import { PhotoError } from '../../models/photo';
 import { SqlitePhotoRepository } from '../photo.repository';

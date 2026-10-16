@@ -23,11 +23,11 @@ import {
 import { addIcons } from 'ionicons';
 import { add, clipboardOutline, play } from 'ionicons/icons';
 import { BLOCK_LABEL, BLOCK_ORDER, WorkoutSummary, WorkoutValidationError } from '../../data/models/workout';
-import { WORKOUT_REPOSITORY } from '../../data/repositories/providers';
+import { WORKOUT_REPOSITORY } from '../../services/repositories';
 import { SessionLauncher } from '../session/session-launcher';
 
 /** Os teus treinos (templates). Deslizar para copiar ou arquivar; tocar para editar. */
-import { ToastService } from '../../core/ui/toast.service';
+import { ToastService } from '../../services/ui/toast.service';
 
 @Component({
   selector: 'app-workouts',

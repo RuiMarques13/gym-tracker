@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { IonItem, IonList, IonNote, IonReorder, IonReorderGroup, IonToggle } from '@ionic/angular';
-import { SettingsService } from '../../core/settings/settings.service';
+import { SettingsService } from '../../services/settings/settings.service';
 import { normalizeWidgets, WIDGETS } from './home-widgets.component';
 
 /** Modo «Editar» da Home: arrasta pela pega para reordenar e liga/desliga cada widget. */

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Gera app/src/app/core/seed/seed.generated.ts a partir de catalog.json.
+ * Gera app/src/app/data/seed/seed.generated.ts a partir de catalog.json.
  *
  *   node tools/import-excel/build-seed.mjs
  *
@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const catalogPath = resolve(here, 'catalog.json');
-const outPath = resolve(here, '../../app/src/app/core/seed/seed.generated.ts');
+const outPath = resolve(here, '../../app/src/app/data/seed/seed.generated.ts');
 
 const catalog = JSON.parse(readFileSync(catalogPath, 'utf8'));
 

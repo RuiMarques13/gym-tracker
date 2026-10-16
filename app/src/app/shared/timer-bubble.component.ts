@@ -3,7 +3,7 @@ import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { close, pause, play, refresh, remove, add } from 'ionicons/icons';
 import { formatClock } from '../core/timer/timer-math';
-import { TimerService } from '../core/timer/timer.service';
+import { TimerService } from '../services/timer/timer.service';
 
 const SIZE = 68;
 const MARGIN = 10;

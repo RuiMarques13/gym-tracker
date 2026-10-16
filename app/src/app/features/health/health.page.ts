@@ -5,8 +5,8 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { heartOutline } from 'ionicons/icons';
-import { HealthService } from '../../core/health/health.service';
-import { SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { HealthService } from '../../services/health/health.service';
+import { SESSION_REPOSITORY } from '../../services/repositories';
 import { NavButtonComponent } from '../../shared/nav-button.component';
 import { formatDay, formatSpan } from '../history/history-format';
 

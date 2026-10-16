@@ -32,7 +32,7 @@ import { newId } from '../../core/util/uuid';
 import type { Block, Kind, Mechanic, MetricType } from '../../data/models/enums';
 import { defaultRest } from '../../core/progression/rest';
 import { defaultRepRange } from '../../core/progression/goals';
-import { SettingsService } from '../../core/settings/settings.service';
+import { SettingsService } from '../../services/settings/settings.service';
 import type { Exercise } from '../../data/models/exercise';
 import {
   BLOCK_LABEL,
@@ -42,7 +42,7 @@ import {
   PlannedExerciseInput,
   WorkoutValidationError,
 } from '../../data/models/workout';
-import { WORKOUT_REPOSITORY } from '../../data/repositories/providers';
+import { WORKOUT_REPOSITORY } from '../../services/repositories';
 import { ExercisePickerComponent } from './exercise-picker.component';
 import { formatTargets } from './workout-format';
 
@@ -63,8 +63,8 @@ const BLOCK_HINT: Record<Block, string> = {
   WARMUP: 'Ativação, mobilidade, cardio leve',
   MAIN: 'O resto do treino, pela ordem que fizeres (mobilidade no fim também)',
 };
-import { ToastService } from '../../core/ui/toast.service';
-import { toastHtml } from '../../core/ui/toast-text';
+import { ToastService } from '../../services/ui/toast.service';
+import { toastHtml } from '../../services/ui/toast-text';
 
 @Component({
   selector: 'app-workout-editor',

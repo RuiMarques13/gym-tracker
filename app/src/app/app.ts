@@ -37,13 +37,13 @@ import {
   timeOutline,
 } from 'ionicons/icons';
 import { filter } from 'rxjs';
-import { AuthService } from './core/cloud/auth.service';
-import { SyncService } from './core/sync/sync.service';
-import { DatabaseService } from './core/db/database.service';
+import { AuthService } from './services/cloud/auth.service';
+import { SyncService } from './services/sync/sync.service';
+import { DatabaseService } from './services/db/database.service';
 import { resolveNav } from './core/navigation/nav-items';
-import { EXERCISE_REPOSITORY, SESSION_REPOSITORY, WORKOUT_REPOSITORY } from './data/repositories/providers';
-import { SettingsService } from './core/settings/settings.service';
-import { EffortReminder } from './core/timer/effort-reminder';
+import { EXERCISE_REPOSITORY, SESSION_REPOSITORY, WORKOUT_REPOSITORY } from './services/repositories';
+import { SettingsService } from './services/settings/settings.service';
+import { EffortReminder } from './services/timer/effort-reminder';
 import { TimerBubbleComponent } from './shared/timer-bubble.component';
 
 @Component({
