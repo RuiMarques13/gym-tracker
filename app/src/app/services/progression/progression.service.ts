@@ -2,23 +2,25 @@ import { inject, Injectable } from '@angular/core';
 import {
   BODY_METRIC_REPOSITORY, EXERCISE_REPOSITORY, METRICS_REPOSITORY, RECOVERY_REPOSITORY, SESSION_REPOSITORY, SUGGESTION_REPOSITORY, WORKOUT_REPOSITORY,
 } from '../repositories';
-import type { SuggestionKind, SuggestionRecord, SuggestionResponse } from '../../data/repositories/suggestion.repository';
+import type { SuggestionKind, SuggestionRecord } from '../../data/repositories/suggestion.repository';
 import type { Workout } from '../../data/models/workout';
 import { MUSCLE_LABEL } from '../../core/metrics/muscles';
-import { performanceTrend, previousVolume, weeklyVolume, type Level, type MetricSet } from '../../core/metrics/volume';
+import { performanceTrend, type Level, type MetricSet } from '../../core/metrics/volume';
 import { fourWeekChange, PACE, paceBand, paceMessage, paceStatus, weeklyPace, type WeightRecord } from '../../core/progression/body';
 import { consistentMonths, levelSuggestion } from '../../core/progression/level';
-import { VOLUME_RULES } from '../../core/metrics/volume-rules';
 import { SettingsService } from '../settings/settings.service';
 import { CLOCK } from '../clock';
 import { toLocalDate, weekStartOf } from '../../core/util/week';
 import { fatigueSignals, type FatigueSignal } from '../../core/progression/fatigue';
 import { repRange } from '../../core/progression/load';
-import { defaultRepRange, usesHypertrophyVolume } from '../../core/progression/goals';
-import { detectStagnation, nextResponse, rangeOptions, volumePlan, type StagSession, type StimulusResponse } from '../../core/progression/stagnation';
+import { defaultRepRange } from '../../core/progression/goals';
+import { rangeOptions, volumePlan, type StimulusResponse } from '../../core/progression/stagnation';
+import {
+  goalVolumeLimits, mainExerciseIds, pickStagnationCards, recentExerciseIds, recentSessionsRir, sessionsOf, stagnationDecision, SUGGEST,
+  weeklySetsByMuscle,
+} from '../../core/progression/suggestions';
 
 const DAY = 86_400_000;
-const HOME_MAX = 3;
 
 export interface SuggestionOption {
   label: string;
@@ -107,50 +109,41 @@ export class ProgressionService {
   // --- deteção -------------------------------------------------------------------------------------
 
   /**
-   * Cartões para mostrar. `exerciseIds`: só estes exercícios (fim da sessão); sem isso, os usados nos últimos 14 dias
+   * Cartões para mostrar. `exerciseIds`: só estes exercícios (fim da sessão); sem isso, os usados nos últimos SUGGEST.recentDays dias
    * (Home), mais o cartão de fadiga quando a sugestão automática está ligada.
    */
   async cards(scope: { exerciseIds?: string[]; all?: boolean } = {}): Promise<SuggestionCard[]> {
     if (this.deload()) return [];
     const now = this.clock.now();
-    const md = await this.metrics.metricData(new Date(now.getTime() - 180 * DAY), new Date(now.getTime() + 1000));
-    const history = await this.suggestions.since(new Date(now.getTime() - 365 * DAY).toISOString());
+    const md = await this.metrics.metricData(new Date(now.getTime() - SUGGEST.historyDays * DAY), new Date(now.getTime() + 1000));
+    const history = await this.suggestions.since(new Date(now.getTime() - SUGGEST.responsesDays * DAY).toISOString());
     const working = md.sets.filter((s) => s.type === 'working');
 
     const fatigue = await this.fatigue(working, now);
-    // Séries semanais por músculo: a média das últimas 4 semanas ou a última semana, a maior (uma semana a meio não engana).
-    const lastWeek = weeklyVolume(md.sets, md.exercises, new Date(now.getTime() - 7 * DAY), now).sets;
-    const avg4 = previousVolume(md.sets, md.exercises, now, 4);
-    const vol = new Map([...new Set([...lastWeek.keys(), ...avg4.keys()])].map((m) => [m, Math.max(lastWeek.get(m) ?? 0, avg4.get(m) ?? 0)]));
-    const maxSets = this.maxSets();
+    const vol = weeklySetsByMuscle(md.sets, md.exercises, now);
+    const { maxSets } = this.limits();
     const threshold = this.settings.get('stagnationSessions')();
-
-    const recentIds = [...new Set(working.filter((s) => s.performedAt.getTime() >= now.getTime() - 14 * DAY).map((s) => s.exerciseId))];
-    const ids = scope.exerciseIds ?? recentIds;
-    let out: (SuggestionCard & { n: number })[] = [];
+    const ids = scope.exerciseIds ?? recentExerciseIds(working, now);
+    const found: (SuggestionCard & { sessionsWithout: number })[] = [];
 
     for (const exerciseId of ids) {
       const sessions = sessionsOf(working, exerciseId);
-      const stag = detectStagnation(sessions, threshold);
-      if (!stag.stagnated || !stag.episode) continue;
-      const episode = stag.episode;
-      const mine = history.filter((h) => h.kind === 'STAGNATION' && h.exerciseId === exerciseId && h.episode === episode);
-      const accepted = mine.filter((h) => h.status === 'ACCEPTED');
-      const done = accepted.map((h) => h.response).filter((r): r is SuggestionResponse => !!r);
-      // Depois de aceitares uma resposta, a seguinte só vem com nova estagnação: N sessões sem progresso depois disso.
-      const lastAccepted = accepted.reduce<string | null>((m, h) => (!m || h.createdAt > m ? h.createdAt : m), null);
-      if (lastAccepted && countAfter(sessions, lastAccepted) < threshold) continue;
-      const ex = await this.exercises.get(exerciseId);
-      if (!ex || ex.archivedAt) continue;
       const muscle = md.exercises.get(exerciseId)?.primaryMuscles[0] ?? null;
       const weekly = muscle ? vol.get(muscle) ?? 0 : 0;
-      const response = nextResponse({ fatigue: fatigue.length > 0, weeklySets: weekly, maxSets, done });
-      if (mine.some((h) => h.status === 'DECLINED' && h.response === response)) continue; // recusaste: até nova deteção
-      out.push({ ...(await this.stagnationCard({
-        exerciseId, name: ex.name, episode, response, weekly, maxSets, muscle, sessions: stag.sessionsWithout, fatigue,
-        primaryMuscleIds: ex.primaryMuscleIds,
-      })), n: stag.sessionsWithout });
+      const decision = stagnationDecision({
+        sessions, threshold, fatigue: fatigue.length > 0, weeklySets: weekly, maxSets,
+        responses: history.filter((h) => h.exerciseId === exerciseId),
+      });
+      if (!decision) continue;
+      const ex = await this.exercises.get(exerciseId);
+      if (!ex || ex.archivedAt) continue;
+      found.push({ ...(await this.stagnationCard({
+        exerciseId, name: ex.name, episode: decision.episode, response: decision.response, weekly, maxSets, muscle,
+        sessions: decision.sessionsWithout, fatigue, primaryMuscleIds: ex.primaryMuscleIds,
+      })), sessionsWithout: decision.sessionsWithout });
     }
+    // Home: os parados há mais tempo, no máximo SUGGEST.homeMax (os outros aparecem no fim da sessão).
+    const out: SuggestionCard[] = pickStagnationCards(found, !scope.exerciseIds && !scope.all).map(({ sessionsWithout: _, ...c }) => c);
     // A ganhar massa, com o peso parado 4 semanas: juntar o sinal da alimentação (rules.ts `pace.stall`).
     if (out.length && this.settings.get('profileGoal')() === 'hypertrophy') {
       const change = fourWeekChange(await this.weights(), toLocalDate(now));
@@ -161,14 +154,11 @@ export class ProgressionService {
         }
       }
     }
-    // Home: os 3 exercícios parados há mais tempo (uma sugestão de cada vez; os outros aparecem no fim da sessão).
-    out.sort((a, b) => b.n - a.n);
-    if (!scope.exerciseIds && !scope.all) out = out.slice(0, HOME_MAX);
 
     if (!scope.exerciseIds && fatigue.length && this.settings.get('deloadSuggestions')() && !out.some((c) => c.response === 'deload')) {
       const episode = weekStartOf(toLocalDate(now));
       if (!history.some((h) => h.kind === 'FATIGUE' && h.episode === episode)) {
-        out.unshift({ n: 0,
+        out.unshift({
           key: `fatigue:${episode}`, kind: 'FATIGUE', exerciseId: null, exerciseName: null, episode, response: 'deload',
           title: 'Sinais de fadiga', text: 'Uma semana de descarga: metade das séries de cada exercício, com a mesma carga, durante 7 dias.',
           rules: ['fatigue.signals', 'deload.when', 'deload.how', 'deload.amount'], signals: fatigue.map((f) => f.text),
@@ -181,36 +171,18 @@ export class ProgressionService {
 
   private async fatigue(working: MetricSet[], now: Date): Promise<FatigueSignal[]> {
     const finished = await this.sessions.listFinished({ limit: 3 });
-    const bySession = new Map<string, MetricSet[]>();
-    for (const s of working) (bySession.get(s.sessionId) ?? bySession.set(s.sessionId, []).get(s.sessionId)!).push(s);
-    const lastSessions = [...bySession.values()]
-      .sort((a, b) => b[0].performedAt.getTime() - a[0].performedAt.getTime())
-      .slice(0, 2)
-      .map((list) => list.map((s) => s.rir));
-    const sore = await this.recovery.since(toLocalDate(new Date(now.getTime() - 3 * DAY)));
-    const count = new Map<string, number>();
-    for (const s of working) count.set(s.exerciseId, (count.get(s.exerciseId) ?? 0) + 1);
-    const main = [...count].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
+    const sore = await this.recovery.since(toLocalDate(new Date(now.getTime() - SUGGEST.sorenessDays * DAY)));
     return fatigueSignals({
       rpes: finished.map((s) => s.rpe),
-      rirBySession: lastSessions,
-      levelRirMin: this.levelRirMin(),
+      rirBySession: recentSessionsRir(working),
+      levelRirMin: this.limits().rirMin,
       soreness: sore,
-      perfTrend: performanceTrend(working, main, now, 3),
+      perfTrend: performanceTrend(working, mainExerciseIds(working), now, 3),
     }, (m) => MUSCLE_LABEL[m] ?? m);
   }
 
-  private maxSets(): number {
-    const goal = this.settings.get('profileGoal')();
-    if (usesHypertrophyVolume(goal)) return VOLUME_RULES.goals.hypertrophy[this.settings.get('profileLevel')()].max;
-    if (goal === 'cut') return VOLUME_RULES.goals.cut.any.max;
-    return VOLUME_RULES.goals.maintenance.under_60.max;
-  }
-
-  private levelRirMin(): number {
-    const goal = this.settings.get('profileGoal')();
-    if (usesHypertrophyVolume(goal)) return VOLUME_RULES.goals.hypertrophy[this.settings.get('profileLevel')()].rir[0];
-    return goal === 'cut' ? VOLUME_RULES.goals.cut.any.rir[0] : VOLUME_RULES.goals.maintenance.under_60.rir[0];
+  private limits(): { maxSets: number; rirMin: number } {
+    return goalVolumeLimits(this.settings.get('profileGoal')(), this.settings.get('profileLevel')());
   }
 
   private async stagnationCard(c: {
@@ -421,22 +393,4 @@ export class ProgressionService {
       })),
     });
   }
-}
-
-/** Séries de trabalho de um exercício agrupadas por sessão, da mais recente para a mais antiga. */
-export function sessionsOf(sets: MetricSet[], exerciseId: string): StagSession[] {
-  const by = new Map<string, StagSession>();
-  for (const s of sets) {
-    if (s.exerciseId !== exerciseId || s.type !== 'working') continue;
-    let e = by.get(s.sessionId);
-    if (!e) by.set(s.sessionId, (e = { id: s.sessionId, at: s.performedAt.toISOString(), sets: [] }));
-    if (s.performedAt.toISOString() < e.at) e.at = s.performedAt.toISOString();
-    e.sets.push({ weightKg: s.weightKg, reps: s.reps, rir: s.rir });
-  }
-  return [...by.values()].sort((a, b) => (a.at < b.at ? 1 : -1));
-}
-
-/** Sessões válidas (2+ séries de trabalho) depois de uma data. */
-function countAfter(sessions: StagSession[], iso: string): number {
-  return sessions.filter((x) => x.at > iso && x.sets.length >= 2).length;
 }

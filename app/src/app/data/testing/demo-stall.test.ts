@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { detectStagnation } from '../../core/progression/stagnation';
-import { sessionsOf } from '../../services/progression/progression.service';
+import { sessionsOf } from '../../core/progression/suggestions';
 import { SqliteMetricsRepository } from '../repositories/metrics.repository';
 import { generateDemo, STALL_KEY } from './demo-data';
 import { createTestDb } from './test-db';
