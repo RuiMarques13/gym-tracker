@@ -1,6 +1,5 @@
 import { EffortScaleComponent } from '../../shared/effort-scale.component';
 import { StatTile, StatTilesComponent } from '../../shared/stat-tiles.component';
-import { RuleWhyComponent } from '../../shared/rule-why.component';
 import { SuggestionCardsComponent } from '../../shared/suggestion-cards.component';
 import { ProgressionService, type SuggestionCard } from '../../services/progression/progression.service';
 import { MuscleMapComponent } from '../../shared/muscle-map.component';
@@ -9,10 +8,8 @@ import { BodyProfileService } from '../../services/health/body-profile.service';
 import { HealthService } from '../../services/health/health.service';
 import { paceOf, sessionStats } from '../../core/metrics/session-stats';
 import { Component, computed, effect, inject, input, OnDestroy, resource, signal, untracked } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import {
   AlertController,
-  IonBadge,
   IonButton,
   IonBackButton,
   IonButtons,
@@ -20,13 +17,7 @@ import {
   IonFooter,
   IonHeader,
   IonIcon,
-  IonInput,
-  IonItem,
-  IonLabel,
-  IonList,
   IonModal,
-  IonSegment,
-  IonSegmentButton,
   IonSpinner,
   IonTextarea,
   IonTitle,
@@ -36,16 +27,16 @@ import {
   ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, arrowDown, arrowUp, checkmarkCircle, ellipseOutline, play, remove, stopwatchOutline, trashOutline } from 'ionicons/icons';
+import { add, arrowDown, arrowUp, remove } from 'ionicons/icons';
 import { CardioRunService } from '../../services/timer/cardio-run.service';
 import { SettingsService } from '../../services/settings/settings.service';
 import { formatClock } from '../../core/timer/timer-math';
 import { EffortReminder } from '../../services/timer/effort-reminder';
 import { TimerService } from '../../services/timer/timer.service';
 import { CLOCK } from '../../services/clock';
-import type { SetType, Side } from '../../data/models/enums';
+import type { Side } from '../../data/models/enums';
 import type { Exercise } from '../../data/models/exercise';
-import { groupSets, Session, SessionError, SessionExercise, SessionSet, SideEntry, workingSetCount } from '../../data/models/session';
+import { groupSets, Session, SessionError, SessionExercise, SessionSet, SetGroup, workingSetCount } from '../../data/models/session';
 import { BLOCK_LABEL, BLOCK_ORDER } from '../../data/models/workout';
 import { MUSCLE_LABEL, specOfMuscleIds } from '../../core/metrics/muscles';
 import { portionsForExercise } from '../../core/anatomy/exercise-portions';
@@ -68,33 +59,11 @@ import { ids } from '../../core/util/uuid';
 
 /** id do equipamento → chave do catálogo (barbell, dumbbell…), para ler o incremento nas definições. */
 const EQUIPMENT_KEY = new Map(SEED.equipment.map((e) => [ids.equipment(e.key), e.key]));
-import { formatSetGroup } from './session-format';
-
-interface SideForm {
-  weight: string;
-  reps: string;
-  /** Segundos (minutos no cardio). */
-  duration: string;
-  /** km */
-  distance: string;
-  calories: string;
-  rom: number | null;
-  rir: number | null;
-}
-interface SheetState {
-  exerciseId: string;
-  position: number | null;
-  type: SetType;
-  sides: Partial<Record<Side, SideForm>>;
-}
-
-const EMPTY: SideForm = { weight: '', reps: '', duration: '', distance: '', calories: '', rom: null, rir: null };
-const toNum = (v: string | null | undefined): number | null => {
-  if (v === null || v === undefined || v.trim() === '') return null;
-  const n = Number(v.replace(',', '.'));
-  return Number.isFinite(n) ? n : null;
-};
-const str = (n: number | null | undefined, digits = 2): string => (n === null || n === undefined ? '' : String(Math.round(n * 10 ** digits) / 10 ** digits));
+import { quickLabel } from './session-format';
+import { ExerciseCardComponent } from './exercise-card.component';
+import { SetSheetComponent } from './set-sheet.component';
+import { entriesOfNext, entriesWithRir, formOfSet, formsOfNext, toNum, type SheetSave, type SheetState } from './set-form';
+import { canQuickLog, nextSetValues, weightStep, type NextSet } from '../../core/session/next-set';
 
 /** Sessão em curso: registar séries, descanso e duração com o temporizador, terminar. */
 import { ToastService } from '../../services/ui/toast.service';
@@ -108,9 +77,8 @@ const figOf = (ex: Exercise | null | undefined) => {
 
 @Component({
   selector: 'app-session',
-  imports: [EffortScaleComponent, StatTilesComponent, MuscleMapComponent, RuleWhyComponent, SuggestionCardsComponent, 
-    RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonContent, IonFooter, IonList, IonItem,
-    IonLabel, IonBadge, IonInput, IonTextarea, IonModal, IonSegment, IonSegmentButton, IonSpinner,
+  imports: [EffortScaleComponent, StatTilesComponent, MuscleMapComponent, SuggestionCardsComponent, ExerciseCardComponent, SetSheetComponent,
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonContent, IonFooter, IonTextarea, IonModal, IonSpinner,
   ],
   template: `
     <ion-header>
@@ -171,75 +139,14 @@ const figOf = (ex: Exercise | null | undefined) => {
           @for (b of blocks(); track b.block) {
             <h3 class="block-title">{{ blockLabel[b.block] }}</h3>
             @for (ex of b.items; track ex.id) {
-              <section class="card" [class.done]="isDone(ex)">
-                <header>
-                  <ion-icon [name]="isDone(ex) ? 'checkmark-circle' : 'ellipse-outline'" class="status" />
-                  <div class="title">
-                    <h2>{{ ex.exerciseName }}</h2>
-                    <p>{{ targets(ex) }}</p>
-                    @if (ssLabel(ex); as l) { <p class="ss">{{ l }}</p> }
-                  </div>
-                  <ion-button fill="clear" size="small" color="medium" (click)="removeExercise(ex)" aria-label="Tirar exercício">
-                    <ion-icon slot="icon-only" name="trash-outline" />
-                  </ion-button>
-                </header>
-                @if (suggestionOf(ex); as sg) {
-                  <div class="today" [class.up]="sg.action === 'increase'" [class.down]="sg.action === 'decrease'">
-                    <div class="today-main">
-                      <span class="lbl">Hoje</span>
-                      <strong>
-                        @if (todayKg(ex) !== null) { {{ kgLabel(todayKg(ex)!) }} × }
-                        @else if (sg.rangeKg) { {{ kgLabel(sg.rangeKg[0]) }}–{{ kgLabel(sg.rangeKg[1]) }} × }
-                        {{ sg.repsMin }}–{{ sg.repsMax }}
-                      </strong>
-                      @if (sg.action === 'increase') { <span class="tag">sobe</span> }
-                      @if (sg.action === 'decrease') { <span class="tag">desce</span> }
-                    </div>
-                    @if (sg.target; as st) {
-                      <p class="why">{{ goalLabel() }}: {{ st.label }} estimado ({{ kgLabel(st.e1rm) }}) ≈ {{ st.lo === st.hi ? kgLabel(st.lo) : num(st.lo) + '–' + kgLabel(st.hi) }}@if (st.cue) {, {{ st.cue }}}.</p>
-                    }
-                    @if (cycleWeek(); as cw) {
-                      <p class="why">Ciclo · {{ cw.block }}, semana {{ cw.week }}/{{ cw.weeks }} ({{ cw.type }})@if (ex.targetSets) { · {{ setsFor(ex) }} séries }@if (cw.rir !== null) { · RIR {{ cw.rir }} }</p>
-                    } @else if (deload() && ex.targetSets) { <p class="why">Descarga: {{ setsFor(ex) }} de {{ ex.targetSets }} séries.</p> }
-                    @if (sg.options.length > 1) {
-                      <div class="opts">
-                        @for (o of sg.options; track o) {
-                          <button type="button" [class.on]="todayKg(ex) === o" (click)="choose(ex, o)">{{ kgLabel(o) }}</button>
-                        }
-                      </div>
-                    }
-                    <p class="why">{{ sg.reason }}
-                      <button type="button" class="whybtn" (click)="toggleWhy(ex.id)">{{ whyOpen().has(ex.id) ? 'Fechar' : 'Porquê?' }}</button>
-                    </p>
-                    @if (whyOpen().has(ex.id)) { <app-rule-why class="rulewhy" [key]="sg.rule" /> }
-                  </div>
-                }
-                @if (groups(ex).length) {
-                  <ion-list lines="full" class="sets">
-                    @for (g of groups(ex); track g.position) {
-                      <ion-item button [detail]="false" (click)="openSheet(ex, g.position)">
-                        <ion-label>
-                          <span class="n">{{ g.position }}</span>
-                          {{ format(ex, g) }}
-                          @if (g.type === 'WARMUP') { <ion-badge color="medium">Aquecimento</ion-badge> }
-                        </ion-label>
-                      </ion-item>
-                    }
-                  </ion-list>
-                }
-                <div class="actions">
-                  @if (ex.kind === 'CARDIO' && !historical()) {
-                    <ion-button expand="block" (click)="startCardio(ex)">
-                      <ion-icon slot="start" name="play" /> {{ liveRun()?.exerciseId === ex.id ? 'Voltar à atividade' : 'Iniciar atividade' }}
-                    </ion-button>
-                    <ion-button expand="block" fill="clear" size="small" (click)="openSheet(ex, null)">Registar à mão</ion-button>
-                  } @else {
-                    <ion-button expand="block" fill="outline" (click)="openSheet(ex, null)">
-                      <ion-icon slot="start" name="add" /> Registar série
-                    </ion-button>
-                  }
-                </div>
-              </section>
+              <app-exercise-card
+                [exercise]="ex" [historical]="historical()" [targetsLabel]="targets(ex)" [supersetLabel]="ssLabel(ex)" [done]="isDone(ex)"
+                [suggestion]="suggestionOf(ex)" [todayKg]="todayKg(ex)" [goalLabel]="goalLabel()" [cycleWeek]="cycleWeek()"
+                [deload]="!!deload()" [setsToday]="setsFor(ex)" [quick]="quickLabelOf(ex)" [busy]="logging().has(ex.id)"
+                [rirAsk]="rirAsk()?.exerciseId === ex.id ? rirAsk()!.position : null" [liveHere]="liveRun()?.exerciseId === ex.id"
+                (openSet)="openSheet(ex, $event)" (removeExercise)="removeExercise(ex)" (choose)="choose(ex, $event)"
+                (quickLog)="quickLog(ex)" (startCardio)="startCardio(ex)" (setRir)="setRir(ex, $event.position, $event.rir)"
+                (dismissRir)="rirAsk.set(null)" />
             }
           }
           @if (!session()!.exercises.length) {
@@ -262,89 +169,9 @@ const figOf = (ex: Exercise | null | undefined) => {
       <ng-template>
         @if (sheet(); as sh) {
           @if (sheetExercise(); as ex) {
-            <ion-header>
-              <ion-toolbar>
-                <ion-title>{{ ex.exerciseName }}</ion-title>
-                <ion-buttons slot="end"><ion-button (click)="closeSheet()">Cancelar</ion-button></ion-buttons>
-              </ion-toolbar>
-            </ion-header>
-            <ion-content>
-              <div class="sheet">
-                <p class="sheet-sub">
-                  {{ sh.position ? 'Série ' + sh.position : 'Série ' + nextPosition(ex) }}
-                  @if (ex.targetSets) { de {{ ex.targetSets }} }
-                  · {{ targets(ex) }}
-                </p>
-
-                @if (ex.kind === 'STRENGTH') {
-                  <ion-segment [value]="sh.type" (ionChange)="setType($any($event).detail.value)">
-                    <ion-segment-button value="WORKING"><ion-label>Trabalho</ion-label></ion-segment-button>
-                    <ion-segment-button value="WARMUP"><ion-label>Aquecimento</ion-label></ion-segment-button>
-                  </ion-segment>
-                }
-
-                @for (side of sheetSides(); track side) {
-                  <div class="side">
-                    @if (ex.isUnilateral) { <h4>{{ side === 'LEFT' ? 'Esquerdo' : 'Direito' }}</h4> }
-                    <div class="fields">
-                      @if (ex.metricType === 'WEIGHT_REPS') {
-                        <ion-input label="Carga (kg)" labelPlacement="stacked" fill="outline" type="number" inputmode="decimal"
-                          [value]="field(side, 'weight')" (ionInput)="setField(side, 'weight', $any($event).detail.value)" />
-                      }
-                      @if (ex.metricType !== 'DURATION') {
-                        <ion-input label="Repetições" labelPlacement="stacked" fill="outline" type="number" inputmode="numeric"
-                          [value]="field(side, 'reps')" (ionInput)="setField(side, 'reps', $any($event).detail.value)" />
-                      } @else {
-                        <ion-input [label]="ex.kind === 'CARDIO' ? 'Duração (min)' : 'Duração (s)'" labelPlacement="stacked" fill="outline"
-                          type="number" inputmode="decimal" [value]="field(side, 'duration')"
-                          (ionInput)="setField(side, 'duration', $any($event).detail.value)" />
-                      }
-                    </div>
-                    @if (ex.metricType === 'DURATION') {
-                      <ion-button size="small" fill="outline" (click)="toggleWork(ex, side)">
-                        <ion-icon slot="start" name="stopwatch-outline" />
-                        {{ workSide() === side ? 'Parar e usar o tempo' : 'Cronómetro' }}
-                      </ion-button>
-                    }
-                    @if (ex.kind === 'CARDIO') {
-                      <div class="fields">
-                        <ion-input label="Distância (km)" labelPlacement="stacked" fill="outline" type="number" inputmode="decimal"
-                          [value]="field(side, 'distance')" (ionInput)="setField(side, 'distance', $any($event).detail.value)" />
-                        <ion-input label="Calorias" labelPlacement="stacked" fill="outline" type="number" inputmode="numeric"
-                          [value]="field(side, 'calories')" (ionInput)="setField(side, 'calories', $any($event).detail.value)" />
-                      </div>
-                    }
-                    @if (ex.kind === 'STRENGTH' && sh.type === 'WORKING') {
-                      <div class="rom">
-                        <span>RIR</span>
-                        @for (n of [0, 1, 2, 3, 4]; track n) {
-                          <button type="button" class="chip" [class.on]="sheetRir(side) === n" (click)="toggleRir(side, n)">{{ n === 4 ? '4+' : n }}</button>
-                        }
-                      </div>
-                    }
-                    @if (ex.kind === 'MOBILITY' && showRom()) {
-                      <div class="rom">
-                        <span>Amplitude</span>
-                        @for (n of [1, 2, 3, 4, 5]; track n) {
-                          <button type="button" class="chip" [class.on]="sheetRom(side) === n" (click)="toggleRom(side, n)">{{ n }}</button>
-                        }
-                      </div>
-                    }
-                  </div>
-                }
-                @if (ex.isUnilateral) {
-                  <ion-button size="small" fill="clear" (click)="copySide()">Direito igual ao esquerdo</ion-button>
-                }
-
-                @if (sheetError()) { <p class="error">{{ sheetError() }}</p> }
-                <ion-button expand="block" (click)="saveSheet()">{{ sh.position ? 'Guardar' : 'Registar' }}</ion-button>
-                @if (sh.position) {
-                  <ion-button expand="block" fill="clear" color="danger" (click)="deleteSet()">
-                    <ion-icon slot="start" name="trash-outline" /> Apagar série
-                  </ion-button>
-                }
-              </div>
-            </ion-content>
+            <app-set-sheet [exercise]="ex" [initial]="sh" [targetsLabel]="targets(ex)" [nextPosition]="nextPosition(ex)"
+              [showRom]="showRom()" [weightStep]="stepFor(ex)" [error]="sheetError()"
+              (saved)="saveSheet($event)" (removed)="deleteSet($event)" (cancelled)="closeSheet()" />
           }
         }
       </ng-template>
@@ -394,18 +221,6 @@ const figOf = (ex: Exercise | null | undefined) => {
     </ion-modal>
   `,
   styles: `
-    .today { margin: 4px 12px 8px; padding: 10px 12px; border-radius: 12px; background: var(--ion-color-step-50, rgba(128,128,128,.08)); }
-    .today.up { background: rgba(var(--ion-color-primary-rgb), .12); }
-    .today.down { background: rgba(var(--ion-color-warning-rgb), .14); }
-    .today-main { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-    .today .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ion-color-medium); }
-    .today strong { font-size: 18px; }
-    .today .tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
-    .today.down .tag { background: var(--ion-color-warning); color: var(--ion-color-warning-contrast); }
-    .opts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-    .opts button { font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--ion-color-medium); background: none; color: inherit; }
-    .opts button.on { border-color: var(--ion-color-primary); background: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
-    .why { margin: 6px 0 0; font-size: 12px; color: var(--ion-color-medium); line-height: 1.4; }
     .deload { display: flex; align-items: center; gap: 8px; margin: 8px 12px; padding: 10px 12px; border-radius: 12px; font-size: 14px; background: rgba(var(--ion-color-tertiary-rgb, 128,128,128), .14); }
     .deload > div { flex: 1; }
     .stag-h { font-size: 15px; margin: 14px 0 6px; }
@@ -417,8 +232,6 @@ const figOf = (ex: Exercise | null | undefined) => {
     .next-row.down ion-icon { color: var(--ion-color-warning); }
     .next-row strong { font-size: 14px; }
     .next-row p { margin: 2px 0 0; font-size: 13px; color: var(--ion-color-medium); }
-    .whybtn { font: inherit; font-size: 12px; font-weight: 600; border: 0; background: none; color: var(--ion-color-primary); padding: 0 2px; }
-    .rulewhy { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(128,128,128,.2); }
     .page { max-width: 760px; margin: 0 auto; padding: 8px 12px 24px; }
     .center { display: grid; place-items: center; height: 60vh; }
     .day { margin: 2px 4px 8px; color: var(--ion-color-medium); font-size: 0.9rem; }
@@ -428,21 +241,9 @@ const figOf = (ex: Exercise | null | undefined) => {
     .dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; animation: pulse 1.2s ease-in-out infinite; }
     @keyframes pulse { 50% { opacity: 0.25; } }
     .block-title { margin: 18px 4px 6px; font-size: 0.8rem; font-weight: 700; color: var(--ion-color-medium); }
-    .card { background: var(--ion-card-background, var(--ion-item-background, #fff)); border-radius: 14px; margin-bottom: 12px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); overflow: hidden; }
-    .card header { display: flex; align-items: center; gap: 10px; padding: 12px 6px 6px 14px; }
-    .status { font-size: 24px; color: var(--ion-color-medium); }
-    .card.done .status { color: var(--ion-color-success); }
-    .title { flex: 1; min-width: 0; }
-    .title h2 { margin: 0; font-size: 1.05rem; font-weight: 700; }
-    .title p { margin: 2px 0 0; font-size: 0.85rem; color: var(--ion-color-medium); }
-    .sets ion-item { --min-height: 44px; font-variant-numeric: tabular-nums; }
-    .n { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 8px; border-radius: 50%;
-      background: var(--ion-color-step-150, #ddd); font-size: 0.75rem; font-weight: 700; }
-    .actions { padding: 8px 12px 12px; }
-    .ss { color: var(--ion-color-primary); font-weight: 600; }
     .warn { margin: 8px 0; padding: 8px 12px; border-radius: 10px; font-size: 0.85rem;
       background: var(--ion-color-warning-tint, #fff3cd); color: var(--ion-color-warning-shade, #6b5200); }
+    .sheet { padding: 12px 16px 24px; display: grid; gap: 14px; max-width: 520px; margin: 0 auto; }
     .hint { text-align: center; color: var(--ion-color-medium); margin: 24px 0; }
     .footer { max-width: 760px; margin: 0 auto; padding: 4px 12px; }
     .start-pill { margin: 0 auto 8px; width: fit-content; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem;
@@ -450,16 +251,6 @@ const figOf = (ex: Exercise | null | undefined) => {
     .muscles { margin-top: 12px; padding: 10px 12px 6px; border-radius: 14px; background: var(--ion-card-background, var(--ion-item-background)); }
     .muscles h3 { margin: 0 0 4px; font-size: 0.95rem; }
     .muscles .muted { margin: 0 0 6px; text-align: center; font-size: 0.8rem; color: var(--ion-color-medium); }
-    .sheet { padding: 12px 16px 24px; display: grid; gap: 14px; max-width: 520px; margin: 0 auto; }
-    .sheet-sub { margin: 0; color: var(--ion-color-medium); font-size: 0.9rem; }
-    .side h4 { margin: 0 0 8px; font-size: 0.95rem; }
-    .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 8px; }
-    .rom { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 0.9rem; }
-    .rom span { margin-right: 4px; color: var(--ion-color-medium); }
-    .chip { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--ion-color-medium); background: transparent;
-      color: inherit; font: inherit; font-weight: 600; }
-    .chip.on { background: var(--ion-color-primary); border-color: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
-    .error { margin: 0; color: var(--ion-color-danger); font-size: 0.9rem; }
   `,
 })
 export class SessionPage implements ViewWillEnter, OnDestroy {
@@ -485,7 +276,6 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   readonly session = signal<Session | null>(null);
   readonly sheet = signal<SheetState | null>(null);
   readonly sheetError = signal<string | null>(null);
-  readonly workSide = signal<Side | null>(null);
   readonly finishOpen = signal(false);
   readonly finishRpe = signal('');
   readonly finishNotes = signal('');
@@ -639,25 +429,15 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     const sh = this.sheet();
     return sh ? (this.session()?.exercises.find((e) => e.id === sh.exerciseId) ?? null) : null;
   });
-  readonly sheetSides = computed<Side[]>(() => (this.sheetExercise()?.isUnilateral ? ['LEFT', 'RIGHT'] : ['BOTH']));
 
   constructor() {
-    addIcons({ add, arrowDown, arrowUp, checkmarkCircle, ellipseOutline, play, remove, stopwatchOutline, trashOutline });
+    addIcons({ add, arrowDown, arrowUp, remove });
     // Sugestão de carga para os exercícios da sessão (os novos também, quando os juntas).
     effect(() => {
       const s = this.session();
-      if (s) untracked(() => void this.loadSuggestions(s));
-    });
-    // Cronómetro de duração chegou ao fim: usa o tempo na série que está a ser registada.
-    effect(() => {
-      const f = this.timer.finished();
-      untracked(() => {
-        const side = this.workSide();
-        if (f && f.kind === 'WORK' && side) {
-          this.fillDuration(side, f.seconds);
-          this.timer.stop();
-          this.workSide.set(null);
-        }
+      if (s) untracked(() => {
+        void this.loadSuggestions(s);
+        if (!s.endedAt) void this.loadPrevious(s);
       });
     });
   }
@@ -697,8 +477,6 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     void this.nav.navigateForward(['/sessao/cardio', exerciseId]);
   }
 
-  groups = (ex: SessionExercise) => groupSets(ex.sets);
-  format = (ex: SessionExercise, g: ReturnType<typeof groupSets>[number]) => formatSetGroup(ex, g);
   targets = (ex: SessionExercise) =>
     formatTargets(ex.kind, ex.metricType, ex.isUnilateral, {
       targetSets: ex.targetSets, targetRepsMin: ex.targetRepsMin, targetReps: ex.targetReps, targetDurationSeconds: ex.targetDurationSeconds,
@@ -758,13 +536,8 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   choose(ex: SessionExercise, kg: number): void {
     this.chosen.update((m) => new Map(m).set(ex.id, kg));
   }
-  /** Exercícios com o «Porquê?» aberto. */
-  readonly whyOpen = signal<ReadonlySet<string>>(new Set());
   num = (x: number) => x.toLocaleString('pt-PT', { maximumFractionDigits: 2 });
   readonly goalLabel = computed(() => GOAL_LABEL[this.settings.get('profileGoal')()]);
-  toggleWhy(id: string): void {
-    this.whyOpen.update((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
-  }
   kgLabel = (x: number) => `${x.toLocaleString('pt-PT', { maximumFractionDigits: 2 })} kg`;
 
   private async loadSuggestions(s: Session): Promise<void> {
@@ -890,143 +663,121 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
 
   // --- séries -------------------------------------------------------------------------------------
 
+  /** Lados de um exercício. */
+  private sidesOf = (ex: SessionExercise): Side[] => (ex.isUnilateral ? ['LEFT', 'RIGHT'] : ['BOTH']);
+
+  /** Séries da última sessão terminada de cada exercício da sessão (por id do exercício), para a proposta da série seguinte. */
+  private readonly previous = signal<ReadonlyMap<string, SetGroup[]>>(new Map());
+  private readonly previousAsked = new Set<string>();
+  private async loadPrevious(s: Session): Promise<void> {
+    const todo = [...new Set(s.exercises.map((e) => e.exerciseId))].filter((id) => !this.previousAsked.has(id));
+    if (!todo.length) return;
+    for (const id of todo) this.previousAsked.add(id);
+    const found = new Map(this.previous());
+    for (const id of todo) found.set(id, groupSets(await this.repo.previousSets(id, s.id)));
+    this.previous.set(found);
+  }
+
+  /** Valores propostos para a próxima série (core/session/next-set.ts). */
+  nextOf(ex: SessionExercise): NextSet {
+    const sg = this.suggestionOf(ex);
+    const kg = this.todayKg(ex);
+    return nextSetValues({
+      sides: this.sidesOf(ex),
+      today: groupSets(ex.sets),
+      previous: this.previous().get(ex.exerciseId) ?? [],
+      targets: ex,
+      suggestion: sg && kg !== null ? { weightKg: kg, repsMin: sg.repsMin, action: sg.action } : null,
+    });
+  }
+
+  /** Texto do botão de um toque, ou null quando não se pode (sessão terminada, cardio, sem valores). */
+  quickLabelOf(ex: SessionExercise): string | null {
+    if (this.historical()) return null;
+    const sides = this.sidesOf(ex);
+    const next = this.nextOf(ex);
+    return canQuickLog(ex.kind, ex.metricType, next, sides) ? quickLabel(ex.kind, ex.metricType, next, sides) : null;
+  }
+
+  /** Passo do − / + da carga: o incremento do material do exercício. */
+  stepFor(ex: SessionExercise): number {
+    const key = ex.equipmentId ? EQUIPMENT_KEY.get(ex.equipmentId) : undefined;
+    return weightStep(key ? this.settings.get('loadIncrements')()[key] : null);
+  }
+
+  /** Exercícios a gravar uma série de um toque (evita duas séries com um toque duplo). */
+  readonly logging = signal<ReadonlySet<string>>(new Set());
+  /** Série registada com um toque e ainda sem reserva: o cartão pergunta «quantas ficaram?». */
+  readonly rirAsk = signal<{ exerciseId: string; position: number } | null>(null);
+
+  /** Regista a série proposta com um toque e começa o descanso. */
+  async quickLog(ex: SessionExercise): Promise<void> {
+    if (this.logging().has(ex.id) || this.historical()) return;
+    const sides = this.sidesOf(ex);
+    const next = this.nextOf(ex);
+    if (!canQuickLog(ex.kind, ex.metricType, next, sides)) return;
+    this.logging.update((x) => new Set(x).add(ex.id));
+    try {
+      const updated = await this.repo.saveSet({ sessionExerciseId: ex.id, type: 'WORKING', entries: entriesOfNext(next, sides) });
+      this.patchSession((x) => ({ ...x, exercises: x.exercises.map((e) => (e.id === updated.id ? updated : e)) }));
+      const position = Math.max(...updated.sets.map((x) => x.position));
+      this.rirAsk.set(ex.kind === 'STRENGTH' && ex.metricType !== 'DURATION' ? { exerciseId: ex.id, position } : null);
+      this.startRest(updated);
+    } catch (err) {
+      await this.toasts.show(err instanceof SessionError ? err.message : 'Não foi possível guardar a série.', 'error', 2500);
+    } finally {
+      this.logging.update((x) => { const n = new Set(x); n.delete(ex.id); return n; });
+    }
+  }
+
+  /** Resposta à pergunta da reserva: muda só a reserva da série (não mexe no descanso). */
+  async setRir(ex: SessionExercise, position: number, rir: number): Promise<void> {
+    const g = groupSets(ex.sets).find((x) => x.position === position);
+    this.rirAsk.set(null);
+    if (!g) return;
+    const updated = await this.repo.saveSet({ sessionExerciseId: ex.id, position, type: g.type, entries: entriesWithRir(g, rir) });
+    this.patchSession((x) => ({ ...x, exercises: x.exercises.map((e) => (e.id === updated.id ? updated : e)) }));
+  }
+
   async openSheet(ex: SessionExercise, position: number | null): Promise<void> {
     this.sheetError.set(null);
-    this.workSide.set(null);
-    const groups = groupSets(ex.sets);
-    let sides: SheetState['sides'] = {};
-    let type: SetType = 'WORKING';
-    const sidesList: Side[] = ex.isUnilateral ? ['LEFT', 'RIGHT'] : ['BOTH'];
+    this.rirAsk.set(null);
+    const sidesList = this.sidesOf(ex);
     if (position !== null) {
-      const g = groups.find((x) => x.position === position);
+      const g = groupSets(ex.sets).find((x) => x.position === position);
       if (!g) return;
-      type = g.type;
-      for (const s of g.sets) sides[s.side] = this.toForm(ex, s);
-      for (const side of sidesList) sides[side] ??= { ...EMPTY };
-    } else {
-      const last = groups.at(-1);
-      let source: SessionSet[] | null = last ? last.sets : null;
-      if (!source) {
-        const prev = groupSets(await this.repo.previousSets(ex.exerciseId, this.session()!.id));
-        source = prev.find((g) => g.type === 'WORKING')?.sets ?? prev[0]?.sets ?? null;
-      }
-      for (const side of sidesList) {
-        const row = source?.find((s) => s.side === side) ?? source?.[0];
-        sides[side] = row ? this.toForm(ex, row) : this.fromTargets(ex);
-        if (position === null && sides[side]) sides[side] = { ...sides[side]!, rom: null };
-      }
-      if (last && last.type === 'WARMUP' && ex.kind === 'STRENGTH') type = 'WORKING';
-      // Primeira série de trabalho do exercício hoje: carga sugerida e, depois de subir ou descer, o mínimo da faixa.
-      const sg = this.suggestionOf(ex);
-      const kg = this.todayKg(ex);
-      if (sg && kg !== null && !ex.sets.some((x) => x.type === 'WORKING')) {
-        for (const side of sidesList) {
-          const f = sides[side] ?? { ...EMPTY };
-          sides[side] = { ...f, weight: String(kg), reps: sg.action === 'hold' && f.reps ? f.reps : String(sg.repsMin) };
-        }
-      }
+      const sides: SheetState['sides'] = {};
+      for (const s of g.sets) sides[s.side] = formOfSet(ex.kind, s);
+      for (const side of sidesList) sides[side] ??= formsOfNext(ex.kind, {}, [side])[side];
+      this.sheet.set({ exerciseId: ex.id, position, type: g.type, sides });
+      return;
     }
-    this.sheet.set({ exerciseId: ex.id, position, type, sides });
+    const s = this.session();
+    if (s && !this.previous().has(ex.exerciseId)) await this.loadPrevious(s);
+    this.sheet.set({ exerciseId: ex.id, position: null, type: 'WORKING', sides: formsOfNext(ex.kind, this.nextOf(ex), sidesList) });
   }
 
   closeSheet(): void {
-    if (this.workSide()) {
-      this.timer.stop();
-      this.workSide.set(null);
-    }
     this.sheet.set(null);
   }
 
-  setType(type: SetType): void {
-    this.sheet.update((s) => (s ? { ...s, type } : s));
-  }
-  field(side: Side, key: keyof SideForm): string {
-    return String(this.sheet()?.sides[side]?.[key] ?? '');
-  }
-  sheetRom(side: Side): number | null {
-    return this.sheet()?.sides[side]?.rom ?? null;
-  }
-  setField(side: Side, key: Exclude<keyof SideForm, 'rom' | 'rir'>, value: string | null | undefined): void {
-    this.sheet.update((s) => (s ? { ...s, sides: { ...s.sides, [side]: { ...(s.sides[side] ?? EMPTY), [key]: value ?? '' } } } : s));
-  }
-  toggleRom(side: Side, n: number): void {
-    this.sheet.update((s) =>
-      s ? { ...s, sides: { ...s.sides, [side]: { ...(s.sides[side] ?? EMPTY), rom: s.sides[side]?.rom === n ? null : n } } } : s,
-    );
-  }
-  sheetRir(side: Side): number | null {
-    return this.sheet()?.sides[side]?.rir ?? null;
-  }
-  toggleRir(side: Side, n: number): void {
-    this.sheet.update((s) =>
-      s ? { ...s, sides: { ...s.sides, [side]: { ...(s.sides[side] ?? EMPTY), rir: s.sides[side]?.rir === n ? null : n } } } : s,
-    );
-  }
-  copySide(): void {
-    this.sheet.update((s) => (s?.sides.LEFT ? { ...s, sides: { ...s.sides, RIGHT: { ...s.sides.LEFT } } } : s));
-  }
-
-  toggleWork(ex: SessionExercise, side: Side): void {
-    if (this.workSide() === side) {
-      const done = this.timer.stop();
-      this.workSide.set(null);
-      if (done > 0) this.fillDuration(side, done);
-      return;
-    }
-    const current = toNum(this.field(side, 'duration'));
-    const seconds = ex.kind === 'CARDIO' ? (current ?? 0) * 60 : (current ?? ex.targetDurationSeconds ?? 30);
-    this.workSide.set(side);
-    this.timer.start('WORK', ex.exerciseName + (ex.isUnilateral ? (side === 'LEFT' ? ' · esquerdo' : ' · direito') : ''), seconds || ex.targetDurationSeconds || 30);
-  }
-
-  private fillDuration(side: Side, seconds: number): void {
+  async saveSheet(save: SheetSave): Promise<void> {
     const ex = this.sheetExercise();
-    this.setField(side, 'duration', ex?.kind === 'CARDIO' ? str(seconds / 60) : String(seconds));
-  }
-
-  async saveSheet(): Promise<void> {
-    const sh = this.sheet();
-    const ex = this.sheetExercise();
-    const s = this.session();
-    if (!sh || !ex || !s) return;
-    const isNew = sh.position === null;
-    const entries: SideEntry[] = [];
-    for (const side of this.sheetSides()) {
-      const f = sh.sides[side] ?? EMPTY;
-      const filled = ex.metricType === 'DURATION' ? toNum(f.duration) : toNum(f.reps);
-      if (!filled && this.sheetSides().length > 1) continue; // unilateral: pode registar-se só um lado
-      const duration = toNum(f.duration);
-      entries.push({
-        side,
-        weightKg: toNum(f.weight),
-        reps: toNum(f.reps),
-        durationSeconds: duration === null ? null : ex.kind === 'CARDIO' ? Math.round(duration * 60) : duration,
-        distanceM: toNum(f.distance) === null ? null : Math.round(toNum(f.distance)! * 1000),
-        caloriesKcal: toNum(f.calories),
-        romScore: f.rom,
-        rir: ex.kind === 'STRENGTH' && sh.type === 'WORKING' ? f.rir : null,
-      });
-    }
+    if (!ex || !this.session()) return;
     try {
-      const updated = await this.repo.saveSet({
-        sessionExerciseId: ex.id,
-        position: sh.position ?? undefined,
-        type: ex.kind === 'STRENGTH' ? sh.type : 'WORKING',
-        entries,
-      });
+      const updated = await this.repo.saveSet({ sessionExerciseId: ex.id, position: save.position ?? undefined, type: save.type, entries: save.entries });
       this.patchSession((x) => ({ ...x, exercises: x.exercises.map((e) => (e.id === updated.id ? updated : e)) }));
       this.closeSheet();
-      if (isNew && !this.historical()) this.startRest(updated);
+      if (save.position === null && !this.historical()) this.startRest(updated);
     } catch (err) {
       this.sheetError.set(err instanceof SessionError ? err.message : 'Não foi possível guardar a série.');
     }
   }
 
-  async deleteSet(): Promise<void> {
-    const sh = this.sheet();
+  async deleteSet(position: number): Promise<void> {
     const ex = this.sheetExercise();
-    if (!sh || !ex || sh.position === null) return;
-    const updated = await this.repo.deleteSet(ex.id, sh.position);
+    if (!ex) return;
+    const updated = await this.repo.deleteSet(ex.id, position);
     this.patchSession((x) => ({ ...x, exercises: x.exercises.map((e) => (e.id === updated.id ? updated : e)) }));
     this.closeSheet();
   }
@@ -1124,22 +875,6 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
 
   private patchSession(fn: (s: Session) => Session): void {
     this.session.update((s) => (s ? fn(s) : s));
-  }
-
-  private toForm(ex: SessionExercise, s: SessionSet): SideForm {
-    return {
-      weight: str(s.weightKg), reps: str(s.reps, 0),
-      duration: ex.kind === 'CARDIO' ? str(s.durationSeconds === null ? null : s.durationSeconds / 60) : str(s.durationSeconds, 0),
-      distance: str(s.distanceM === null ? null : s.distanceM / 1000), calories: str(s.caloriesKcal, 0), rom: s.romScore, rir: s.rir,
-    };
-  }
-
-  private fromTargets(ex: SessionExercise): SideForm {
-    return {
-      weight: str(ex.targetWeightKg), reps: str(ex.targetReps, 0),
-      duration: ex.kind === 'CARDIO' ? str(ex.targetDurationSeconds === null ? null : ex.targetDurationSeconds / 60) : str(ex.targetDurationSeconds, 0),
-      distance: str(ex.targetDistanceM === null ? null : ex.targetDistanceM / 1000), calories: '', rom: null, rir: null,
-    };
   }
 
   private async toast(message: string): Promise<void> {
