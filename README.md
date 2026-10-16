@@ -1,36 +1,37 @@
 # Gym Tracker
 
-App pessoal para planear e registar treinos de força e mobilidade. Local primeiro (SQLite no
-dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: documento
-«Gym Tracker — requisitos, arquitetura e fases» (v2) no projeto.
+App pessoal para registar treinos e decidir o que fazer a seguir: força, mobilidade e cardio.
+Android (Capacitor) e browser. Os dados ficam primeiro no dispositivo (SQLite no Android, sql.js no browser
+através do jeep-sqlite) e sincronizam com o Supabase quando há ligação: última alteração ganha, por linha.
+Requisitos e fases: documentos «Gym Tracker — requisitos, arquitetura e fases» no projeto.
 
-## Estado: Fases 0, 1 e 2 concluídas; Fase 3 (sync) em curso
+## Estado
 
-- [x] Projeto Ionic 9 + Angular 21 (standalone, sem zone.js) + Capacitor 8, alvos web e Android
-- [x] `DbAdapter` com três implementações: SQLite nativo (Android), jeep-sqlite (browser), sql.js (testes)
-- [x] Migrações versionadas, cada uma numa transação (`001-init`: todas as tabelas da secção 6, com campos de sync)
-- [x] `device_id` persistido, relógio injetável, UUID v4/v5
-- [x] Registo central de definições + `SettingsService` (signals), três âmbitos
-- [x] Seed com IDs determinísticos; a v4 já não cria exercícios: os 39 de origem foram retirados (a biblioteca tem-nos, mobilidade incluída) e a tua lista começa vazia
-- [x] Navegação: separadores no telemóvel, menu lateral no PC; tema claro/escuro/sistema
-- [x] `ExerciseRepository` completo (pesquisa, filtros, guardar, arquivar, restaurar, remover), adiantado da Fase 1.1
-- [x] Biblioteca de 414 exercícios (376 força, 14 mobilidade, 24 cardio) (Exercícios → Biblioteca), adiciona com um toque (ver `docs/biblioteca.md`)
-- [x] Fase 1.1: criar, editar, arquivar, restaurar e apagar exercícios; filtros completos e ordenação
-- [x] Tipo Cardio (migração 002): duração, com distância e calorias opcionais por série
-- [x] Fase 1.2: treinos com dois blocos, Aquecimento e Principal (mobilidade livre em qualquer um); criar, editar, copiar, arquivar, apagar, reordenar e alvos por exercício
-- [x] Fase 1.3: sessão ativa (a partir de um treino ou livre), séries com carga, reps, duração, lados e amplitude, pré-preenchimento, descanso real, cronómetro de duração e bolha do temporizador com som e vibração; terminar com esforço e notas
-- [x] Fase 1.4: histórico por sessão e por exercício com correções; exportar/importar JSON com merge «última escrita ganha» (`core/merge`), lembrete de cópia de segurança e proposta de fim para sessões esquecidas
-- [x] Fase 1.5: Home com próximo treino, séries da semana por músculo e mobilidade da semana; Planeados; Perfil com medições e IMC; onboarding; ecrã de configurar o relógio; notificação local no fim do temporizador (Android)
-- [x] 151 testes em Node (migrações, restrições, seed, definições, transações, repositórios, biblioteca, treinos, servidor Postgres)
-- [x] PWA: instalável no telemóvel, abre offline e avisa quando há versão nova
-- [x] Fase 2 (servidor): `supabase/migrations` com o esquema Postgres, RLS por utilizador e as funções `sync_push`, `sync_pull` e `delete_my_data`, testadas num Postgres real (PGlite)
-- [x] Fase 2 (app): conta opcional com Supabase Auth (Definições → Conta): entrar, criar conta, sair, apagar dados na nuvem
-- [x] Fase 2: SQL aplicado no projeto Supabase (ver «Servidor» abaixo); login obrigatório
-- [x] Fase 3: sync automático (`core/sync`): envia o que mudou, traz o que mudou, última escrita ganha; estado em Definições → Conta; testado contra um Postgres real com vários dispositivos simulados
-- [x] Privacidade: fotos de progresso só sincronizam com «Sincronizar fotos» ligado (Conta, por dispositivo, desligado por defeito); Health Connect só com as 8 leituras usadas; sem cópia de segurança automática do Android
-- [ ] Fase 3: testar com o PC e o telemóvel reais
-- [x] Fase 4.1: ecrã Gráficos (séries de força e minutos de mobilidade por semana, peso corporal, progressão do 1RM por exercício)
-- [ ] APK testado num Android real (falta correr no teu PC, ver abaixo)
+**Feito**
+- Exercícios: biblioteca de 1158 (965 força, 155 mobilidade, 38 cardio) e a tua lista; mapa de músculos com fonte; animações.
+- Treinos com blocos Aquecimento/Principal, supersets e alvos; Planeados; Ciclos (modelos multi-semana com descargas).
+- Sessão: carga, repetições, reserva (RIR), duração, lados, amplitude; **série num toque** com a proposta seguinte;
+  − / + na folha; descanso com notificação no Android (ecrã bloqueado); sugestão de carga e «Próxima vez».
+- Progressão: estagnação → descarga → mais séries → outra faixa → trocar exercício; sinais de fadiga; objetivos e nível.
+- Acompanhamento: volume por músculo, recuperação, gráficos, peso e medidas, fotos, Health Connect (8 leituras).
+- Regras e fontes: cada número marcado como estudo ou escolha da app (`core/progression/rules.ts`, ecrã Regras e fontes).
+  O 1RM estimado usa Epley em toda a app.
+- Conta (Supabase Auth, obrigatória) e sincronização automática; fotos só sincronizam com «Sincronizar fotos» ligado.
+- Histórico com correções; exportar/importar JSON; PWA instalável e offline.
+
+**Por fazer**
+- Testar a sincronização com o PC e o telemóvel reais.
+- APK testado num Android real.
+
+## Testes
+
+- `npm run test:core`: Vitest em Node (lógica de `core/`, base de dados com sql.js, servidor Postgres com PGlite,
+  regras de arquitetura em `architecture.test.ts`).
+- `npm run test:e2e`: Playwright no build de produção, num telemóvel de 390 px, sem rede para o Supabase e com uma
+  conta simulada (`e2e/fixtures.ts`). Cobre registar séries, alvos de toque, privacidade das fotos e regras e fontes.
+
+O CI (`.github/workflows/deploy-web.yml`) corre os dois em cada pull request e em cada push para `main`; só publica
+se passarem.
 
 ## Requisitos
 
@@ -42,15 +43,15 @@ dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: docum
 ```bash
 npm install            # também copia o sql-wasm.wasm para public/assets (postinstall)
 npm start              # app no browser em http://localhost:4200
-npm run test:core      # testes da camada de dados em Node
+npm run test:core      # Vitest
 npm run build          # build web para www/
+npm run test:e2e       # Playwright (depois do build; da primeira vez: npx playwright install chromium)
 ```
 
 ### Versão web publicada (GitHub Pages)
 
 Cada push para `main` corre os testes e publica em `https://ruimarques13.github.io/gym-tracker/`
-(workflow `.github/workflows/deploy-web.yml`). Os dados ficam no browser de quem abre; até haver sync
-(Fase 3), o PC e o telemóvel têm bases separadas.
+(workflow `.github/workflows/deploy-web.yml`). Com a conta, o PC e o telemóvel sincronizam.
 
 ### Android
 
@@ -91,6 +92,7 @@ app/src/app/
   features/           ecrãs
   shared/             componentes partilhados
   architecture.test.ts  impede que core/ importe Angular, plugins, a base ou services/
+app/e2e/              testes de ecrã (Playwright) e fixture de conta simulada
 tools/import-excel/   catalog.json e gerador do seed (data/seed)
 tools/exercise-library/ catálogo da biblioteca (.md) e conversor (core/library)
 docs/                 notas técnicas e estudos
