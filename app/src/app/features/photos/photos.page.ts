@@ -5,19 +5,19 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { cameraOutline, closeOutline, gitCompareOutline, trashOutline } from 'ionicons/icons';
-import { compressImage } from '../../core/util/image-compress';
-import { CLOCK } from '../../core/util/clock';
+import { compressImage } from '../../services/util/image-compress';
+import { CLOCK } from '../../services/clock';
 import { toLocalDate } from '../../core/util/week';
 import { PhotoError, PhotoPose, POSE_LABEL, ProgressPhoto } from '../../data/models/photo';
-import { PHOTO_REPOSITORY } from '../../data/repositories/providers';
+import { PHOTO_REPOSITORY } from '../../services/repositories';
 import { RouterLink } from '@angular/router';
-import { SettingsService } from '../../core/settings/settings.service';
+import { SettingsService } from '../../services/settings/settings.service';
 import { NavButtonComponent } from '../../shared/nav-button.component';
 
 const POSES: PhotoPose[] = ['FRONT', 'SIDE', 'BACK', 'OTHER'];
 
 /** Fotos de progresso: guardar, ver por data e comparar duas lado a lado. */
-import { ToastService } from '../../core/ui/toast.service';
+import { ToastService } from '../../services/ui/toast.service';
 
 @Component({
   selector: 'app-photos',

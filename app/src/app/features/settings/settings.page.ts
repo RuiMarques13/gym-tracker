@@ -21,16 +21,16 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { checkmarkCircle } from 'ionicons/icons';
-import { AuthService } from '../../core/cloud/auth.service';
-import { SyncService } from '../../core/sync/sync.service';
-import { BackupService } from '../../core/backup/backup.service';
-import { ProgressionService } from '../../core/progression/progression.service';
-import { MERGE_TABLES, MergeError, MergeReport } from '../../core/merge/merge';
-import { SettingsService } from '../../core/settings/settings.service';
-import { SEED } from '../../core/seed/seed.generated';
-import { PALETTES, PaletteId, PaletteInfo } from '../../core/theme/palettes';
-import { ThemeService } from '../../core/theme/theme.service';
-import { ToastService } from '../../core/ui/toast.service';
+import { AuthService } from '../../services/cloud/auth.service';
+import { SyncService } from '../../services/sync/sync.service';
+import { BackupService } from '../../services/backup/backup.service';
+import { ProgressionService } from '../../services/progression/progression.service';
+import { MERGE_TABLES, MergeError, MergeReport } from '../../data/merge/merge';
+import { SettingsService } from '../../services/settings/settings.service';
+import { SEED } from '../../data/seed/seed.generated';
+import { PALETTES, PaletteId, PaletteInfo } from '../../services/theme/palettes';
+import { ThemeService } from '../../services/theme/theme.service';
+import { ToastService } from '../../services/ui/toast.service';
 
 @Component({
   selector: 'app-settings',

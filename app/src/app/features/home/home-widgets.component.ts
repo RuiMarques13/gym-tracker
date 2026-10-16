@@ -3,14 +3,14 @@ import { RouterLink } from '@angular/router';
 import { IonButton } from '@ionic/angular';
 import { CATEGORY_LABEL } from '../../data/models/enums';
 import type { CategoryTotals } from '../../data/repositories/metrics.repository';
-import { VolumeService } from '../../core/metrics/volume.service';
+import { VolumeService } from '../../services/metrics/volume.service';
 import { MuscleBarsComponent } from '../../shared/muscle-bars.component';
 import { WeekProgressChartComponent } from '../../shared/week-progress-chart.component';
 import { RecoveryCardComponent } from '../../shared/recovery-card.component';
-import { SettingsService } from '../../core/settings/settings.service';
-import { CLOCK } from '../../core/util/clock';
+import { SettingsService } from '../../services/settings/settings.service';
+import { CLOCK } from '../../services/clock';
 import { addDays, toLocalDate, weekStartOf } from '../../core/util/week';
-import { METRICS_REPOSITORY, SCHEDULED_REPOSITORY } from '../../data/repositories/providers';
+import { METRICS_REPOSITORY, SCHEDULED_REPOSITORY } from '../../services/repositories';
 import { SessionLauncher } from '../session/session-launcher';
 
 export { DEFAULT_WIDGETS, normalizeWidgets, WIDGETS } from './widget-list';

@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, output, resource } from '@angular/core';
 import { MUSCLE_LABEL } from '../core/metrics/muscles';
 import { formatWait, SORENESS_LABEL } from '../core/metrics/recovery';
-import { RecoveryService } from '../core/metrics/recovery.service';
+import { RecoveryService } from '../services/metrics/recovery.service';
 
 /** Descanso recomendado por músculo treinado nos últimos dias, com a dor de hoje para afinar. */
 @Component({

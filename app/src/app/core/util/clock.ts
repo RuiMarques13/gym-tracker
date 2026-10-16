@@ -1,5 +1,3 @@
-import { InjectionToken } from '@angular/core';
-
 /** Relógio injetável: nos testes usa-se um FixedClock. */
 export interface Clock {
   now(): Date;
@@ -31,8 +29,3 @@ export class FixedClock implements Clock {
     this.current = new Date(this.current.getTime() + ms);
   }
 }
-
-export const CLOCK = new InjectionToken<Clock>('CLOCK', {
-  providedIn: 'root',
-  factory: () => new SystemClock(),
-});

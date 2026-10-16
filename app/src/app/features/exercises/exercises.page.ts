@@ -26,7 +26,7 @@ import {
   ViewWillEnter,
   AlertController,
 } from '@ionic/angular';
-import { ToastService } from '../../core/ui/toast.service';
+import { ToastService } from '../../services/ui/toast.service';
 import { addIcons } from 'ionicons';
 import { add, libraryOutline, optionsOutline, removeCircleOutline } from 'ionicons/icons';
 import {
@@ -44,7 +44,7 @@ import {
 } from '../../data/models/enums';
 import { Exercise, ExerciseFilter } from '../../data/models/exercise';
 import { buildGroupLookup, groupOfExercise } from '../../core/library/exercise-group';
-import { EXERCISE_REPOSITORY, LOOKUP_REPOSITORY } from '../../data/repositories/providers';
+import { EXERCISE_REPOSITORY, LOOKUP_REPOSITORY } from '../../services/repositories';
 
 type KindFilter = 'ALL' | Kind;
 type TriState = 'any' | 'yes' | 'no';

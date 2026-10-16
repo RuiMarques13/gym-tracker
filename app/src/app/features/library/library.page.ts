@@ -28,11 +28,11 @@ import { motionFor } from '../../core/motion/motion';
 import { SHOW_MOTION } from '../../core/motion/motion-flag';
 import { ExerciseMotionComponent } from '../../shared/exercise-motion.component';
 import { MuscleCardComponent, MuscleMapComponent } from '../../shared/muscle-map.component';
-import { SEED } from '../../core/seed/seed.generated';
+import { SEED } from '../../data/seed/seed.generated';
 import { ids } from '../../core/util/uuid';
 import { CATEGORY_LABEL, METRIC_LABEL } from '../../data/models/enums';
 import { ExerciseValidationError } from '../../data/models/exercise';
-import { EXERCISE_REPOSITORY } from '../../data/repositories/providers';
+import { EXERCISE_REPOSITORY } from '../../services/repositories';
 import { fold } from '../../data/repositories/sqlite/sqlite-exercise.repository';
 
 const MUSCLE_NAME = new Map(SEED.muscles.map((m) => [m.key, m.name]));
@@ -44,7 +44,7 @@ const PAGE = 60;
  * Biblioteca de exercícios (só consulta). Tocar em «Adicionar» copia o item
  * para os teus exercícios, onde o podes editar como quiseres.
  */
-import { ToastService } from '../../core/ui/toast.service';
+import { ToastService } from '../../services/ui/toast.service';
 
 @Component({
   selector: 'app-library',

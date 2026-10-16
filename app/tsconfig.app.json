@@ -10,6 +10,6 @@
   "exclude": [
     "src/**/*.spec.ts",
     "src/**/*.test.ts",
-    "src/app/core/testing/**"
+    "src/app/data/testing/**"
   ]
 }

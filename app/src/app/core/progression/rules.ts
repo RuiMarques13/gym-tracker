@@ -6,7 +6,7 @@
  */
 
 export type RuleMark = 'source' | 'app';
-export type RuleArea = 'carga' | 'estagnacao' | 'descarga' | 'volume' | 'descanso' | '1rm' | 'objetivo' | 'corpo' | 'nivel' | 'ciclos';
+export type RuleArea = 'carga' | 'estagnacao' | 'descarga' | 'volume' | 'descanso' | 'recuperacao' | '1rm' | 'objetivo' | 'corpo' | 'nivel' | 'ciclos' | 'sugestoes';
 
 export interface RuleRef {
   label: string;
@@ -34,11 +34,13 @@ export const AREA_LABEL: Record<RuleArea, string> = {
   descarga: 'Fadiga e descarga',
   volume: 'Volume semanal',
   descanso: 'Descanso entre séries',
+  recuperacao: 'Recuperação por músculo',
   '1rm': '1RM estimado',
   objetivo: 'Objetivo',
   corpo: 'Ritmo de peso',
   nivel: 'Nível',
   ciclos: 'Ciclos',
+  sugestoes: 'Como a app escolhe as sugestões',
 };
 
 export const REF = {
@@ -61,6 +63,8 @@ export const REF = {
   garthe2011: { label: 'Garthe et al. 2011, dois ritmos de perda de peso', url: 'https://lida.sport-iat.de/ta/Record/4020931?lng=en', note: 'só o resumo' },
   williams2017: { label: 'Williams et al. 2017, periodizado contra não periodizado', url: 'https://www.fisiologiadelejercicio.com/wp-content/uploads/2017/05/Comparison-of-Periodized-and-Non-Periodized-Resistance.pdf', note: 'cópia alojada por terceiros' },
   evans2019: { label: 'Evans 2019, mini-revisão de periodização', url: 'https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2019.00013/full' },
+  pelland: { label: 'Pelland et al., volume e hipertrofia', url: 'https://sportrxiv.org/index.php/server/preprint/view/460', note: 'pré-publicação, só o resumo' },
+  schoenfeld2016: { label: 'Schoenfeld, Ogborn e Krieger 2016, volume semanal e massa muscular', url: 'https://paulogentil.com/pdf/Dose-response%20relationship%20between%20weekly%20resistance%20training%20volume%20and%20increases%20in%20muscle%20mass%20-%20A%20systematic%20review%20and%20metaanalysis.pdf', note: 'cópia alojada por terceiros' },
   sardeli2018: { label: 'Sardeli et al. 2018, treino de força em restrição calórica', url: 'https://www.mdpi.com/2072-6643/10/4/423' },
 } satisfies Record<string, RuleRef>;
 
@@ -101,6 +105,38 @@ export const RULES: Rule[] = [
   { key: 'volume.advancedMax', area: 'volume', mark: 'source', refs: [REF.iusca2021],
     title: 'Máximo de séries por músculo (avançado)',
     value: '20 séries por semana: a evidência acima de 20 é limitada.' },
+  { key: 'volume.indirect', area: 'volume', mark: 'source', refs: [REF.pelland],
+    title: 'Séries em músculos secundários',
+    value: 'Contam 0,5 série por músculo secundário (1 no principal). Foi o melhor ajuste em Pelland et al., uma pré-publicação ainda sem revisão por pares. Editável.',
+    setting: 'secondaryMuscleWeight' },
+  { key: 'volume.effective', area: 'volume', mark: 'app', refs: [REF.lopez2021, REF.iusca2021],
+    title: 'Que séries contam para o volume',
+    value: 'Séries de trabalho com 5–30 repetições e até 3 em reserva (ou sem reserva registada). Cargas leves e pesadas dão hipertrofia parecida perto da falha (Lopez 2021); os limites exatos são escolha da app.' },
+  { key: 'volume.hypertrophy', area: 'volume', mark: 'app', refs: [REF.iusca2021, REF.schoenfeld2016, REF.acsm2026],
+    title: 'Séries por músculo por semana (hipertrofia, força, potência, resistência)',
+    value: 'Iniciante 6–12 (alvo 10); intermédio 10–20 (alvo 14); avançado 12–20 (alvo 18). As fontes apontam cerca de 10 séries como mínimo geral (IUSCA 2021, ACSM 2026) e evidência limitada acima de 20; mais volume deu mais ganho só como tendência (Schoenfeld 2016). Os valores por nível são escolha da app dentro disso.' },
+  { key: 'volume.rir', area: 'volume', mark: 'app', refs: [REF.iusca2021],
+    title: 'Reserva alvo por nível',
+    value: 'Iniciante 2–3, intermédio 1–3, avançado 0–2 repetições em reserva. Iniciantes crescem sem treinar perto da falha (IUSCA 2021); os números por nível são escolha da app.' },
+  { key: 'volume.maintenance', area: 'volume', mark: 'app', refs: [],
+    title: 'Manutenção: séries por músculo por semana',
+    value: 'Até aos 60 anos, 3–8 séries, com alvo de um terço do volume anterior; a partir dos 60, 4–10 (alvo 6). A especificação citava Bickel 2011 e Spiering 2021, mas a app não abriu essas fontes: até serem verificadas, contam como escolha da app.' },
+  { key: 'volume.cut', area: 'volume', mark: 'app', refs: [REF.sardeli2018],
+    title: 'Definição: séries por músculo por semana',
+    value: 'Manter o volume anterior, entre 10 e 20 séries. Se o desempenho cair 2 semanas seguidas, baixar 25%. Manter o treino de força preserva a massa magra em restrição calórica (Sardeli 2018); os números são escolha da app, sem fonte aberta.' },
+  { key: 'volume.perSession', area: 'volume', mark: 'app', refs: [],
+    title: 'Séries diretas por músculo numa sessão',
+    value: 'Acima de 10 séries diretas do mesmo músculo numa sessão, a app sugere repartir por outro dia. Escolha da app: não abriu nenhuma fonte com este número.' },
+  // ---- recuperação ----
+  { key: 'recovery.window', area: 'recuperacao', mark: 'app', refs: [],
+    title: 'Descanso por músculo depois de o treinar',
+    value: 'Músculos grandes (peito, costas, quadríceps, isquiotibiais, glúteos, lombares) 48–72 h; os restantes 24–48 h. Com 3 séries ou menos fica no início da janela, com 10 ou mais no fim. Nunca menos de 12 h. A app não encontrou horas de recuperação por músculo nas fontes que abriu: é uma estimativa, não um número de estudo.' },
+  { key: 'recovery.rir', area: 'recuperacao', mark: 'app', refs: [],
+    title: 'Séries perto da falha',
+    value: 'Se a reserva média da última sessão desse músculo foi 1 ou menos, mais 12 h. Escolha da app, sem fonte.' },
+  { key: 'recovery.soreness', area: 'recuperacao', mark: 'app', refs: [],
+    title: 'Dor muscular que indicas',
+    value: 'Sem dor −6 h; ligeira 0; moderada +12 h; forte +24 h; muito forte +36 h. Só conta a dor indicada depois do treino. Escolha da app, sem fonte: a dor é um sinal fraco de recuperação, por isso pesa pouco.' },
   // ---- descanso ----
   { key: 'rest.byMechanic', area: 'descanso', mark: 'source', refs: [REF.iusca2021, REF.singer2024], setting: 'restByMechanic',
     title: 'Descanso pelo tipo de exercício',
@@ -228,6 +264,10 @@ export const RULES: Rule[] = [
   { key: 'cycle.next', area: 'ciclos', mark: 'app', refs: [REF.iusca2021, REF.lopez2021],
     title: 'Fim de mesociclo',
     value: 'Na última semana, um resumo propõe o mesociclo seguinte: com exercícios estagnados e volume abaixo do máximo, +10% de séries; já no máximo, outra faixa; sem estagnação, repetir.' },
+  // ---- sugestões ----
+  { key: 'suggest.windows', area: 'sugestoes', mark: 'app', refs: [],
+    title: 'Que histórico conta e quantos cartões aparecem',
+    value: 'Lê as séries dos últimos 180 dias e as tuas respostas do último ano. Na Home, só exercícios feitos nos últimos 14 dias e no máximo 3 cartões (os parados há mais tempo); os outros aparecem no fim da sessão. O volume do músculo é o maior entre a última semana e a média de 4. Escolhas da app: definem o que se olha, não a dose de treino.' },
 ];
 
 export const RULE: Record<string, Rule> = Object.fromEntries(RULES.map((r) => [r.key, r]));

@@ -1,6 +1,6 @@
 import { Component, input } from '@angular/core';
 import { IonNote } from '@ionic/angular';
-import type { VolumeRow } from '../core/metrics/volume.service';
+import type { VolumeRow } from '../services/metrics/volume.service';
 
 /** Barras de séries por músculo contra a faixa (mínimo–máximo) e o alvo. */
 @Component({

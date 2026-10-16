@@ -1,4 +1,4 @@
-import type { DbAdapter } from '../../core/db/db-adapter';
+import type { DbAdapter } from '../db/db-adapter';
 import type { Goal } from '../../core/metrics/volume';
 import type { Cycle, CyclePlan, TemplateId } from '../../core/progression/cycles';
 import type { Clock } from '../../core/util/clock';

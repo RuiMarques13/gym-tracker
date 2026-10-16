@@ -1,8 +1,10 @@
-import type { DbAdapter } from '../../core/db/db-adapter';
+import type { DbAdapter } from '../db/db-adapter';
 import type { Clock } from '../../core/util/clock';
 import { newId } from '../../core/util/uuid';
 import type { ScheduledStatus } from '../models/enums';
-import { ScheduleError, ScheduledWorkout } from '../models/scheduled';
+import { ScheduleError, ScheduledWorkout, type CycleScheduledRow } from '../models/scheduled';
+
+export type { CycleScheduledRow };
 
 export interface ScheduledRepository {
   /** Treinos planeados entre duas datas (inclusivas), por data. */
@@ -21,14 +23,6 @@ export interface ScheduledRepository {
   removeFromCycle(id: string): Promise<void>;
 }
 
-export interface CycleScheduledRow {
-  id: string;
-  date: string;
-  templateId: string;
-  status: ScheduledStatus;
-  cycleId: string | null;
-  deleted: boolean;
-}
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 

@@ -4,9 +4,9 @@ import {
   AlertController, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonInput, IonItem, IonLabel, IonList,
   IonListHeader, IonNote, IonSegment, IonSegmentButton, IonTitle, IonToggle, IonToolbar,
 } from '@ionic/angular';
-import { AuthService } from '../../core/cloud/auth.service';
-import { SettingsService } from '../../core/settings/settings.service';
-import { SyncService } from '../../core/sync/sync.service';
+import { AuthService } from '../../services/cloud/auth.service';
+import { SettingsService } from '../../services/settings/settings.service';
+import { SyncService } from '../../services/sync/sync.service';
 
 /** Conta na nuvem: entrar, criar conta, sair e apagar os dados da nuvem. Opcional: a app funciona sem conta. */
 @Component({

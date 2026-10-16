@@ -1,6 +1,6 @@
 import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, effect, inject, resource, signal, untracked } from '@angular/core';
-import { SyncService } from '../../core/sync/sync.service';
+import { SyncService } from '../../services/sync/sync.service';
 import { RouterLink } from '@angular/router';
 import {
   IonButton,
@@ -14,17 +14,17 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { home } from 'ionicons/icons';
-import { DatabaseService } from '../../core/db/database.service';
-import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories/providers';
-import { SettingsService } from '../../core/settings/settings.service';
-import { CLOCK } from '../../core/util/clock';
+import { DatabaseService } from '../../services/db/database.service';
+import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../services/repositories';
+import { SettingsService } from '../../services/settings/settings.service';
+import { CLOCK } from '../../services/clock';
 import { formatDay, formatTime } from '../history/history-format';
 import { HomeWidgetsComponent } from './home-widgets.component';
 import { HomeLayoutEditorComponent } from './home-layout-editor.component';
 import { SessionLauncher } from '../session/session-launcher';
 import { NoticeCardsComponent, SuggestionCardsComponent } from '../../shared/suggestion-cards.component';
-import { ProgressionService } from '../../core/progression/progression.service';
-import { CycleService, type BlockEndSummary } from '../../core/progression/cycle.service';
+import { ProgressionService } from '../../services/progression/progression.service';
+import { CycleService, type BlockEndSummary } from '../../services/progression/cycle.service';
 import { WEEK_LABEL, type NextBlockProposal } from '../../core/progression/cycles';
 
 @Component({

@@ -1,7 +1,7 @@
 import { Component, inject, input, output, signal } from '@angular/core';
 import { IonButton } from '@ionic/angular';
-import { ProgressionService, type Notice, type SuggestionCard, type SuggestionOption } from '../core/progression/progression.service';
-import { ToastService } from '../core/ui/toast.service';
+import { ProgressionService, type Notice, type SuggestionCard, type SuggestionOption } from '../services/progression/progression.service';
+import { ToastService } from '../services/ui/toast.service';
 import { RuleWhyComponent } from './rule-why.component';
 
 /**

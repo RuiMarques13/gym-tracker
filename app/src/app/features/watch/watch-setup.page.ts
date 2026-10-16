@@ -2,9 +2,9 @@ import { Component, computed, inject, signal } from '@angular/core';
 import {
   IonBackButton, IonButton, IonButtons, IonCheckbox, IonContent, IonHeader, IonItem, IonLabel, IonList, IonListHeader, IonNote, IonTitle, IonToolbar,
 } from '@ionic/angular';
-import { SettingsService } from '../../core/settings/settings.service';
-import { TimerService } from '../../core/timer/timer.service';
-import { HealthService } from '../../core/health/health.service';
+import { SettingsService } from '../../services/settings/settings.service';
+import { TimerService } from '../../services/timer/timer.service';
+import { HealthService } from '../../services/health/health.service';
 
 interface Step {
   id: string;

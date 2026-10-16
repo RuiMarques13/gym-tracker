@@ -27,8 +27,8 @@ import {
   NavController,
 } from '@ionic/angular';
 import { RouterLink } from '@angular/router';
-import { ToastService } from '../../core/ui/toast.service';
-import { SettingsService } from '../../core/settings/settings.service';
+import { ToastService } from '../../services/ui/toast.service';
+import { SettingsService } from '../../services/settings/settings.service';
 import {
   Kind,
   CATEGORIES,
@@ -56,8 +56,8 @@ import { ids } from '../../core/util/uuid';
 import { ExerciseMotionComponent } from '../../shared/exercise-motion.component';
 import { MuscleMapComponent } from '../../shared/muscle-map.component';
 import { EquipmentError, MuscleGroup, NamedItem } from '../../data/repositories/lookup.repository';
-import { EXERCISE_REPOSITORY, LOOKUP_REPOSITORY } from '../../data/repositories/providers';
-import { toastHtml } from '../../core/ui/toast-text';
+import { EXERCISE_REPOSITORY, LOOKUP_REPOSITORY } from '../../services/repositories';
+import { toastHtml } from '../../services/ui/toast-text';
 const EQUIPMENT_KEYS = ['machine', 'cable', 'dumbbell', 'barbell', 'bodyweight', 'band', 'kettlebell', 'other', 'treadmill', 'bike', 'elliptical', 'rower', 'stair', 'skierg'];
 
 type MuscleRole = 'primary' | 'secondary';

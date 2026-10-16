@@ -4,7 +4,7 @@ import {
   IonBackButton, IonButtons, IonContent, IonHeader, IonItem, IonLabel, IonList, IonNote, IonSegment, IonSegmentButton, IonTitle, IonToolbar,
 } from '@ionic/angular';
 import { groupSets } from '../../data/models/session';
-import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../services/repositories';
 import { formatSetGroup } from '../session/session-format';
 import { ChartComponent, ChartPoint } from '../../shared/chart.component';
 import { epley, formatDay, progressSeries } from './history-format';

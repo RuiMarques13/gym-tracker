@@ -2,11 +2,11 @@ import { EffortScaleComponent } from '../../shared/effort-scale.component';
 import { StatTile, StatTilesComponent } from '../../shared/stat-tiles.component';
 import { RuleWhyComponent } from '../../shared/rule-why.component';
 import { SuggestionCardsComponent } from '../../shared/suggestion-cards.component';
-import { ProgressionService, type SuggestionCard } from '../../core/progression/progression.service';
+import { ProgressionService, type SuggestionCard } from '../../services/progression/progression.service';
 import { MuscleMapComponent } from '../../shared/muscle-map.component';
 import { firstExercise } from './session-launcher';
-import { BodyProfileService } from '../../core/health/body-profile.service';
-import { HealthService } from '../../core/health/health.service';
+import { BodyProfileService } from '../../services/health/body-profile.service';
+import { HealthService } from '../../services/health/health.service';
 import { paceOf, sessionStats } from '../../core/metrics/session-stats';
 import { Component, computed, effect, inject, input, OnDestroy, resource, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -37,12 +37,12 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add, arrowDown, arrowUp, checkmarkCircle, ellipseOutline, play, remove, stopwatchOutline, trashOutline } from 'ionicons/icons';
-import { CardioRunService } from '../../core/timer/cardio-run.service';
-import { SettingsService } from '../../core/settings/settings.service';
+import { CardioRunService } from '../../services/timer/cardio-run.service';
+import { SettingsService } from '../../services/settings/settings.service';
 import { formatClock } from '../../core/timer/timer-math';
-import { EffortReminder } from '../../core/timer/effort-reminder';
-import { TimerService } from '../../core/timer/timer.service';
-import { CLOCK } from '../../core/util/clock';
+import { EffortReminder } from '../../services/timer/effort-reminder';
+import { TimerService } from '../../services/timer/timer.service';
+import { CLOCK } from '../../services/clock';
 import type { SetType, Side } from '../../data/models/enums';
 import type { Exercise } from '../../data/models/exercise';
 import { groupSets, Session, SessionError, SessionExercise, SessionSet, SideEntry, workingSetCount } from '../../data/models/session';
@@ -52,18 +52,18 @@ import { portionsForExercise } from '../../core/anatomy/exercise-portions';
 import type { PortionId } from '../../core/anatomy/portions';
 import type { PortionInfo, PortionProfile } from '../../core/anatomy/profiles';
 import { MetricExercise, MetricSet, sessionWarnings } from '../../core/metrics/volume';
-import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../data/repositories/providers';
+import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../services/repositories';
 import { ExercisePickerComponent } from '../workouts/exercise-picker.component';
 import { formatDay } from '../history/history-format';
 import { formatTargets } from '../workouts/workout-format';
 import { repRange, suggestLoad, type LoadSuggestion } from '../../core/progression/load';
 import { defaultRest } from '../../core/progression/rest';
 import { defaultRepRange, GOAL_LABEL, loadTarget } from '../../core/progression/goals';
-import { CycleService, type ActiveCycle } from '../../core/progression/cycle.service';
+import { CycleService, type ActiveCycle } from '../../services/progression/cycle.service';
 import { WEEK_LABEL, weekSets } from '../../core/progression/cycles';
 import { reliable1RM } from '../../core/metrics/one-rm';
 import { nextTimeText } from '../../core/progression/next-time';
-import { SEED } from '../../core/seed/seed.generated';
+import { SEED } from '../../data/seed/seed.generated';
 import { ids } from '../../core/util/uuid';
 
 /** id do equipamento → chave do catálogo (barbell, dumbbell…), para ler o incremento nas definições. */
@@ -97,7 +97,7 @@ const toNum = (v: string | null | undefined): number | null => {
 const str = (n: number | null | undefined, digits = 2): string => (n === null || n === undefined ? '' : String(Math.round(n * 10 ** digits) / 10 ** digits));
 
 /** Sessão em curso: registar séries, descanso e duração com o temporizador, terminar. */
-import { ToastService } from '../../core/ui/toast.service';
+import { ToastService } from '../../services/ui/toast.service';
 
 /** Porções do boneco de um exercício guardado. */
 const figOf = (ex: Exercise | null | undefined) => {

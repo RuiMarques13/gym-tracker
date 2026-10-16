@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createTestDb } from '../testing/test-db';
+import { createTestDb } from '../../data/testing/test-db';
 import { SqliteHealthRepository } from '../../data/repositories/health.repository';
-import type { HealthProvider, WorkoutReading } from './health-provider';
+import type { HealthProvider, WorkoutReading } from '../../services/health/health-provider';
 import { chartSeries, deriveCalories, downsample, energyForWorkout, heartRateRecovery, hrMaxTanaka, latestBmr, mifflinBmr, summarize, timeInZones } from './health.logic';
-import { importSessionHealth } from './health.service';
+import { importSessionHealth } from '../../services/health/health.service';
 
 const t = (s: number) => new Date(Date.UTC(2026, 9, 10, 10, 0, s)).toISOString();
 

@@ -5,6 +5,7 @@ import { isEffective } from './volume';
  * Descanso recomendado por músculo. Estimativa simples e transparente (não é ciência exata):
  * parte de uma janela base pelo tamanho do músculo, sobe com o volume da última sessão e com o esforço
  * (RIR baixo), e ajusta-se pela dor que indicares (1 sem dor … 5 muito dorido).
+ * Todos os números são escolha da app, sem fonte aberta: rules.ts `recovery.window`, `recovery.rir`, `recovery.soreness`.
  * Orientação geral de treino, não aconselhamento médico.
  */
 const HOUR = 3_600_000;

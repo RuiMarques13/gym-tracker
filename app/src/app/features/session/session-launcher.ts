@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { AlertController, NavController } from '@ionic/angular';
-import { SESSION_REPOSITORY } from '../../data/repositories/providers';
-import { toastHtml } from '../../core/ui/toast-text';
+import { SESSION_REPOSITORY } from '../../services/repositories';
+import { toastHtml } from '../../services/ui/toast-text';
 
 import { BLOCK_ORDER } from '../../data/models/workout';
 import type { Session, SessionExercise } from '../../data/models/session';

@@ -1,4 +1,4 @@
-import type { DbAdapter } from '../../core/db/db-adapter';
+import type { DbAdapter } from '../db/db-adapter';
 import type { Clock } from '../../core/util/clock';
 import { newId } from '../../core/util/uuid';
 import { BODY_TYPES, BodyMetric, BodyMetricError } from '../models/body';

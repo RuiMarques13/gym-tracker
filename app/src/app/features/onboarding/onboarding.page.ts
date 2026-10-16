@@ -2,10 +2,10 @@ import { Component, computed, inject, signal } from '@angular/core';
 import {
   IonButton, IonButtons, IonContent, IonHeader, IonInput, IonItem, IonList, IonSelect, IonSelectOption, IonTitle, IonToolbar, NavController,
 } from '@ionic/angular';
-import { SettingsService } from '../../core/settings/settings.service';
-import { CLOCK } from '../../core/util/clock';
+import { SettingsService } from '../../services/settings/settings.service';
+import { CLOCK } from '../../services/clock';
 import { toLocalDate } from '../../core/util/week';
-import { BODY_METRIC_REPOSITORY } from '../../data/repositories/providers';
+import { BODY_METRIC_REPOSITORY } from '../../services/repositories';
 
 /** Primeira vez: nome, dados básicos e descanso, em quatro passos curtos. Tudo é opcional e editável depois. */
 @Component({

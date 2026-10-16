@@ -1,5 +1,5 @@
 import type { AlertController } from '@ionic/angular';
-import type { CycleService, ScheduleConflict } from '../../core/progression/cycle.service';
+import type { CycleService, ScheduleConflict } from '../../services/progression/cycle.service';
 import type { ConflictChoice } from '../../core/progression/cycles';
 
 const day = (d: string) => new Date(d + 'T12:00').toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'short' }).replace('.', '');
