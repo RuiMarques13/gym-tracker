@@ -1,5 +1,6 @@
 import type { Kind, MetricType, Side } from '../../data/models/enums';
 import type { SessionExercise, SessionSet, SetGroup } from '../../data/models/session';
+import type { NextSet } from '../../core/session/next-set';
 import { formatDistance, formatDuration } from '../workouts/workout-format';
 
 const SIDE_LABEL: Record<Side, string> = { BOTH: '', LEFT: 'Esq', RIGHT: 'Dir' };
@@ -29,4 +30,22 @@ export function formatSetGroup(ex: Pick<SessionExercise, 'kind' | 'metricType'>,
   });
   const rom = group.sets.map((s) => s.romScore).filter((r): r is number => r !== null);
   return sides.join(' · ') + (rom.length ? ` · amplitude ${rom.join('/')}` : '');
+}
+
+/** «60 kg» */
+export const kgLabel = (x: number): string => `${num(x)} kg`;
+
+/**
+ * Texto do botão de um toque: «60 kg × 10», «12 reps», «45 s». Unilateral com os dois lados iguais: «… cada lado»;
+ * diferentes: «Esq 20 kg × 10 · Dir 20 kg × 9».
+ */
+export function quickLabel(kind: Kind, metric: MetricType, next: NextSet, sides: Side[]): string {
+  const asSet = (side: Side): SessionSet => ({
+    id: '', position: 0, type: 'WORKING', side, rpe: null, rir: null, romScore: null, restSecondsActual: null, completedAt: null,
+    weightKg: null, reps: null, durationSeconds: null, distanceM: null, caloriesKcal: null, ...next[side],
+  });
+  const texts = sides.map((side) => formatSetValues(kind, metric, asSet(side)));
+  if (sides.length === 1) return texts[0];
+  if (texts.every((t) => t === texts[0])) return `${texts[0]} cada lado`;
+  return sides.map((side, i) => `${SIDE_LABEL[side]} ${texts[i]}`).join(' · ');
 }
