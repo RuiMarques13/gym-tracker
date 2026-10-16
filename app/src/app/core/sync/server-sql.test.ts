@@ -204,4 +204,22 @@ describe('servidor Postgres: sync_push / sync_pull', () => {
     expect((await pull(pg, USER_A)).tables).toEqual({});
     expect((await pull(pg, USER_B)).tables.equipment).toHaveLength(1);
   });
+
+  it('delete_my_photos apaga só as fotos do utilizador autenticado e deixa o resto', async () => {
+    const photo = (id: string) => ({ ...base(id), date: '2026-10-10', pose: 'FRONT', note: null, image: 'data:image/jpeg;base64,AAAA' });
+    const eq = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const p1 = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    await push(pg, USER_A, { equipment: [{ ...base(eq), name: 'a' }], progress_photo: [photo(p1)] });
+    await push(pg, USER_B, { progress_photo: [photo(p1)] });
+    const r = await asUser(pg, USER_A, async () => (await pg.query<{ r: Row }>(`SELECT delete_my_photos() AS r`)).rows[0].r);
+    expect(r).toEqual({ progress_photo: 1 });
+    const a = await pull(pg, USER_A);
+    expect(a.tables.progress_photo).toBeUndefined();
+    expect(a.tables.equipment).toHaveLength(1);
+    expect((await pull(pg, USER_B)).tables.progress_photo).toHaveLength(1);
+  });
+
+  it('delete_my_photos exige sessão iniciada', async () => {
+    await expect(asUser(pg, null, () => pg.query(`SELECT delete_my_photos()`))).rejects.toThrow(/not authenticated/);
+  });
 });

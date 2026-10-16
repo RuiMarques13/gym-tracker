@@ -69,6 +69,14 @@ export const SETTINGS = {
     key: 'timer.vibrate', scope: 'DEVICE', schemaVersion: 1, defaultValue: true,
     validate: isBool, label: 'Vibrar no fim do temporizador',
   }),
+  /**
+   * Fotos de progresso na nuvem. Desligado por defeito: as fotos são dados de saúde e só saem do dispositivo se
+   * quiseres. Por dispositivo, para que ligar noutro aparelho nunca envie as fotos deste sem estares a ver.
+   */
+  syncPhotos: def<boolean>({
+    key: 'sync.photos', scope: 'DEVICE', schemaVersion: 1, defaultValue: false,
+    validate: isBool, label: 'Sincronizar fotos de progresso',
+  }),
   secondaryMuscleWeight: def<number>({
     key: 'metrics.secondaryMuscleWeight', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 0.5,
     validate: isNumberInRange(0, 1), label: 'Peso das séries em músculos secundários',

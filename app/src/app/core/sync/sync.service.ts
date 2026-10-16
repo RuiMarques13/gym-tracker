@@ -5,7 +5,8 @@ import { getMeta, setMeta } from '../db/local-meta';
 import { MIGRATIONS } from '../db/migrations';
 import { SettingsService } from '../settings/settings.service';
 import { CLOCK } from '../util/clock';
-import { hasDirty, resetSyncState, syncOnce } from './sync-engine';
+import type { MergeTable } from '../merge/merge';
+import { forgetTable, hasDirty, resetPullCursor, resetSyncState, syncOnce } from './sync-engine';
 import { SupabaseSyncTransport } from './supabase-transport';
 import { SyncError } from './sync-types';
 
@@ -41,6 +42,7 @@ export class SyncService {
   /** Já houve uma tentativa de sync nesta sessão de conta. */
   private syncedOnce = false;
   private firstWaiters: Array<() => void> = [];
+  private resetCursorNext = false;
 
   constructor() {
     effect(() => {
@@ -95,6 +97,29 @@ export class SyncService {
     await this.run();
   }
 
+  /** Tabelas que não sincronizam neste dispositivo (fotos, se não as quiseres na nuvem). */
+  private skipTables(): MergeTable[] {
+    return this.settings.get('syncPhotos')() ? [] : ['progress_photo'];
+  }
+
+  /**
+   * Liga ou desliga o envio das fotos deste dispositivo. Ao ligar, o próximo sync lê o servidor desde o início,
+   * para trazer as fotos que chegaram enquanto estava desligado.
+   */
+  async setPhotoSync(on: boolean): Promise<void> {
+    await this.settings.set('syncPhotos', on);
+    if (on) {
+      // Feito dentro do bloqueio, no início do próximo sync: um sync já a correr não volta a escrever o cursor antigo.
+      this.resetCursorNext = true;
+      this.schedule(0);
+    }
+  }
+
+  /** Depois de apagar as fotos da nuvem: se voltares a ligar o envio, as fotos deste dispositivo sobem todas outra vez. */
+  async forgetPhotos(): Promise<void> {
+    await forgetTable(this.database.db, 'progress_photo');
+  }
+
   /** Depois de apagar os dados da nuvem: nada volta a subir sozinho até a pessoa retomar. */
   async pauseAndReset(): Promise<void> {
     await setMeta(this.database.db, META_PAUSED, '1');
@@ -120,17 +145,22 @@ export class SyncService {
     try {
       const done = await this.withLock(async () => {
         const db = this.database.db;
+        const skipTables = this.skipTables();
+        if (this.resetCursorNext) {
+          this.resetCursorNext = false;
+          await resetPullCursor(db);
+        }
         // Se guardaste algo durante o sync, repete (até 3 vezes) em vez de esperar pelo próximo gatilho.
         for (let i = 0; i < 3; i++) {
           const report = await syncOnce(db, this.transport, {
-            deviceId: this.database.deviceId, userId, schemaVersion: SCHEMA, nowIso: () => this.clock.nowIso(),
+            deviceId: this.database.deviceId, userId, schemaVersion: SCHEMA, nowIso: () => this.clock.nowIso(), skipTables,
           });
           if (report.changed > 0) {
             await this.database.refineMuscles();
             await this.settings.init(); // as definições da conta podem ter chegado de outro dispositivo
             this.dataVersion.update((n) => n + 1);
           }
-          if (!(await hasDirty(db))) break;
+          if (!(await hasDirty(db, skipTables))) break;
         }
       });
       if (done) {
@@ -154,6 +184,7 @@ export class SyncService {
       this.running = false;
       this.syncedOnce = true;
       this.releaseFirst();
+      if (this.resetCursorNext) this.schedule(2000); // ligaste as fotos durante um sync: lê outra vez desde o início
     }
   }
 

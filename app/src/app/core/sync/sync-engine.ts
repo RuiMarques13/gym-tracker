@@ -27,7 +27,15 @@ export interface SyncOptions {
   nowIso: () => string;
   /** Tamanho da página do pull (testes). */
   pullPage?: number;
+  /**
+   * Tabelas que este dispositivo não envia nem aplica (ex.: `progress_photo` com «Sincronizar fotos» desligado).
+   * O que chega delas no pull é ignorado; ao voltar a incluí-las, chamar `resetPullCursor` para as ler desde o início.
+   */
+  skipTables?: readonly MergeTable[];
 }
+
+/** As tabelas que este sync trata, por ordem de dependência. */
+const tablesFor = (skip: readonly MergeTable[] = []) => MERGE_TABLES.filter((t) => !skip.includes(t));
 
 export interface SyncReport {
   pushed: number;
@@ -44,8 +52,8 @@ const DIRTY_FROM = (table: string) => `
   ${table === 'setting' ? "AND t.scope <> 'DEVICE'" : ''}`;
 
 /** Há alguma linha local por enviar? (consulta barata, para o sync saber se tem de repetir) */
-export async function hasDirty(db: DbAdapter): Promise<boolean> {
-  for (const table of MERGE_TABLES) {
+export async function hasDirty(db: DbAdapter, skipTables: readonly MergeTable[] = []): Promise<boolean> {
+  for (const table of tablesFor(skipTables)) {
     const r = await db.query(`SELECT 1 AS x ${DIRTY_FROM(table)} LIMIT 1`);
     if (r.length) return true;
   }
@@ -56,6 +64,19 @@ export async function hasDirty(db: DbAdapter): Promise<boolean> {
 export async function resetSyncState(db: DbAdapter): Promise<void> {
   await db.run('DELETE FROM sync_row');
   await db.run("DELETE FROM local_meta WHERE key = ?", [META_CURSOR]);
+}
+
+/** O próximo pull lê o servidor desde o início (merge idempotente: só muda o que for mais recente). */
+export async function resetPullCursor(db: DbAdapter): Promise<void> {
+  await db.run('DELETE FROM local_meta WHERE key = ?', [META_CURSOR]);
+}
+
+/**
+ * Esquece o que o servidor conhece de uma tabela: se ela voltar a sincronizar, as linhas locais são todas enviadas.
+ * Usado depois de apagar as fotos da nuvem.
+ */
+export async function forgetTable(db: DbAdapter, table: MergeTable): Promise<void> {
+  await db.run('DELETE FROM sync_row WHERE table_name = ?', [table]);
 }
 
 /**
@@ -107,7 +128,7 @@ async function pushDirty(db: DbAdapter, transport: SyncTransport, opts: SyncOpti
     sent.length = 0;
   };
 
-  for (const table of MERGE_TABLES) {
+  for (const table of tablesFor(opts.skipTables)) {
     const rows = await db.query<SyncRow>(`SELECT t.* ${DIRTY_FROM(table)}`);
     for (const row of rows) {
       const weight = typeof row['image'] === 'string' ? (row['image'] as string).length : 300;
@@ -124,6 +145,7 @@ async function pushDirty(db: DbAdapter, transport: SyncTransport, opts: SyncOpti
 
 async function pullAll(db: DbAdapter, transport: SyncTransport, opts: SyncOptions): Promise<{ pulled: number; changed: number }> {
   const start = Number((await getMeta(db, META_CURSOR)) ?? 0) || 0;
+  const tables = tablesFor(opts.skipTables);
   let cursor = start;
   const acc: SyncTables = {};
   let pulled = 0;
@@ -133,7 +155,7 @@ async function pullAll(db: DbAdapter, transport: SyncTransport, opts: SyncOption
   for (let page = 0; page < MAX_PAGES; page++) {
     const res: SyncPullResponse = await transport.pull(cursor, opts.pullPage ?? PULL_PAGE);
     if (res.protocol_version !== SYNC_PROTOCOL_VERSION) throw new SyncError('Versão do servidor incompatível.', 'protocol');
-    for (const table of MERGE_TABLES) {
+    for (const table of tables) {
       const rows = res.tables?.[table];
       if (rows?.length) {
         (acc[table] ??= []).push(...rows);
@@ -171,7 +193,7 @@ async function pullAll(db: DbAdapter, transport: SyncTransport, opts: SyncOption
   // criado em dois dispositivos), conta como em dia: senão ficava para sempre «por enviar» e o servidor ignorava-a.
   // Se a local é mais recente, regista-se a versão do servidor e a local continua «por enviar».
   await db.transaction(async (tx) => {
-    for (const table of MERGE_TABLES) {
+    for (const table of tables) {
       for (const r of acc[table] ?? []) {
         const local = (await tx.query<SyncRow>(`SELECT * FROM ${table} WHERE id = ?`, [String(r['id'])]))[0];
         const known = local && sameContent(r, local) ? local : r;

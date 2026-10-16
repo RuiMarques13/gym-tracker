@@ -1,8 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import type { HealthAvailability, HealthProvider, WorkoutReading } from './health-provider';
+import { HEALTH_READ as READ } from './health-permissions';
 import type { BmrSample, EnergyRecord, HrPoint } from './health.logic';
-
-const READ = ['heartRate', 'calories', 'totalCalories', 'basalCalories', 'steps', 'distance', 'vo2Max', 'workouts'] as const;
 /** Minutos de FC lidos depois do fim do treino (recuperação). */
 const AFTER_MIN = 2;
 const MIN = 60_000;

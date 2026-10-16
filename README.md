@@ -27,6 +27,7 @@ dispositivo), Android e browser no PC, sync na Fase 3. Requisitos e fases: docum
 - [x] Fase 2 (app): conta opcional com Supabase Auth (Definições → Conta): entrar, criar conta, sair, apagar dados na nuvem
 - [x] Fase 2: SQL aplicado no projeto Supabase (ver «Servidor» abaixo); login obrigatório
 - [x] Fase 3: sync automático (`core/sync`): envia o que mudou, traz o que mudou, última escrita ganha; estado em Definições → Conta; testado contra um Postgres real com vários dispositivos simulados
+- [x] Privacidade: fotos de progresso só sincronizam com «Sincronizar fotos» ligado (Conta, por dispositivo, desligado por defeito); Health Connect só com as 8 leituras usadas; sem cópia de segurança automática do Android
 - [ ] Fase 3: testar com o PC e o telemóvel reais
 - [x] Fase 4.1: ecrã Gráficos (séries de força e minutos de mobilidade por semana, peso corporal, progressão do 1RM por exercício)
 - [ ] APK testado num Android real (falta correr no teu PC, ver abaixo)
