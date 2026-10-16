@@ -258,7 +258,7 @@ export function sessionWarnings(
     .filter(([, n]) => n > rules.max_direct_sets_per_session)
     .map(
       ([m, n]) =>
-        `${n} séries diretas de ${labels[m] ?? m} nesta sessão; acima de ${rules.max_direct_sets_per_session} o retorno é baixo.`,
+        `${n} séries diretas de ${labels[m] ?? m} nesta sessão; acima de ${rules.max_direct_sets_per_session}, a app sugere repartir por outro dia.`,
     );
 }
 

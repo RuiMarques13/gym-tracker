@@ -1,6 +1,10 @@
 /**
- * Regras de volume semanal (spec «métricas de treino»). Base: Pelland et al. 2025; Schoenfeld et al. 2017;
- * Bickel et al. 2011; Spiering et al. 2021; Roth et al. 2022; Baz-Valle et al. 2021.
+ * Regras de volume semanal (spec «métricas de treino»). A origem de cada número está em core/progression/rules.ts:
+ * - `volume.indirect` (0,5 por secundário): estudo, Pelland et al. (pré-publicação);
+ * - `volume.effective`, `volume.hypertrophy`, `volume.rir`, `volume.perSession`: escolha da app dentro das fontes;
+ * - `volume.advancedMax` (máximo 20): estudo, IUSCA 2021;
+ * - `volume.maintenance`, `volume.cut`: escolha da app. A especificação citava Bickel 2011, Spiering 2021, Roth 2022 e
+ *   Baz-Valle 2021, mas essas fontes não foram abertas; até serem verificadas não contam como estudo.
  * Orientação geral de treino, não aconselhamento médico.
  */
 export interface VolumeRange {

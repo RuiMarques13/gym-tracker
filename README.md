@@ -77,18 +77,23 @@ O seed só insere linhas novas: nunca sobrepõe exercícios que editaste, arquiv
 
 ```
 app/src/app/
-  core/db/            DbAdapter, adaptadores, migrações, migrator, local_meta
-  core/settings/      registo de definições, SettingsStore (sem Angular), SettingsService
-  core/seed/          seed gerado + loader
-  core/library/       biblioteca gerada + conversão para exercício
-  core/theme/         tema claro/escuro
-  core/navigation/    lista única de ecrãs (menu, separadores, «Mais»)
-  data/models/        tipos de domínio
-  data/repositories/  interfaces + implementações SQLite + tokens de injeção
+  core/               TypeScript puro: recebe dados, devolve decisões (sem Angular, Capacitor nem base)
+    progression/      carga, estagnação, fadiga, objetivos, ciclos, sugestões; rules.ts = regras e fontes
+    metrics/          volume, recuperação, 1RM, estatísticas da sessão
+    anatomy/ library/ motion/   músculos, biblioteca gerada, animações
+    health/ timer/ settings/ util/ navigation/   lógica pura de saúde, temporizador, registo de definições
+  data/               base local e nuvem, sem Angular
+    db/               DbAdapter, adaptadores (SQLite, sql.js), migrações, migrator, local_meta
+    models/           tipos de domínio (core pode importá-los)
+    repositories/     interfaces + implementações SQLite
+    merge/ sync/ seed/ settings/ library/ testing/   LWW, motor de sync, seed, SettingsStore, correções, testes
+  services/           ligação ao Angular e aos plugins nativos (services, CLOCK, providers dos repositórios)
   features/           ecrãs
-tools/import-excel/   catalog.json, importador do Excel, gerador do seed
-tools/exercise-library/ catálogo da biblioteca (.md) e conversor
-docs/                 notas técnicas
+  shared/             componentes partilhados
+  architecture.test.ts  impede que core/ importe Angular, plugins, a base ou services/
+tools/import-excel/   catalog.json e gerador do seed (data/seed)
+tools/exercise-library/ catálogo da biblioteca (.md) e conversor (core/library)
+docs/                 notas técnicas e estudos
 ```
 
 ## Notas técnicas
