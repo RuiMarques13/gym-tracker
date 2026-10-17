@@ -46,3 +46,8 @@ Thumbs.db
 # Gym Tracker
 /www
 /public/assets/sql-wasm.wasm
+
+# Playwright
+/test-results
+/playwright-report
+/blob-report
