@@ -77,6 +77,11 @@ export const SETTINGS = {
     key: 'sync.photos', scope: 'DEVICE', schemaVersion: 1, defaultValue: false,
     validate: isBool, label: 'Sincronizar fotos de progresso',
   }),
+  /** No browser, o aviso «o descanso não toca com o ecrã bloqueado» já foi mostrado neste dispositivo. */
+  webTimerHintShown: def<boolean>({
+    key: 'timer.webHintShown', scope: 'DEVICE', schemaVersion: 1, defaultValue: false,
+    validate: isBool, label: 'Aviso do temporizador no browser mostrado',
+  }),
   secondaryMuscleWeight: def<number>({
     key: 'metrics.secondaryMuscleWeight', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 0.5,
     validate: isNumberInRange(0, 1), label: 'Peso das séries em músculos secundários',

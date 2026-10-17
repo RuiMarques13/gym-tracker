@@ -17,7 +17,8 @@ Requisitos e fases: documentos «Gym Tracker — requisitos, arquitetura e fases
 - Regras e fontes: cada número marcado como estudo ou escolha da app (`core/progression/rules.ts`, ecrã Regras e fontes).
   O 1RM estimado usa Epley em toda a app.
 - Conta (Supabase Auth, obrigatória) e sincronização automática; fotos só sincronizam com «Sincronizar fotos» ligado.
-- Histórico com correções; exportar/importar JSON; PWA instalável e offline.
+- Histórico com correções; exportar/importar JSON (as fotos só entram se escolheres); PWA instalável e offline.
+- No browser, o aviso do fim do descanso só toca com a página aberta (a app avisa uma vez e nas Definições).
 
 **Por fazer**
 - Testar a sincronização com o PC e o telemóvel reais.
@@ -28,7 +29,7 @@ Requisitos e fases: documentos «Gym Tracker — requisitos, arquitetura e fases
 - `npm run test:core`: Vitest em Node (lógica de `core/`, base de dados com sql.js, servidor Postgres com PGlite,
   regras de arquitetura em `architecture.test.ts`).
 - `npm run test:e2e`: Playwright no build de produção, num telemóvel de 390 px, sem rede para o Supabase e com uma
-  conta simulada (`e2e/fixtures.ts`). Cobre registar séries, alvos de toque, privacidade das fotos e regras e fontes.
+  conta simulada (`e2e/fixtures.ts`). Cobre registar séries, alvos de toque, privacidade das fotos, exportação e regras e fontes.
 
 O CI (`.github/workflows/deploy-web.yml`) corre os dois em cada pull request e em cada push para `main`; só publica
 se passarem.

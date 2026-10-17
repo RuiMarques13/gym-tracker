@@ -10,6 +10,8 @@ export interface ExportResult {
   filename: string;
   sessions: number;
   sets: number;
+  /** Fotos no ficheiro (0 quando ficaram de fora). */
+  photos: number;
 }
 
 const SCHEMA_VERSION = MIGRATIONS.at(-1)!.version;
@@ -21,10 +23,21 @@ export class BackupService {
   private readonly settings = inject(SettingsService);
   private readonly clock = inject(CLOCK);
 
-  /** Gera o ficheiro e entrega-o: descarrega no browser, ou abre a partilha no Android. */
-  async exportToFile(): Promise<ExportResult> {
+  /** Fotos de progresso guardadas neste dispositivo (para perguntar se entram na exportação). */
+  async photoCount(): Promise<number> {
+    const r = await this.database.db.query<{ n: number }>('SELECT COUNT(*) AS n FROM progress_photo WHERE deleted_at IS NULL');
+    return Number(r[0]?.n ?? 0);
+  }
+
+  /**
+   * Gera o ficheiro e entrega-o: descarrega no browser, ou abre a partilha no Android.
+   * As fotos só entram com `includePhotos` (são dados de saúde e o ficheiro pode ir para qualquer lado).
+   */
+  async exportToFile(opts: { includePhotos: boolean }): Promise<ExportResult> {
     const now = this.clock.nowIso();
-    const file = await exportData(this.database.db, { schemaVersion: SCHEMA_VERSION, deviceId: this.database.deviceId, nowIso: now });
+    const file = await exportData(this.database.db, {
+      schemaVersion: SCHEMA_VERSION, deviceId: this.database.deviceId, nowIso: now, includePhotos: opts.includePhotos,
+    });
     const filename = `gym-tracker-${now.slice(0, 10)}.json`;
     const text = JSON.stringify(file);
     if (Capacitor.isNativePlatform()) await this.shareNative(filename, text);
@@ -34,6 +47,7 @@ export class BackupService {
       filename,
       sessions: (file.tables.session ?? []).filter((r) => r['deleted_at'] === null).length,
       sets: (file.tables.set_log ?? []).filter((r) => r['deleted_at'] === null).length,
+      photos: (file.tables.progress_photo ?? []).filter((r) => r['deleted_at'] === null).length,
     };
   }
 

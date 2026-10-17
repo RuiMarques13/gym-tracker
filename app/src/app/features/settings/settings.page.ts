@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -143,6 +144,16 @@ import { ToastService } from '../../services/ui/toast.service';
             <ion-label class="ion-text-wrap"><h3>Regras e fontes</h3><p>Todas as regras de progressão, de onde vem cada número</p></ion-label>
           </ion-item>
 
+          @if (isWeb) {
+            <ion-list-header><ion-label>Aviso do descanso</ion-label></ion-list-header>
+            <ion-item lines="none" class="web-timer">
+              <ion-label class="ion-text-wrap">
+                <h3>Neste browser, só com a app aberta</h3>
+                <p>O som e a vibração do fim do descanso só funcionam com a página visível. Com o ecrã bloqueado ou noutra app, o browser não avisa. Para isso, usa a app Android: o aviso chega como notificação, também no relógio.</p>
+              </ion-label>
+            </ion-item>
+          }
+
           <ion-list-header><ion-label>Relógio</ion-label></ion-list-header>
           <ion-item button detail routerLink="/definicoes/relogio">
             <ion-label class="ion-text-wrap">
@@ -154,7 +165,7 @@ import { ToastService } from '../../services/ui/toast.service';
           <ion-list-header><ion-label>Cópia de segurança</ion-label></ion-list-header>
           <ion-item lines="none">
             <ion-label class="ion-text-wrap">
-              <p>Os teus dados vivem só neste dispositivo. Exporta de vez em quando um ficheiro JSON com tudo.
+              <p>Os teus dados ficam neste dispositivo e, com conta, numa cópia na nuvem. Exporta de vez em quando um ficheiro JSON com tudo.
                 Importar junta o ficheiro ao que já tens: em cada linha fica a versão mais recente, e nada se perde.</p>
               <p class="last">Última exportação: {{ lastExport() }}</p>
             </ion-label>
@@ -199,6 +210,8 @@ export class SettingsPage {
   });
   private readonly settings = inject(SettingsService);
   private readonly backup = inject(BackupService);
+  /** No browser não há notificação agendada: o aviso do descanso só toca com a página visível. */
+  readonly isWeb = !Capacitor.isNativePlatform();
   private readonly alerts = inject(AlertController);
   private readonly toasts = inject(ToastService);
   private readonly themeService = inject(ThemeService);
@@ -267,11 +280,30 @@ export class SettingsPage {
     void this.settings.set('theme', value);
   }
 
+  /** Exportar: com fotos guardadas, pergunta primeiro se entram no ficheiro (por defeito, não). */
   async export(): Promise<void> {
+    const photos = await this.backup.photoCount();
+    if (!photos) return this.doExport(false);
+    const alert = await this.alerts.create({
+      header: 'Incluir as fotos?',
+      message: `Tens ${photos} ${photos === 1 ? 'foto' : 'fotos'} de progresso. São dados de saúde: se o ficheiro for partilhado ou guardado na nuvem, vão com ele.`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Com fotos', role: 'with' },
+        { text: 'Sem fotos', role: 'without' },
+      ],
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role === 'with' || role === 'without') await this.doExport(role === 'with');
+  }
+
+  private async doExport(includePhotos: boolean): Promise<void> {
     this.busy.set(true);
     try {
-      const r = await this.backup.exportToFile();
-      this.show(`Exportado: ${r.sessions} ${r.sessions === 1 ? 'sessão' : 'sessões'}, ${r.sets} linhas de séries (${r.filename}).`);
+      const r = await this.backup.exportToFile({ includePhotos });
+      const photos = r.photos ? `, ${r.photos} ${r.photos === 1 ? 'foto' : 'fotos'}` : includePhotos ? '' : ', sem fotos';
+      this.show(`Exportado: ${r.sessions} ${r.sessions === 1 ? 'sessão' : 'sessões'}, ${r.sets} linhas de séries${photos} (${r.filename}).`);
     } catch (err) {
       this.show(`Não foi possível exportar: ${err instanceof Error ? err.message : 'erro desconhecido'}`, true);
     } finally {
