@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { EffortScaleComponent } from '../../shared/effort-scale.component';
 import { StatTile, StatTilesComponent } from '../../shared/stat-tiles.component';
 import { SuggestionCardsComponent } from '../../shared/suggestion-cards.component';
@@ -792,7 +793,17 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     }
     const seconds = ex.restSeconds
       ?? (ex.kind === 'STRENGTH' ? defaultRest(ex.mechanic, this.settings.get('restByMechanic')(), this.settings.get('defaultRestSeconds')(), this.settings.get('profileGoal')()) : 0);
-    if (seconds > 0) this.timer.start('REST', ex.exerciseName, seconds);
+    if (seconds > 0) {
+      this.timer.start('REST', ex.exerciseName, seconds);
+      void this.webTimerHint();
+    }
+  }
+
+  /** No browser, uma vez por dispositivo: o aviso do fim do descanso não toca com o ecrã bloqueado. */
+  private async webTimerHint(): Promise<void> {
+    if (Capacitor.isNativePlatform() || this.settings.get('webTimerHintShown')()) return;
+    await this.settings.set('webTimerHintShown', true);
+    await this.toasts.show('Neste browser, o aviso do fim do descanso só toca com a página aberta. Com o ecrã bloqueado, usa a app Android.', 'info', 6000);
   }
 
   /** Exercícios do mesmo superset (por ordem); vazio se o exercício não está em nenhum. */

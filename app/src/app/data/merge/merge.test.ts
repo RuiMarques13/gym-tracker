@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SqliteSessionRepository } from '../repositories/sqlite/sqlite-session.repository';
 import { SqliteWorkoutRepository } from '../repositories/sqlite/sqlite-workout.repository';
+import { SqlitePhotoRepository } from '../repositories/photo.repository';
 import { MIGRATIONS } from '../db/migrations';
 import { loadSeed } from '../seed/seed-loader';
 import { createTestDb, TEST_SEED } from '../testing/test-db';
@@ -121,6 +122,27 @@ describe('merge LWW', () => {
     file.tables.setting!.push({ ...(await a.db.query<Record<string, never>>(`SELECT * FROM setting WHERE id = 's1'`))[0] });
     await mergeData(b.db, parseExport(JSON.stringify(file), SCHEMA));
     expect((await b.db.query<{ id: string }>('SELECT id FROM setting ORDER BY id')).map((r) => r.id)).toEqual(['s2']);
+  });
+
+  it('exportar sem fotos: a tabela das fotos fica de fora e importar não apaga as fotos do outro lado', async () => {
+    const a = await device('2026-10-10T10:00:00.000Z');
+    const b = await device('2026-10-10T11:00:00.000Z');
+    const img = 'data:image/jpeg;base64,AAAA';
+    await new SqlitePhotoRepository(a.db, a.clock, a.deviceId).add({ date: '2026-10-01', pose: 'FRONT', image: img });
+    await new SqlitePhotoRepository(b.db, b.clock, b.deviceId).add({ date: '2026-10-02', pose: 'SIDE', image: img });
+    await train(a);
+
+    const withPhotos = await a.export();
+    expect(withPhotos.tables.progress_photo).toHaveLength(1);
+    const without = await exportData(a.db, { schemaVersion: SCHEMA, deviceId: a.deviceId, nowIso: a.clock.nowIso(), includePhotos: false });
+    expect(without.tables.progress_photo).toBeUndefined();
+    expect(JSON.stringify(without)).not.toContain(img);
+    expect(without.tables.set_log?.length).toBe(withPhotos.tables.set_log?.length);
+
+    await mergeData(b.db, parseExport(JSON.stringify(without), SCHEMA));
+    const photos = await new SqlitePhotoRepository(b.db, b.clock, b.deviceId).list();
+    expect(photos.map((p) => p.date)).toEqual(['2026-10-02']);
+    expect((await b.db.query('SELECT id FROM set_log')).length).toBe(withPhotos.tables.set_log?.length);
   });
 
   it('rejeita ficheiros que não são válidos, sem tocar na base', async () => {

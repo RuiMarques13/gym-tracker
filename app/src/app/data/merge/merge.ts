@@ -74,12 +74,19 @@ function exportSql(table: MergeTable): string {
   return table === 'setting' ? `SELECT * FROM setting WHERE scope <> 'DEVICE'` : `SELECT * FROM ${table}`;
 }
 
+/**
+ * Exporta a base. `includePhotos: false` deixa as fotos de progresso de fora (dados de saúde: só saem se quiseres).
+ * Um ficheiro sem fotos importa-se normalmente: o merge não apaga linhas que o ficheiro não traz.
+ */
 export async function exportData(
   db: DbAdapter,
-  meta: { schemaVersion: number; deviceId: string; nowIso: string },
+  meta: { schemaVersion: number; deviceId: string; nowIso: string; includePhotos?: boolean },
 ): Promise<ExportFile> {
   const tables: ExportFile['tables'] = {};
-  for (const t of MERGE_TABLES) tables[t] = await db.query<Row>(exportSql(t));
+  for (const t of MERGE_TABLES) {
+    if (t === 'progress_photo' && meta.includePhotos === false) continue;
+    tables[t] = await db.query<Row>(exportSql(t));
+  }
   return {
     format: EXPORT_FORMAT, version: EXPORT_VERSION, schemaVersion: meta.schemaVersion,
     exportedAt: meta.nowIso, deviceId: meta.deviceId, tables,

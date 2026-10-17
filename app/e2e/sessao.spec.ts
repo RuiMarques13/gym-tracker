@@ -43,6 +43,8 @@ test.describe('sessão', () => {
 
     // O descanso começou.
     await expect(page.getByRole('timer', { name: /^Descanso / })).toBeVisible();
+    // No browser, no primeiro descanso: o aviso não toca com o ecrã bloqueado.
+    await expect(page.locator('ion-toast')).toContainText('só toca com a página aberta');
 
     // A pergunta da reserva é dessa série e grava só a reserva.
     const ask = card.locator('.ask');
@@ -85,5 +87,23 @@ test.describe('sessão', () => {
         expect(s.h, sel).toBeGreaterThanOrEqual(48);
       }
     }
+  });
+
+  test('o aviso do browser sobre o ecrã bloqueado aparece só uma vez', async ({ page }) => {
+    const card = page.locator('app-exercise-card').first();
+    await card.locator('ion-button', { hasText: 'Registar série' }).click();
+    const sheet = page.locator('app-set-sheet');
+    await sheet.getByRole('spinbutton', { name: 'Carga (kg)', disabled: false }).fill('40');
+    await sheet.getByRole('spinbutton', { name: 'Repetições', disabled: false }).fill('12');
+    await sheet.locator('ion-button.save').click();
+    await expect(page.locator('ion-toast')).toContainText('só toca com a página aberta');
+    await expect(page.locator('ion-toast')).toHaveCount(0, { timeout: 10_000 });
+    await card.locator('.quick-main').click();
+    await expect(page.getByRole('timer', { name: /^Descanso / })).toBeVisible();
+    await page.waitForTimeout(1000);
+    await expect(page.locator('ion-toast')).toHaveCount(0);
+
+    await page.goto('/definicoes');
+    await expect(page.locator('app-settings')).toContainText('Neste browser, só com a app aberta');
   });
 });
