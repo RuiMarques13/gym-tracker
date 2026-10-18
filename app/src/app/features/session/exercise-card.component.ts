@@ -1,7 +1,7 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { IonBadge, IonButton, IonIcon, IonItem, IonLabel, IonList, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, checkmark, checkmarkCircle, chevronDown, close, ellipseOutline, play, trashOutline } from 'ionicons/icons';
+import { add, checkmark, checkmarkCircle, chevronDown, close, createOutline, ellipseOutline, play, trashOutline } from 'ionicons/icons';
 import type { SessionExercise, SetGroup } from '../../data/models/session';
 import { groupSets } from '../../data/models/session';
 import type { LoadSuggestion } from '../../core/progression/load';
@@ -120,7 +120,7 @@ export interface CycleWeekInfo {
         } @else if (quick(); as q) {
           <div class="quick">
             <button type="button" class="quick-edit" (click)="openSet.emit(null)" aria-label="Registar com outros valores">
-              <span class="pencil" aria-hidden="true">✏️</span>
+              <ion-icon name="create-outline" />
             </button>
             <button type="button" class="quick-main" (click)="quickLog.emit()" [disabled]="busy()" [attr.aria-label]="'Registar série: ' + q">
               @if (busy()) { <ion-spinner name="dots" /> } @else { <ion-icon name="checkmark" /> }
@@ -200,7 +200,6 @@ export interface CycleWeekInfo {
     .quick-main span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .quick-main:active { filter: brightness(.9); }
     .quick-main[disabled] { opacity: .7; }
-    .pencil { font-size: 24px; line-height: 1; }
     .quick-edit { min-height: 56px; border-radius: 14px; border: 1px solid var(--ion-color-primary); background: transparent;
       color: var(--ion-color-primary); font-size: 22px; display: grid; place-items: center; }
   `,
@@ -245,7 +244,7 @@ export class ExerciseCardComponent {
   readonly groups = computed(() => groupSets(this.exercise().sets));
 
   constructor() {
-    addIcons({ add, checkmark, checkmarkCircle, chevronDown, close, ellipseOutline, play, trashOutline });
+    addIcons({ add, checkmark, checkmarkCircle, chevronDown, close, createOutline, ellipseOutline, play, trashOutline });
   }
 
   kg = kgLabel;

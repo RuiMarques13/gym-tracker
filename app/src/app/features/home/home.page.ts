@@ -13,7 +13,7 @@ import {
   ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { home } from 'ionicons/icons';
+import { checkmark, home, pencil } from 'ionicons/icons';
 import { DatabaseService } from '../../services/db/database.service';
 import { EXERCISE_REPOSITORY, SESSION_REPOSITORY } from '../../services/repositories';
 import { SettingsService } from '../../services/settings/settings.service';
@@ -39,7 +39,9 @@ import { WEEK_LABEL, type NextBlockProposal } from '../../core/progression/cycle
         <app-nav-button slot="start" />
         <ion-title aria-label="Home"><ion-icon name="home" class="home-icon" /></ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="editing.set(!editing())">{{ editing() ? 'Concluir' : 'Editar' }}</ion-button>
+          <ion-button (click)="editing.set(!editing())" [attr.aria-label]="editing() ? 'Concluir' : 'Editar a Home'">
+            <ion-icon slot="icon-only" [name]="editing() ? 'checkmark' : 'pencil'" class="home-icon" />
+          </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -183,7 +185,7 @@ export class HomePage implements ViewWillEnter {
   readonly launcher = inject(SessionLauncher);
 
   constructor() {
-    addIcons({ home });
+    addIcons({ checkmark, home, pencil });
   }
 
   readonly status = this.database.status;
