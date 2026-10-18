@@ -43,8 +43,6 @@ test.describe('sessão', () => {
 
     // O descanso começou.
     await expect(page.getByRole('timer', { name: /^Descanso / })).toBeVisible();
-    // No browser, no primeiro descanso: o aviso não toca com o ecrã bloqueado.
-    await expect(page.locator('ion-toast')).toContainText('só toca com a página aberta');
 
     // A pergunta da reserva é dessa série e grava só a reserva.
     const ask = card.locator('.ask');
@@ -105,5 +103,47 @@ test.describe('sessão', () => {
 
     await page.goto('/definicoes');
     await expect(page.locator('app-settings')).toContainText('Neste browser, só com a app aberta');
+  });
+});
+
+/** Modo foco: só o exercício atual aberto; os outros numa linha; números e músculos no «Resumo». */
+test.describe('sessão: modo foco', () => {
+  test.beforeEach(async ({ app }) => {
+    await app.open();
+    await app.addFromLibrary('Supino plano (halteres)');
+    await app.addFromLibrary('Squat');
+    await app.startFreeSession();
+  });
+
+  test('o primeiro exercício abre; os outros ficam numa linha e abrem com um toque', async ({ page }) => {
+    const cards = page.locator('app-exercise-card');
+    await expect(cards).toHaveCount(2);
+    await expect(cards.nth(0).locator('section.card')).toBeVisible();
+    await expect(cards.nth(1).locator('button.row')).toBeVisible();
+
+    // Sem quadrados nem boneco por cima dos exercícios: o primeiro cartão começa no primeiro ecrã.
+    await expect(page.locator('ion-content app-muscle-map')).toHaveCount(0);
+    const box = await cards.nth(0).boundingBox();
+    expect(box!.y).toBeLessThan(260);
+
+    // Registar uma série no primeiro e abrir o segundo.
+    await cards.nth(0).locator('ion-button', { hasText: 'Registar série' }).click();
+    const sheet = page.locator('app-set-sheet');
+    await sheet.getByRole('spinbutton', { name: 'Carga (kg)', disabled: false }).fill('60');
+    await sheet.getByRole('spinbutton', { name: 'Repetições', disabled: false }).fill('10');
+    await sheet.locator('ion-button.save').click();
+    await expect(sheet).toHaveCount(0);
+    await cards.nth(1).locator('button.row').click();
+    await expect(cards.nth(1).locator('section.card')).toBeVisible();
+    await expect(cards.nth(0).locator('button.row')).toContainText('1 série · 60 kg × 10');
+  });
+
+  test('a barra do topo mostra o tempo e as séries, e abre o resumo com os músculos', async ({ page }) => {
+    const bar = page.getByRole('button', { name: 'Ver o resumo da sessão' });
+    await expect(bar).toContainText('0 séries');
+    await bar.click();
+    const modal = page.locator('ion-modal', { hasText: 'Resumo' });
+    await expect(modal.getByText('Duração')).toBeVisible();
+    await expect(modal.locator('app-muscle-map')).toBeVisible();
   });
 });

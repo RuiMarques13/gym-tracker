@@ -1,5 +1,5 @@
 import type { Kind, MetricType, Side } from '../../data/models/enums';
-import type { SessionExercise, SessionSet, SetGroup } from '../../data/models/session';
+import { groupSets, type SessionExercise, type SessionSet, type SetGroup } from '../../data/models/session';
 import type { NextSet } from '../../core/session/next-set';
 import { formatDistance, formatDuration } from '../workouts/workout-format';
 
@@ -48,4 +48,16 @@ export function quickLabel(kind: Kind, metric: MetricType, next: NextSet, sides:
   if (sides.length === 1) return texts[0];
   if (texts.every((t) => t === texts[0])) return `${texts[0]} cada lado`;
   return sides.map((side, i) => `${SIDE_LABEL[side]} ${texts[i]}`).join(' · ');
+}
+
+/**
+ * Linha de um exercício fechado (modo foco): «2 de 3 séries · 62,5 kg × 10» (a última de trabalho) ou, sem séries,
+ * o alvo do treino.
+ */
+export function collapsedSummary(ex: Pick<SessionExercise, 'kind' | 'metricType' | 'sets'>, target: number, targetsLabel: string): string {
+  const working = groupSets(ex.sets).filter((g) => g.type === 'WORKING');
+  if (!working.length) return targetsLabel;
+  const n = working.length;
+  const count = target > 0 ? `${n} de ${target} ${target === 1 ? 'série' : 'séries'}` : `${n} ${n === 1 ? 'série' : 'séries'}`;
+  return `${count} · ${formatSetGroup(ex, working.at(-1)!)}`;
 }

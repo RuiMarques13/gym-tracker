@@ -1,7 +1,7 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { IonBadge, IonButton, IonIcon, IonItem, IonLabel, IonList, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, checkmark, checkmarkCircle, close, ellipseOutline, play, trashOutline } from 'ionicons/icons';
+import { add, checkmark, checkmarkCircle, chevronDown, close, ellipseOutline, play, trashOutline } from 'ionicons/icons';
 import type { SessionExercise, SetGroup } from '../../data/models/session';
 import { groupSets } from '../../data/models/session';
 import type { LoadSuggestion } from '../../core/progression/load';
@@ -25,6 +25,17 @@ export interface CycleWeekInfo {
   imports: [RuleWhyComponent, IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon, IonSpinner],
   template: `
     @let ex = exercise();
+    @if (collapsed()) {
+      <button type="button" class="row" [class.done]="done()" (click)="expand.emit()"
+        [attr.aria-label]="ex.exerciseName + ', ' + summary() + '. Abrir'">
+        <ion-icon [name]="done() ? 'checkmark-circle' : 'ellipse-outline'" class="status" />
+        <span class="row-text">
+          <strong>{{ ex.exerciseName }}</strong>
+          <small>{{ summary() }}</small>
+        </span>
+        <ion-icon name="chevron-down" class="chev" />
+      </button>
+    } @else {
     <section class="card" [class.done]="done()">
       <header>
         <ion-icon [name]="done() ? 'checkmark-circle' : 'ellipse-outline'" class="status" />
@@ -50,20 +61,22 @@ export interface CycleWeekInfo {
             @if (sg.action === 'increase') { <span class="tag">sobe</span> }
             @if (sg.action === 'decrease') { <span class="tag">desce</span> }
           </div>
-          @if (sg.target; as st) {
-            <p class="why">{{ goalLabel() }}: {{ st.label }} estimado ({{ kg(st.e1rm) }}) ≈ {{ st.lo === st.hi ? kg(st.lo) : num(st.lo) + '–' + kg(st.hi) }}@if (st.cue) {, {{ st.cue }}}.</p>
+          @if (!compactToday() || whyOpen()) {
+            @if (sg.target; as st) {
+              <p class="why">{{ goalLabel() }}: {{ st.label }} estimado ({{ kg(st.e1rm) }}) ≈ {{ st.lo === st.hi ? kg(st.lo) : num(st.lo) + '–' + kg(st.hi) }}@if (st.cue) {, {{ st.cue }}}.</p>
+            }
+            @if (cycleWeek(); as cw) {
+              <p class="why">Ciclo · {{ cw.block }}, semana {{ cw.week }}/{{ cw.weeks }} ({{ cw.type }})@if (ex.targetSets) { · {{ setsToday() }} séries }@if (cw.rir !== null) { · RIR {{ cw.rir }} }</p>
+            } @else if (deload() && ex.targetSets) { <p class="why">Descarga: {{ setsToday() }} de {{ ex.targetSets }} séries.</p> }
+            @if (sg.options.length > 1) {
+              <div class="opts" role="group" aria-label="Carga de hoje">
+                @for (o of sg.options; track o) {
+                  <button type="button" [class.on]="todayKg() === o" [attr.aria-pressed]="todayKg() === o" (click)="choose.emit(o)">{{ kg(o) }}</button>
+                }
+              </div>
+            }
+            <p class="why">{{ sg.reason }}</p>
           }
-          @if (cycleWeek(); as cw) {
-            <p class="why">Ciclo · {{ cw.block }}, semana {{ cw.week }}/{{ cw.weeks }} ({{ cw.type }})@if (ex.targetSets) { · {{ setsToday() }} séries }@if (cw.rir !== null) { · RIR {{ cw.rir }} }</p>
-          } @else if (deload() && ex.targetSets) { <p class="why">Descarga: {{ setsToday() }} de {{ ex.targetSets }} séries.</p> }
-          @if (sg.options.length > 1) {
-            <div class="opts" role="group" aria-label="Carga de hoje">
-              @for (o of sg.options; track o) {
-                <button type="button" [class.on]="todayKg() === o" [attr.aria-pressed]="todayKg() === o" (click)="choose.emit(o)">{{ kg(o) }}</button>
-              }
-            </div>
-          }
-          <p class="why">{{ sg.reason }}</p>
           <button type="button" class="whybtn" (click)="whyOpen.set(!whyOpen())" [attr.aria-expanded]="whyOpen()">{{ whyOpen() ? 'Fechar' : 'Porquê?' }}</button>
           @if (whyOpen()) { <app-rule-why class="rulewhy" [key]="sg.rule" /> }
         </div>
@@ -121,9 +134,20 @@ export interface CycleWeekInfo {
         }
       </div>
     </section>
+    }
   `,
   styles: `
-    :host { display: block; }
+    :host { display: block; scroll-margin-top: 8px; }
+    .row { width: 100%; min-height: 60px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding: 8px 14px;
+      border: 0; border-radius: 14px; background: var(--ion-card-background, var(--ion-item-background, #fff)); color: inherit;
+      font: inherit; text-align: left; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10); }
+    .row.done { opacity: .75; }
+    .row.done .status { color: var(--ion-color-success); }
+    .row-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .row-text strong { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row-text small { font-size: 0.9rem; color: var(--ion-color-medium); font-variant-numeric: tabular-nums;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chev { color: var(--ion-color-medium); font-size: 20px; flex: 0 0 auto; }
     .card { background: var(--ion-card-background, var(--ion-item-background, #fff)); border-radius: 14px; margin-bottom: 12px;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); overflow: hidden; }
     .card header { display: flex; align-items: center; gap: 10px; padding: 12px 4px 6px 14px; }
@@ -200,6 +224,12 @@ export class ExerciseCardComponent {
   /** Posição da série a que falta a reserva (depois do registo de um toque). */
   readonly rirAsk = input<number | null>(null);
   readonly liveHere = input(false);
+  /** Modo foco: só uma linha (nome e resumo); tocar abre. */
+  readonly collapsed = input(false);
+  /** Texto da linha fechada: «3 séries · 62,5 kg × 10» ou o alvo. */
+  readonly summary = input('');
+  /** Depois da primeira série de hoje, a caixa «Hoje» fica só com a carga; o resto vai para o «Porquê?». */
+  readonly compactToday = input(false);
 
   readonly openSet = output<number | null>();
   readonly removeExercise = output<void>();
@@ -208,13 +238,14 @@ export class ExerciseCardComponent {
   readonly startCardio = output<void>();
   readonly setRir = output<{ position: number; rir: number }>();
   readonly dismissRir = output<void>();
+  readonly expand = output<void>();
 
   readonly scale = [0, 1, 2, 3, 4];
   readonly whyOpen = signal(false);
   readonly groups = computed(() => groupSets(this.exercise().sets));
 
   constructor() {
-    addIcons({ add, checkmark, checkmarkCircle, close, ellipseOutline, play, trashOutline });
+    addIcons({ add, checkmark, checkmarkCircle, chevronDown, close, ellipseOutline, play, trashOutline });
   }
 
   kg = kgLabel;

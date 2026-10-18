@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Capacitor } from '@capacitor/core';
 import { EffortScaleComponent } from '../../shared/effort-scale.component';
 import { StatTile, StatTilesComponent } from '../../shared/stat-tiles.component';
@@ -28,7 +29,7 @@ import {
   ViewWillEnter,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, arrowDown, arrowUp, remove } from 'ionicons/icons';
+import { add, arrowDown, arrowUp, chevronDown, remove } from 'ionicons/icons';
 import { CardioRunService } from '../../services/timer/cardio-run.service';
 import { SettingsService } from '../../services/settings/settings.service';
 import { formatClock } from '../../core/timer/timer-math';
@@ -60,7 +61,8 @@ import { ids } from '../../core/util/uuid';
 
 /** id do equipamento → chave do catálogo (barbell, dumbbell…), para ler o incremento nas definições. */
 const EQUIPMENT_KEY = new Map(SEED.equipment.map((e) => [ids.equipment(e.key), e.key]));
-import { quickLabel } from './session-format';
+import { collapsedSummary, quickLabel } from './session-format';
+import { openExerciseId, type FocusExercise } from '../../core/session/focus';
 import { ExerciseCardComponent } from './exercise-card.component';
 import { SetSheetComponent } from './set-sheet.component';
 import { entriesOfNext, entriesWithRir, formOfSet, formsOfNext, toNum, type SheetSave, type SheetState } from './set-form';
@@ -78,7 +80,7 @@ const figOf = (ex: Exercise | null | undefined) => {
 
 @Component({
   selector: 'app-session',
-  imports: [EffortScaleComponent, StatTilesComponent, MuscleMapComponent, SuggestionCardsComponent, ExerciseCardComponent, SetSheetComponent,
+  imports: [NgTemplateOutlet, EffortScaleComponent, StatTilesComponent, MuscleMapComponent, SuggestionCardsComponent, ExerciseCardComponent, SetSheetComponent,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonContent, IonFooter, IonTextarea, IonModal, IonSpinner,
   ],
   template: `
@@ -100,6 +102,16 @@ const figOf = (ex: Exercise | null | undefined) => {
           }
         </ion-buttons>
       </ion-toolbar>
+      @if (session() && !historical()) {
+        <ion-toolbar class="focus-bar">
+          <button type="button" class="bar" (click)="summaryOpen.set(true)" aria-label="Ver o resumo da sessão">
+            <span class="bar-item"><span aria-hidden="true">⏱</span> {{ barDuration() }}</span>
+            <span class="bar-item">{{ stats()?.sets ?? 0 }} {{ stats()?.sets === 1 ? 'série' : 'séries' }}</span>
+            @if ((stats()?.volumeKg ?? 0) > 0) { <span class="bar-item">{{ stats()!.volumeKg.toLocaleString('pt-PT') }} kg</span> }
+            <ion-icon name="chevron-down" class="bar-chev" />
+          </button>
+        </ion-toolbar>
+      }
     </ion-header>
 
     <ion-content>
@@ -111,16 +123,12 @@ const figOf = (ex: Exercise | null | undefined) => {
             <p class="day">{{ dayLabel() }}</p>
           }
           @if (startIn() !== null) { <p class="start-pill" aria-live="polite">A começar em {{ startIn() }}…</p> }
-          <app-stat-tiles size="compact" [cols]="4" [tiles]="mainTiles()" />
-          @if (extraTiles().length) {
-            <div class="gap"><app-stat-tiles size="compact" [cols]="extraTiles().length > 3 ? 4 : extraTiles().length" [tiles]="extraTiles()" /></div>
-          }
-          @if (hasStrength()) {
-            <section class="muscles" aria-label="Músculos trabalhados">
-              <h3>Músculos trabalhados</h3>
-              <app-muscle-map [primary]="trained().primary" [secondary]="trained().support" [info]="trained().info" [bySide]="trained().bySide" primaryLabel="Principais" secondaryLabel="Apoio" [compact]="true" />
-              @if (!trained().primary.length) { <p class="muted">Aparecem aqui à medida que registas séries.</p> }
-            </section>
+          @if (historical()) {
+            <app-stat-tiles size="compact" [cols]="4" [tiles]="mainTiles()" />
+            @if (extraTiles().length) {
+              <div class="gap"><app-stat-tiles size="compact" [cols]="extraTiles().length > 3 ? 4 : extraTiles().length" [tiles]="extraTiles()" /></div>
+            }
+            <ng-container *ngTemplateOutlet="musclesTpl" />
           }
           @if (liveRun(); as r) {
             <button type="button" class="live" (click)="openLive(r.exerciseId)">
@@ -141,6 +149,8 @@ const figOf = (ex: Exercise | null | undefined) => {
             <h3 class="block-title">{{ blockLabel[b.block] }}</h3>
             @for (ex of b.items; track ex.id) {
               <app-exercise-card
+                [id]="'ex-' + ex.id" [collapsed]="!historical() && openId() !== ex.id" [summary]="summaryOf(ex)"
+                [compactToday]="hasWorking(ex)" (expand)="openExercise(ex)"
                 [exercise]="ex" [historical]="historical()" [targetsLabel]="targets(ex)" [supersetLabel]="ssLabel(ex)" [done]="isDone(ex)"
                 [suggestion]="suggestionOf(ex)" [todayKg]="todayKg(ex)" [goalLabel]="goalLabel()" [cycleWeek]="cycleWeek()"
                 [deload]="!!deload()" [setsToday]="setsFor(ex)" [quick]="quickLabelOf(ex)" [busy]="logging().has(ex.id)"
@@ -178,6 +188,34 @@ const figOf = (ex: Exercise | null | undefined) => {
       </ng-template>
     </ion-modal>
 
+    <ng-template #musclesTpl>
+      @if (hasStrength()) {
+        <section class="muscles" aria-label="Músculos trabalhados">
+          <h3>Músculos trabalhados</h3>
+          <app-muscle-map [primary]="trained().primary" [secondary]="trained().support" [info]="trained().info" [bySide]="trained().bySide" primaryLabel="Principais" secondaryLabel="Apoio" [compact]="true" />
+          @if (!trained().primary.length) { <p class="muted">Aparecem aqui à medida que registas séries.</p> }
+        </section>
+      }
+    </ng-template>
+
+    <!-- Resumo da sessão em curso (toque na barra do topo) -->
+    <ion-modal [isOpen]="summaryOpen()" (didDismiss)="summaryOpen.set(false)" [initialBreakpoint]="0.85" [breakpoints]="[0, 0.85, 1]">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Resumo</ion-title>
+            <ion-buttons slot="end"><ion-button (click)="summaryOpen.set(false)">Fechar</ion-button></ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content>
+          <div class="sheet">
+            <app-stat-tiles [tiles]="allTiles()" />
+            <ng-container *ngTemplateOutlet="musclesTpl" />
+          </div>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+
     <!-- Terminar -->
     <ion-modal [isOpen]="finishOpen()" (didDismiss)="finishOpen.set(false)" [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7, 1]">
       <ng-template>
@@ -190,6 +228,7 @@ const figOf = (ex: Exercise | null | undefined) => {
         <ion-content>
           <div class="sheet">
             <app-stat-tiles [tiles]="allTiles()" />
+            <ng-container *ngTemplateOutlet="musclesTpl" />
             <app-effort-scale [text]="finishRpe()" (changed)="finishRpe.set($event)" />
             <ion-textarea label="Notas (opcional)" labelPlacement="stacked" fill="outline" [autoGrow]="true" placeholder="Como te sentiste, dor, sono, stress…"
               [value]="finishNotes()" (ionInput)="finishNotes.set($any($event).detail.value ?? '')" />
@@ -222,6 +261,12 @@ const figOf = (ex: Exercise | null | undefined) => {
     </ion-modal>
   `,
   styles: `
+    .focus-bar { --min-height: 48px; --padding-top: 0; --padding-bottom: 0; }
+    .bar { width: 100%; min-height: 48px; display: flex; align-items: center; gap: 14px; padding: 0 16px; border: 0; background: none;
+      color: inherit; font: inherit; font-size: 1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .bar-item { white-space: nowrap; }
+    .bar-item + .bar-item::before { content: '·'; margin-right: 14px; color: var(--ion-color-medium); }
+    .bar-chev { margin-left: auto; color: var(--ion-color-medium); font-size: 20px; }
     .deload { display: flex; align-items: center; gap: 8px; margin: 8px 12px; padding: 10px 12px; border-radius: 12px; font-size: 14px; background: rgba(var(--ion-color-tertiary-rgb, 128,128,128), .14); }
     .deload > div { flex: 1; }
     .stag-h { font-size: 15px; margin: 14px 0 6px; }
@@ -278,6 +323,8 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   readonly sheet = signal<SheetState | null>(null);
   readonly sheetError = signal<string | null>(null);
   readonly finishOpen = signal(false);
+  /** Painel «Resumo» (números e músculos) do treino em curso. */
+  readonly summaryOpen = signal(false);
   readonly finishRpe = signal('');
   readonly finishNotes = signal('');
   readonly showRom = this.settings.get('showRomScore');
@@ -400,6 +447,30 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     const out = (x: Sets) => ({ primary: [...x.primary], secondary: [...x.support] });
     return { primary: [...both.primary], support: [...both.support], info, bySide: split ? { left: out(left), right: out(right) } : null };
   });
+  // --- modo foco ------------------------------------------------------------------------------------
+  /** Exercício aberto à mão; null = segue o atual (core/session/focus.ts). */
+  private readonly chosenOpen = signal<string | null>(null);
+  /** Exercícios pela ordem do treino, com as séries feitas e as de hoje. */
+  private readonly focusList = computed<FocusExercise[]>(() =>
+    this.blocks().flatMap((b) => b.items).map((e) => ({ id: e.id, workingSets: workingSetCount(e), targetSets: e.targetSets ? this.setsFor(e) : null })),
+  );
+  /** O exercício aberto: o da pergunta da reserva (para não fugir antes de responderes), o escolhido ou o atual. */
+  readonly openId = computed(() => this.rirAsk()?.exerciseId ?? openExerciseId(this.focusList(), this.chosenOpen()));
+  hasWorking = (ex: SessionExercise) => workingSetCount(ex) > 0;
+  summaryOf = (ex: SessionExercise) => collapsedSummary(ex, ex.targetSets ? this.setsFor(ex) : 0, this.targets(ex));
+  barDuration = computed(() => this.mainTiles()[0]?.value ?? '0:00');
+
+  /** Abrir outro exercício à mão. Ao acabar as séries dele, volta a seguir o atual. */
+  openExercise(ex: SessionExercise): void {
+    this.rirAsk.set(null);
+    this.chosenOpen.set(ex.id);
+  }
+
+  /** Depois de registar: se o exercício escolhido chegou às séries de hoje, deixa de estar preso e segue o atual. */
+  private releaseIfFinished(ex: SessionExercise): void {
+    if (this.chosenOpen() === ex.id && ex.targetSets && workingSetCount(ex) >= this.setsFor(ex)) this.chosenOpen.set(null);
+  }
+
   readonly hasStrength = computed(() => (this.session()?.exercises ?? []).some((e) => e.kind === 'STRENGTH'));
   /** Sessão livre que ainda não começou: sem exercícios, ou à espera do pequeno timer de arranque. */
   readonly startIn = signal<number | null>(null);
@@ -432,7 +503,17 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   });
 
   constructor() {
-    addIcons({ add, arrowDown, arrowUp, remove });
+    addIcons({ add, arrowDown, arrowUp, chevronDown, remove });
+    // Modo foco: quando o exercício aberto muda (avanço automático ou toque), fica no topo do ecrã.
+    let lastOpen: string | null = null;
+    effect(() => {
+      const id = this.openId();
+      if (this.historical() || !id || id === lastOpen) return;
+      const first = lastOpen === null;
+      lastOpen = id;
+      if (first) return;
+      setTimeout(() => document.getElementById('ex-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    });
     // Sugestão de carga para os exercícios da sessão (os novos também, quando os juntas).
     effect(() => {
       const s = this.session();
@@ -723,6 +804,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       this.patchSession((x) => ({ ...x, exercises: x.exercises.map((e) => (e.id === updated.id ? updated : e)) }));
       const position = Math.max(...updated.sets.map((x) => x.position));
       this.rirAsk.set(ex.kind === 'STRENGTH' && ex.metricType !== 'DURATION' ? { exerciseId: ex.id, position } : null);
+      this.releaseIfFinished(updated);
       this.startRest(updated);
     } catch (err) {
       await this.toasts.show(err instanceof SessionError ? err.message : 'Não foi possível guardar a série.', 'error', 2500);
@@ -769,7 +851,10 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       const updated = await this.repo.saveSet({ sessionExerciseId: ex.id, position: save.position ?? undefined, type: save.type, entries: save.entries });
       this.patchSession((x) => ({ ...x, exercises: x.exercises.map((e) => (e.id === updated.id ? updated : e)) }));
       this.closeSheet();
-      if (save.position === null && !this.historical()) this.startRest(updated);
+      if (save.position === null && !this.historical()) {
+        this.startRest(updated);
+        this.releaseIfFinished(updated);
+      }
     } catch (err) {
       this.sheetError.set(err instanceof SessionError ? err.message : 'Não foi possível guardar a série.');
     }
