@@ -8,6 +8,7 @@ import { stopCircle } from 'ionicons/icons';
 import { BodyProfileService } from '../../services/health/body-profile.service';
 import { cardioMet, estimateActiveKcal } from '../../core/health/calories';
 import { HealthService } from '../../services/health/health.service';
+import { FEATURES } from '../../core/features';
 import { CardioRunService } from '../../services/timer/cardio-run.service';
 import { phaseOf } from '../../core/timer/cardio-run';
 import { formatClock } from '../../core/timer/timer-math';
@@ -58,7 +59,7 @@ const RING = 2 * Math.PI * 92;
               </div>
             </div>
             <app-stat-tiles size="big" [tiles]="tiles()" />
-            @if (!hr()) { <p class="note">A frequência cardíaca aparece quando o relógio sincronizar com o Health Connect (pode demorar).</p> }
+            @if (watch && !hr()) { <p class="note">A frequência cardíaca aparece quando o relógio sincronizar com o Health Connect (pode demorar).</p> }
             @if (profileMissing()) { <p class="note">Para calorias mais certas, preenche {{ missingText() }} no Perfil.</p> }
             <ion-button class="stop" expand="block" size="large" color="danger" (click)="stop()" [disabled]="saving()">
               <ion-icon slot="start" name="stop-circle" /> Parar
@@ -170,6 +171,8 @@ export class CardioLivePage implements ViewWillEnter, OnDestroy {
     return t ? Math.min(1, p.elapsedSeconds / t) : (p.elapsedSeconds % 60) / 60;
   });
   readonly hr = signal<{ last: number; avg: number } | null>(null);
+  /** Relógio escondido por agora (core/features.ts). */
+  readonly watch = FEATURES.watch;
   readonly profileMissing = computed(() => this.body.missing().length > 0);
   readonly missingText = computed(() => this.body.missing().join(', '));
 
@@ -268,7 +271,7 @@ export class CardioLivePage implements ViewWillEnter, OnDestroy {
   }
 
   private startHrPolling(): void {
-    if (this.hrTimer) return;
+    if (this.hrTimer || !this.watch) return; // relógio escondido: não lê a FC
     const poll = async () => {
       const r = this.run();
       if (!r || phaseOf(r, this.clockSvc.now().getTime()).phase !== 'running') return;

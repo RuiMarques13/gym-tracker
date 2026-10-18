@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { FEATURES } from '../../core/features';
 import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -149,18 +150,20 @@ import { ToastService } from '../../services/ui/toast.service';
             <ion-item lines="none" class="web-timer">
               <ion-label class="ion-text-wrap">
                 <h3>Neste browser, só com a app aberta</h3>
-                <p>O som e a vibração do fim do descanso só funcionam com a página visível. Com o ecrã bloqueado ou noutra app, o browser não avisa. Para isso, usa a app Android: o aviso chega como notificação, também no relógio.</p>
+                <p>O som e a vibração do fim do descanso só funcionam com a página visível. Com o ecrã bloqueado ou noutra app, o browser não avisa. Para isso, usa a app Android: o aviso chega como notificação.</p>
               </ion-label>
             </ion-item>
           }
 
-          <ion-list-header><ion-label>Relógio</ion-label></ion-list-header>
-          <ion-item button detail routerLink="/definicoes/relogio">
-            <ion-label class="ion-text-wrap">
-              <h3>Configurar relógio</h3>
-              <p>Receber o aviso do descanso no Galaxy Watch</p>
-            </ion-label>
-          </ion-item>
+          @if (watch) {
+            <ion-list-header><ion-label>Relógio</ion-label></ion-list-header>
+            <ion-item button detail routerLink="/definicoes/relogio">
+              <ion-label class="ion-text-wrap">
+                <h3>Configurar relógio</h3>
+                <p>Receber o aviso do descanso no Galaxy Watch</p>
+              </ion-label>
+            </ion-item>
+          }
 
           <ion-list-header><ion-label>Cópia de segurança</ion-label></ion-list-header>
           <ion-item lines="none">
@@ -212,6 +215,8 @@ export class SettingsPage {
   private readonly backup = inject(BackupService);
   /** No browser não há notificação agendada: o aviso do descanso só toca com a página visível. */
   readonly isWeb = !Capacitor.isNativePlatform();
+  /** Relógio escondido por agora (core/features.ts). */
+  readonly watch = FEATURES.watch;
   private readonly alerts = inject(AlertController);
   private readonly toasts = inject(ToastService);
   private readonly themeService = inject(ThemeService);
