@@ -42,7 +42,12 @@ export class App {
   /** Junta à tua lista o primeiro resultado da biblioteca para `query` (o nome português também conta na pesquisa). */
   async addFromLibrary(query: string): Promise<void> {
     await this.page.goto('/exercicios/biblioteca');
+    // Esperar que a lista filtre (a pesquisa tem atraso): senão o toque pode cair numa linha que vai desaparecer.
+    const count = this.page.getByText(/^\d+ exercícios?$/);
+    await expect(count).toBeVisible();
+    const total = await count.textContent();
     await this.page.locator('ion-searchbar input').fill(query);
+    await expect(count).not.toHaveText(total ?? '');
     const add = this.page.locator('ion-item ion-button', { hasText: 'Adicionar' }).first();
     await expect(add).toBeVisible();
     const added = this.page.locator('ion-item ion-button', { hasText: 'Adicionado' });

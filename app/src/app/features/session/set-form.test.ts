@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SessionSet } from '../../data/models/session';
-import { quickLabel } from './session-format';
+import { collapsedSummary, quickLabel } from './session-format';
 import { EMPTY_FORM, entriesOf, entriesOfNext, entriesWithRir, formOf, formOfSet, formsOfNext, toNum } from './set-form';
 
 const v = (p: object) => ({ weightKg: null, reps: null, durationSeconds: null, distanceM: null, caloriesKcal: null, ...p });
@@ -65,5 +65,17 @@ describe('quickLabel', () => {
     expect(quickLabel('STRENGTH', 'WEIGHT_REPS', same, ['LEFT', 'RIGHT'])).toBe('20 kg × 10 cada lado');
     const diff = { LEFT: v({ weightKg: 20, reps: 10 }), RIGHT: v({ weightKg: 20, reps: 9 }) };
     expect(quickLabel('STRENGTH', 'WEIGHT_REPS', diff, ['LEFT', 'RIGHT'])).toBe('Esq 20 kg × 10 · Dir 20 kg × 9');
+  });
+});
+
+describe('collapsedSummary', () => {
+  const strength = { kind: 'STRENGTH', metricType: 'WEIGHT_REPS' } as const;
+  it('sem séries: o alvo', () => {
+    expect(collapsedSummary({ ...strength, sets: [] }, 3, '3 × 8–12')).toBe('3 × 8–12');
+  });
+  it('com séries: quantas de quantas e a última de trabalho', () => {
+    const sets = [set({ position: 1, weightKg: 60, reps: 10 }), set({ position: 2, weightKg: 62.5, reps: 8 }), set({ position: 3, type: 'WARMUP', weightKg: 20 })];
+    expect(collapsedSummary({ ...strength, sets }, 3, '')).toBe('2 de 3 séries · 62,5 kg × 8');
+    expect(collapsedSummary({ ...strength, sets: sets.slice(0, 1) }, 0, '')).toBe('1 série · 60 kg × 10');
   });
 });

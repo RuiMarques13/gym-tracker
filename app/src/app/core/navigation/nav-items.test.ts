@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { FEATURES } from '../features';
 import { NAV_ITEMS, orderedNav, resolveNav } from './nav-items';
 
 const paths = (l: { path: string }[]) => l.map((i) => i.path);
@@ -24,5 +25,14 @@ describe('resolveNav', () => {
   });
   it('orderedNav inclui os escondidos', () => {
     expect(orderedNav([])).toHaveLength(NAV_ITEMS.length);
+  });
+});
+
+describe('funcionalidades escondidas', () => {
+  it('o ecrã Saúde (relógio) só aparece com o relógio ligado', async () => {
+    const { ALL_NAV_ITEMS, NAV_ITEMS } = await import('./nav-items');
+    expect(ALL_NAV_ITEMS.some((i) => i.path === '/saude')).toBe(true);
+    expect(NAV_ITEMS.some((i) => i.path === '/saude')).toBe(FEATURES.watch);
+    for (const i of NAV_ITEMS) expect(i.feature === undefined || FEATURES[i.feature], i.path).toBe(true);
   });
 });
