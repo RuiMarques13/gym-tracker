@@ -130,6 +130,9 @@ export class SqliteMetricsRepository implements MetricsRepository {
         if (!list.includes(spec)) list.push(spec);
       }
       for (const ex of exercises.values()) ex.secondaryMuscles = ex.secondaryMuscles.filter((k) => !ex.primaryMuscles.includes(k));
+      // O nome decide as exceções ao peso dos secundários (core/metrics/indirect.ts).
+      const names = await this.db.query<{ id: string; name: string }>(`SELECT id, name FROM exercise WHERE id IN (${marks})`, exIds);
+      for (const n of names) exercises.get(n.id)!.name = n.name;
     }
     const withoutPrimary = [...exercises.values()].filter((e) => !e.primaryMuscles.length).map((e) => e.id);
     return { sets, exercises, withoutPrimary };

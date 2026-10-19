@@ -1,5 +1,6 @@
 import type { MetricExercise, MetricSet } from './volume';
 import { isEffective } from './volume';
+import { muscleWeights } from './indirect';
 
 /**
  * Descanso recomendado por músculo. Estimativa simples e transparente (não é ciência exata):
@@ -71,8 +72,7 @@ export function lastStimuli(sets: MetricSet[], exercises: Map<string, MetricExer
       cur.at = Math.max(cur.at, t);
       bySession.set(s.sessionId, cur);
     };
-    for (const m of ex.primaryMuscles) add(m, 1);
-    for (const m of ex.secondaryMuscles) add(m, secondaryWeight);
+    for (const [m, w] of muscleWeights(ex, secondaryWeight)) add(m, w);
   }
   const out: Stimulus[] = [];
   for (const [muscle, bySession] of perMuscle) {

@@ -1,4 +1,5 @@
 import { reliable1RM } from './one-rm';
+import { muscleWeights } from './indirect';
 import { VOLUME_RULES, VolumeRules } from './volume-rules';
 
 export type Goal = 'hypertrophy' | 'strength' | 'power' | 'endurance' | 'maintenance' | 'cut';
@@ -6,6 +7,8 @@ export type Level = 'beginner' | 'intermediate' | 'advanced';
 
 export interface MetricExercise {
   id: string;
+  /** Nome do exercício: decide as exceções ao peso dos secundários (indirect.ts). */
+  name?: string;
   /** Ids do spec (ver muscles.ts). */
   primaryMuscles: string[];
   secondaryMuscles: string[];
@@ -74,11 +77,10 @@ export function weeklyVolume(
       continue;
     }
     for (const m of ex.primaryMuscles) {
-      vol.set(m, (vol.get(m) ?? 0) + 1);
       if (!sessions.has(m)) sessions.set(m, new Set());
       sessions.get(m)!.add(s.sessionId);
     }
-    for (const m of ex.secondaryMuscles) vol.set(m, (vol.get(m) ?? 0) + rules.indirect_set_weight);
+    for (const [m, w] of muscleWeights(ex, rules.indirect_set_weight)) vol.set(m, (vol.get(m) ?? 0) + w);
   }
   return { sets: vol, freq: new Map([...sessions].map(([m, ids]) => [m, ids.size])) };
 }

@@ -40,4 +40,10 @@ export const VOLUME_RULES = {
   },
 } as const;
 
-export type VolumeRules = typeof VOLUME_RULES;
+/** As regras, com o peso dos secundários editável (Definições). */
+export type VolumeRules = Omit<typeof VOLUME_RULES, 'indirect_set_weight'> & { indirect_set_weight: number };
+
+/** As regras com o peso dos secundários escolhido nas Definições (0 a 1; por defeito 0,5). */
+export function rulesWithSecondaryWeight(weight: number): VolumeRules {
+  return { ...VOLUME_RULES, indirect_set_weight: weight };
+}

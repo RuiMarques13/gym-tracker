@@ -208,7 +208,9 @@ describe('metricData (para o volume por músculo do spec)', () => {
     const d = await metrics.metricData(new Date('2026-10-01T00:00:00Z'), new Date('2026-10-31T00:00:00Z'));
     expect(d.sets).toHaveLength(3);
     expect(d.sets.filter((s) => s.type === 'working' && s.exerciseId === bench)[0]).toMatchObject({ rir: 2, weightKg: 50, reps: 8 });
-    expect(d.exercises.get(bench)).toEqual({ id: bench, primaryMuscles: ['peito'], secondaryMuscles: ['triceps'] }); // «Ombros» antigo não tem correspondência
+    // «Ombros» antigo não tem correspondência; o nome vai junto para as exceções ao peso dos secundários.
+    expect(d.exercises.get(bench)).toMatchObject({ id: bench, primaryMuscles: ['peito'], secondaryMuscles: ['triceps'] });
+    expect(d.exercises.get(bench)?.name).toBeTruthy();
     expect(d.withoutPrimary).toEqual([]);
   });
 });
