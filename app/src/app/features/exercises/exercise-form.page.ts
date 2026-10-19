@@ -188,8 +188,8 @@ const REGIONS: Region[] = ['UPPER', 'LOWER', 'CORE', 'FULL_BODY'];
                 <ion-label>
                   Músculos
                   <p class="legend">
-                    Toca uma vez para <span class="dot primary"></span> principal, outra para
-                    <span class="dot secondary"></span> secundário, outra para tirar.
+                    Toca uma vez para ● principal (conta 1 série), outra para ◐ secundário (meia série por defeito), outra para tirar.
+                    O boneco mostra o que escolheres.
                   </p>
                 </ion-label>
               </ion-list-header>
@@ -202,12 +202,12 @@ const REGIONS: Region[] = ['UPPER', 'LOWER', 'CORE', 'FULL_BODY'];
                   <span class="chips-title">{{ group.label }}</span>
                   <div class="chips">
                     @for (m of group.muscles; track m.id) {
-                      <ion-chip
-                        [color]="muscleRole(m.id) ? 'primary' : undefined"
-                        [outline]="muscleRole(m.id) !== 'primary'"
-                        [class.secondary]="muscleRole(m.id) === 'secondary'"
-                        (click)="cycleMuscle(m.id)"
-                      >{{ m.name }}</ion-chip>
+                      <button type="button" class="mchip" [class.primary]="muscleRole(m.id) === 'primary'"
+                        [class.secondary]="muscleRole(m.id) === 'secondary'" (click)="cycleMuscle(m.id)"
+                        [attr.aria-label]="m.name + ': ' + roleLabel(m.id) + '. Tocar para mudar'">
+                        @if (muscleRole(m.id); as r) { <span class="mdot" aria-hidden="true">{{ r === 'primary' ? '●' : '◐' }}</span> }
+                        {{ m.name }}
+                      </button>
                     }
                   </div>
                 </div>
@@ -283,13 +283,15 @@ const REGIONS: Region[] = ['UPPER', 'LOWER', 'CORE', 'FULL_BODY'];
     .sub { margin: 2px 0 0; font-size: 0.8rem; color: var(--ion-color-medium); }
     .hint { font-size: 0.85rem; }
     .legend { font-size: 0.8rem; color: var(--ion-color-medium); margin: 4px 0 0; text-transform: none; }
-    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; }
-    .dot.primary { background: var(--ion-color-primary); }
-    .dot.secondary { border: 2px solid var(--ion-color-primary); }
     .chips-block { padding: 4px 12px 8px; }
     .chips-title { display: block; font-size: 0.75rem; font-weight: 600; color: var(--ion-color-medium); margin: 6px 4px 2px; text-transform: uppercase; letter-spacing: 0.04em; }
     .chips { display: flex; flex-wrap: wrap; }
-    ion-chip.secondary { border-width: 2px; }
+    .mchip { min-height: 44px; margin: 4px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 999px; border: 1px solid var(--ion-color-medium); background: transparent; color: inherit;
+      font: inherit; font-size: 0.95rem; }
+    .mchip.primary { background: var(--ion-color-primary); border-color: var(--ion-color-primary); color: var(--ion-color-primary-contrast); font-weight: 600; }
+    .mchip.secondary { background: rgba(var(--ion-color-primary-rgb), .14); border: 2px dashed var(--ion-color-primary); color: inherit; }
+    .mdot { font-size: 0.9rem; line-height: 1; }
     .danger-zone { padding: 24px 16px 0; display: grid; gap: 8px; }
     .center-text { text-align: center; color: var(--ion-color-medium); }
     .footer { max-width: 720px; margin: 0 auto; padding: 4px 12px; }
@@ -470,6 +472,11 @@ export class ExerciseFormPage implements OnInit {
   setRest(value: string | null | undefined): void {
     const n = value === null || value === undefined || value === '' ? null : Math.max(0, Math.round(Number(value)));
     this.restSeconds.set(Number.isFinite(n) ? n : null);
+  }
+
+  roleLabel(id: string): string {
+    const r = this.muscleRole(id);
+    return r === 'primary' ? 'principal' : r === 'secondary' ? 'secundário' : 'não trabalha';
   }
 
   muscleRole(id: string): MuscleRole | undefined {
