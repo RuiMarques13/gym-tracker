@@ -31,7 +31,8 @@ for (const [key, ps] of Object.entries(PORTIONS_OF_KEY)) {
  * Boneco de um exercício guardado. A regra pela família do nome diz QUE porções de cada grupo trabalham
  * (ex.: no supino, a cabeça medial do tríceps) e com que fonte; os músculos que escolheste dizem QUAIS grupos
  * entram e com que papel. Assim, tirar um músculo tira-o do boneco e trocar principal/secundário muda a cor.
- * Porções que não pertencem a nenhum grupo escolhível ficam como a regra diz.
+ * Porções que não pertencem a nenhum grupo escolhível ficam como a regra diz. Um grupo escolhido que a regra não
+ * desenha entra com as porções por defeito (confiança C).
  */
 export function portionsForExercise(ex: StoredExerciseLike): PortionProfile {
   const primaryKeys = muscleKeysOf(ex.primaryMuscleIds);
@@ -50,6 +51,16 @@ export function portionsForExercise(ex: StoredExerciseLike): PortionProfile {
     else if (keys.some((k) => secondary.has(k))) info[id] = { ...inf, role: 'secondary' };
     // nenhum dos grupos desta porção foi escolhido: sai do boneco
   }
+  // Grupos escolhidos que a regra não desenha (ex.: abdutores num peso morto, oblíquos num crunch): entram pela anatomia.
+  const addMissing = (keys: string[], role: 'primary' | 'secondary') => {
+    for (const k of keys) {
+      const ps = PORTIONS_OF_KEY[k] ?? [];
+      if (ps.some((p) => info[p])) continue;
+      for (const p of ps) info[p] = { role, confidence: 'C', sources: ['physiopedia'] };
+    }
+  };
+  addMissing(primaryKeys, 'primary');
+  addMissing(secondaryKeys, 'secondary');
   const ids = Object.keys(info) as PortionId[];
   return {
     primary: ids.filter((id) => info[id]!.role === 'primary'),

@@ -38,3 +38,25 @@ describe('boneco de um exercício guardado segue os músculos escolhidos', () =>
     expect([...p.primary, ...p.secondary].some((x) => x.startsWith('pec_'))).toBe(false);
   });
 });
+
+describe('grupos que a regra da família não desenha', () => {
+  const ex = (name: string, equipment: string, primary: string[], secondary: string[]) => portionsForExercise({
+    name, kind: 'STRENGTH', equipmentId: ids.equipment(equipment), primaryMuscleIds: m(...primary), secondaryMuscleIds: m(...secondary),
+  });
+
+  it('abdutores num peso morto aparecem (glúteo médio e mínimo)', () => {
+    const p = ex('Conventional Deadlift', 'barbell', ['glutes', 'hamstrings'], ['abductors']);
+    expect(p.secondary).toEqual(expect.arrayContaining(['glute_med', 'glute_min']));
+    expect(p.info.glute_med?.confidence).toBe('C');
+  });
+
+  it('trapézio superior numa remada e oblíquos num crunch, como principais', () => {
+    expect(ex('Bent-Over Dumbbell Row', 'dumbbell', ['upper_back', 'lats', 'traps'], []).primary).toContain('trap_upper');
+    expect(ex('Weighted Crunch', 'other', ['abs', 'obliques'], []).primary).toContain('obliques');
+  });
+
+  it('um grupo que a regra já desenha não ganha porções a mais', () => {
+    const p = bench(['chest'], ['triceps']);
+    expect(p.secondary.filter((x) => x.startsWith('triceps'))).toEqual(['triceps_medial']);
+  });
+});
