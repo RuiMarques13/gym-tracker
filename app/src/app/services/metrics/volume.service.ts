@@ -1,3 +1,4 @@
+import { rulesWithSecondaryWeight } from '../../core/metrics/volume-rules';
 import { inject, Injectable } from '@angular/core';
 import { METRICS_REPOSITORY } from '../repositories';
 import { SettingsService } from '../settings/settings.service';
@@ -54,7 +55,9 @@ export class VolumeService {
       goal: this.settings.get('profileGoal')(), level: this.settings.get('profileLevel')(), goalChangedAt: changed,
       birthYear: birth ? Number(birth.slice(0, 4)) : null,
     };
-    const recs = recommend(profile, md.sets, md.exercises, [...SPEC_MUSCLES], main, now);
+    // O peso dos secundários é o das Definições (0,5 por defeito), em todas as contas de volume.
+    const rules = rulesWithSecondaryWeight(this.settings.get('secondaryMuscleWeight')());
+    const recs = recommend(profile, md.sets, md.exercises, [...SPEC_MUSCLES], main, now, rules);
     const rows = recs.map<VolumeRow>((r) => {
       const top = Math.max(r.range.max * 1.25, r.sets, 1);
       const pos = (n: number) => Math.min(100, (n / top) * 100);
@@ -69,7 +72,7 @@ export class VolumeService {
     const doneSum = recs.reduce((n, r) => n + Math.min(r.sets, r.range.target), 0);
     const week = weekProgress(
       md.sets, md.exercises, new Map(recs.map((r) => [r.muscle, r.range.target])),
-      fromLocalDate(weekStartOf(toLocalDate(now))), now,
+      fromLocalDate(weekStartOf(toLocalDate(now))), now, rules,
     );
     return {
       week, rows, tips: [...below, ...above].slice(0, 3), missing: md.withoutPrimary.length,

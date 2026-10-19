@@ -1,3 +1,4 @@
+import { rulesWithSecondaryWeight } from '../../core/metrics/volume-rules';
 import { inject, Injectable } from '@angular/core';
 import {
   BODY_METRIC_REPOSITORY, EXERCISE_REPOSITORY, METRICS_REPOSITORY, RECOVERY_REPOSITORY, SESSION_REPOSITORY, SUGGESTION_REPOSITORY, WORKOUT_REPOSITORY,
@@ -120,7 +121,7 @@ export class ProgressionService {
     const working = md.sets.filter((s) => s.type === 'working');
 
     const fatigue = await this.fatigue(working, now);
-    const vol = weeklySetsByMuscle(md.sets, md.exercises, now);
+    const vol = weeklySetsByMuscle(md.sets, md.exercises, now, rulesWithSecondaryWeight(this.settings.get('secondaryMuscleWeight')()));
     const { maxSets } = this.limits();
     const threshold = this.settings.get('stagnationSessions')();
     const ids = scope.exerciseIds ?? recentExerciseIds(working, now);

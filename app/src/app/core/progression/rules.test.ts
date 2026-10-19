@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { INDIRECT_OVERRIDES } from '../metrics/indirect';
 import { SORENESS_ADJUST } from '../metrics/recovery';
 import { VOLUME_RULES } from '../metrics/volume-rules';
 import { SETTINGS } from '../settings/setting-registry';
@@ -63,6 +64,10 @@ describe('texto das regras = valores do código', () => {
     const e = VOLUME_RULES.effective_set;
     says('volume.effective', `${e.reps_min}–${e.reps_max}`, `até ${e.rir_max}`);
     says('volume.indirect', VOLUME_RULES.indirect_set_weight);
+    for (const o of INDIRECT_OVERRIDES) {
+      const label = o.muscle === 'isquiotibiais' ? 'isquiotibiais contam' : 'adutores contam';
+      says(o.rule, `${label} ${o.weight}`);
+    }
     expect(SETTINGS.secondaryMuscleWeight.defaultValue).toBe(VOLUME_RULES.indirect_set_weight);
     says('volume.perSession', VOLUME_RULES.max_direct_sets_per_session);
   });

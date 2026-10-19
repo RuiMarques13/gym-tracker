@@ -1,6 +1,6 @@
 import type { Goal, Level, MetricExercise, MetricSet } from '../metrics/volume';
 import { previousVolume, weeklyVolume } from '../metrics/volume';
-import { VOLUME_RULES } from '../metrics/volume-rules';
+import { VOLUME_RULES, type VolumeRules } from '../metrics/volume-rules';
 import { usesHypertrophyVolume } from './goals';
 import { detectStagnation, nextResponse, type StagSession, type StimulusResponse } from './stagnation';
 
@@ -72,9 +72,11 @@ export function recentExerciseIds(working: MetricSet[], now: Date, days: number 
  * Séries semanais por músculo: a maior entre a última semana e a média das últimas 4.
  * Uma semana a meio (ou falhada) não faz parecer que o volume caiu.
  */
-export function weeklySetsByMuscle(sets: MetricSet[], exercises: Map<string, MetricExercise>, now: Date): Map<string, number> {
-  const lastWeek = weeklyVolume(sets, exercises, new Date(now.getTime() - 7 * DAY), now).sets;
-  const avg = previousVolume(sets, exercises, now, SUGGEST.volumeAvgWeeks);
+export function weeklySetsByMuscle(
+  sets: MetricSet[], exercises: Map<string, MetricExercise>, now: Date, rules: VolumeRules = VOLUME_RULES,
+): Map<string, number> {
+  const lastWeek = weeklyVolume(sets, exercises, new Date(now.getTime() - 7 * DAY), now, rules).sets;
+  const avg = previousVolume(sets, exercises, now, SUGGEST.volumeAvgWeeks, rules);
   const muscles = new Set([...lastWeek.keys(), ...avg.keys()]);
   return new Map([...muscles].map((m) => [m, Math.max(lastWeek.get(m) ?? 0, avg.get(m) ?? 0)]));
 }
