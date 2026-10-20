@@ -18,7 +18,7 @@ export const DEFAULT_PALETTE: PaletteId = 'esmeralda';
 export const PALETTES: readonly PaletteInfo[] = [
   {
     id: 'esmeralda', name: 'Esmeralda', tagline: 'Verde fresco e ciano: foco e recuperação.',
-    light: ['#047857', '#0e7490', '#7c3aed'], dark: ['#34d399', '#22d3ee', '#a78bfa'],
+    light: ['#0f7f54', '#0e7490', '#7c3aed'], dark: ['#34d399', '#22d3ee', '#a78bfa'],
   },
   {
     id: 'eletrico', name: 'Elétrico', tagline: 'Índigo vivo com lima: energia de treino.',

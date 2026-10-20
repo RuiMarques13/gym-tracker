@@ -11,8 +11,36 @@
 @import '@ionic/angular/css/display.css';
 @import '@ionic/angular/css/palettes/dark.class.css';
 
+/* Letra Nunito (variável, 200–1000), incluída na app: funciona sem rede. Só latim e latim estendido. */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 1000;
+  src: url('../node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 1000;
+  src: url('../node_modules/@fontsource-variable/nunito/files/nunito-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 :root {
-  --ion-font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --ion-font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Estilo base (fase 1 do novo estilo): linhas e superfícies neutras, sombra «de botão» por baixo. */
+  --gt-radius: 16px;
+  --gt-line: #e3e8e5;
+  --gt-line-press: #cfd7d3;
+  --gt-surface: #f3f6f4;
+  --gt-depth: 4px;
+  /* Laranja da sequência e dos recordes (só decoração e fundos; texto por cima é escuro). */
+  --gt-flame: #ff8a00;
+  --gt-flame-press: #c96a00;
+  --gt-flame-tint: #ffebd1;
   /* Verdes e vermelhos dos avisos (independentes da paleta): tom em RGB para compor fundos translúcidos. */
   --gt-ok: 4, 120, 87;
   --gt-bad: 185, 28, 28;
@@ -20,6 +48,10 @@
 }
 
 :root.ion-palette-dark {
+  --gt-line: #2c3531;
+  --gt-line-press: #1c2320;
+  --gt-surface: #1b2220;
+  --gt-flame-tint: #3d2a12;
   --gt-ok: 52, 211, 153;
   --gt-bad: 248, 113, 113;
   --gt-info: 148, 163, 184;
@@ -29,12 +61,12 @@
    «esmeralda» é a por omissão e vale também sem atributo. Gerado a partir de core/theme/palettes.ts: manter em sintonia. */
 
 :root, :root[data-palette="esmeralda"] {
-  --ion-color-primary: #047857;
-  --ion-color-primary-rgb: 4, 120, 87;
+  --ion-color-primary: #0f7f54;
+  --ion-color-primary-rgb: 15, 127, 84;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #046a4d;
-  --ion-color-primary-tint: #22886b;
+  --ion-color-primary-shade: #0d704a;
+  --ion-color-primary-tint: #278c65;
   --ion-color-secondary: #0e7490;
   --ion-color-secondary-rgb: 14, 116, 144;
   --ion-color-secondary-contrast: #ffffff;
@@ -158,6 +190,31 @@ ion-menu ion-content {
   --background: var(--ion-background-color-step-25, var(--ion-background-color));
 }
 
+/* ---------- Estilo base: letra grossa, cantos redondos, botões que afundam ao tocar ---------- */
+
+body {
+  font-weight: 500;
+}
+
+h1, h2, h3, ion-title, ion-card-title, ion-list-header {
+  font-weight: 900;
+  letter-spacing: -0.2px;
+}
+
+h4, h5, h6, strong, b, ion-label h2, ion-label h3 {
+  font-weight: 800;
+}
+
+ion-title {
+  font-size: 1.2rem;
+}
+
+/* Cabeçalho sem sombra: uma linha simples por baixo. */
+ion-header.header-md {
+  box-shadow: none;
+  border-bottom: 2px solid var(--gt-line);
+}
+
 /* Botões sem maiúsculas forçadas (Material) — lê-se melhor em português. */
 ion-button,
 ion-segment-button {
@@ -165,9 +222,148 @@ ion-segment-button {
   letter-spacing: normal;
 }
 
+ion-button {
+  --border-radius: var(--gt-radius);
+  font-weight: 800;
+}
+
+ion-button:not(.button-small) {
+  min-height: 48px;
+}
+
+/* Sólido: sombra da mesma cor, mais escura, por baixo; ao tocar, o botão desce e a sombra some. */
+ion-button.button-solid {
+  --box-shadow: 0 var(--gt-depth) 0 color-mix(in srgb, var(--ion-color-base, var(--ion-color-primary)) 62%, #000);
+}
+
+/* Contorno: linha neutra grossa e sombra neutra; o texto fica na cor do botão. */
+ion-button.button-outline {
+  --border-width: 2px;
+  --border-color: var(--gt-line);
+  --box-shadow: 0 var(--gt-depth) 0 var(--gt-line);
+}
+
+ion-button.button-solid::part(native),
+ion-button.button-outline::part(native),
+ion-fab-button::part(native) {
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+ion-button.button-solid:not(.button-disabled):active::part(native),
+ion-button.button-outline:not(.button-disabled):active::part(native) {
+  transform: translateY(var(--gt-depth));
+  box-shadow: none;
+}
+
+ion-button.button-disabled {
+  --box-shadow: none;
+}
+
+ion-button.button-small {
+  --gt-depth: 3px;
+  --border-radius: 12px;
+}
+
+ion-fab-button {
+  --box-shadow: 0 5px 0 color-mix(in srgb, var(--ion-color-base, var(--ion-color-primary)) 62%, #000);
+}
+
+ion-fab-button:active::part(native) {
+  transform: translateY(5px);
+  box-shadow: none;
+}
+
+/* Segmento em pílula: fundo cinzento, opção escolhida como um cartão. */
+ion-segment {
+  --background: var(--gt-surface);
+  border-radius: 14px;
+  padding: 4px;
+}
+
 ion-segment-button {
   min-width: auto;
+  min-height: 40px;
   font-size: 0.95rem;
+  font-weight: 800;
+  --border-radius: 10px;
+  --indicator-height: 0;
+  --indicator-box-shadow: none;
+  --background-checked: var(--ion-background-color, #fff);
+  --color-checked: var(--ion-text-color);
+}
+
+ion-segment-button.segment-button-checked {
+  box-shadow: 0 2px 0 var(--gt-line-press);
+  border-radius: 10px;
+}
+
+/* Cartões e listas: linha grossa neutra em vez de sombra. */
+ion-card {
+  --background: var(--ion-background-color, #fff);
+  border: 2px solid var(--gt-line);
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+ion-list.list-inset {
+  border: 2px solid var(--gt-line);
+  border-radius: 18px;
+}
+
+ion-item {
+  --border-color: var(--gt-line);
+}
+
+ion-list-header {
+  font-size: 1.05rem;
+}
+
+ion-item-divider {
+  font-weight: 800;
+}
+
+ion-chip {
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+ion-badge {
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+ion-input.input-fill-outline,
+ion-select.select-fill-outline,
+ion-textarea.textarea-fill-outline {
+  --border-radius: 14px;
+  --border-width: 2px;
+}
+
+ion-searchbar {
+  --border-radius: 14px !important;
+  --box-shadow: none !important;
+}
+
+ion-searchbar .searchbar-input-container {
+  border: 2px solid var(--gt-line);
+  border-radius: 14px;
+}
+
+ion-progress-bar {
+  height: 10px;
+  border-radius: 999px;
+}
+
+ion-modal {
+  --border-radius: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ion-button.button-solid::part(native),
+  ion-button.button-outline::part(native),
+  ion-fab-button::part(native) {
+    transition: none;
+  }
 }
 
 /* Android com ecrã inteiro: os botões do sistema (Samsung, etc.) ficam por cima da app. O Capacitor mede-os e
