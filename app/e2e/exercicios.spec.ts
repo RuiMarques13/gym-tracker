@@ -29,3 +29,21 @@ test('mudar músculos principais e secundários muda o boneco e fica guardado', 
   await expect(chip('Tríceps')).toHaveAccessibleName(/não trabalha/);
   await expect(map).not.toContainText('Tríceps');
 });
+
+/** Num exercício com regra de família, um músculo que a regra não desenha também aparece no boneco. */
+test('juntar abdutores a um peso morto pinta-os no boneco', async ({ page, app }) => {
+  await app.open();
+  await app.addFromLibrary('Conventional Deadlift');
+  await page.goto('/exercicios');
+  await page.locator('ion-item', { hasText: 'Conventional Deadlift' }).first().click();
+  const chip = (name: string) => page.getByRole('button', { name: new RegExp(`^${name}: `) });
+  const map = page.locator('app-muscle-map').first();
+  await expect(map).not.toContainText('Glúteo médio');
+  await chip('Abdutores').click();
+  await expect(chip('Abdutores')).toHaveAccessibleName(/principal/);
+  await expect(map).toContainText('Glúteo médio');
+  await chip('Abdutores').click();
+  await expect(chip('Abdutores')).toHaveAccessibleName(/secundário/);
+  await expect(map).toContainText('Glúteo médio');
+});
+
