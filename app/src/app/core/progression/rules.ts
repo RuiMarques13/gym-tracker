@@ -6,7 +6,7 @@
  */
 
 export type RuleMark = 'source' | 'app';
-export type RuleArea = 'carga' | 'estagnacao' | 'descarga' | 'volume' | 'descanso' | 'recuperacao' | '1rm' | 'objetivo' | 'corpo' | 'nivel' | 'ciclos' | 'sugestoes';
+export type RuleArea = 'carga' | 'estagnacao' | 'descarga' | 'volume' | 'descanso' | 'recuperacao' | '1rm' | 'objetivo' | 'corpo' | 'nivel' | 'ciclos' | 'sugestoes' | 'progresso';
 
 export interface RuleRef {
   label: string;
@@ -41,6 +41,7 @@ export const AREA_LABEL: Record<RuleArea, string> = {
   nivel: 'Nível',
   ciclos: 'Ciclos',
   sugestoes: 'Como a app escolhe as sugestões',
+  progresso: 'Sequência e recordes',
 };
 
 export const REF = {
@@ -98,6 +99,13 @@ export const RULES: Rule[] = [
     title: 'Primeira vez num exercício',
     value: 'Escolher uma carga que dê o número de repetições da faixa a 1–3 da falha.' },
   // ---- 1RM ----
+  { key: 'streak.week', area: 'progresso', mark: 'app', refs: [],
+    title: 'Sequência semanal',
+    value: 'Uma semana (segunda a domingo) conta para a sequência com pelo menos 2 dias de treino terminado. É por semana, e não por dia, para não empurrar a treinar sem recuperar: os dias de descanso nunca a quebram. Uma semana abaixo disso recomeça a contagem. O número serve para manter a sequência ao alcance; não é uma recomendação de frequência. Editável.',
+    setting: 'streakSessionsPerWeek' },
+  { key: 'records.what', area: 'progresso', mark: 'app', refs: [REF.reynolds2006],
+    title: 'O que conta como recorde',
+    value: 'Numa série de trabalho: a maior carga de sempre nesse exercício, ou o maior 1RM estimado (Epley, só até 10 repetições contando as de reserva). Só a partir da segunda sessão com o exercício: a primeira vez não é recorde.' },
   { key: 'e1rm', area: '1rm', mark: 'source', refs: [REF.reynolds2006, REF.lacio2010],
     title: 'Fórmula do 1RM estimado',
     value: 'Epley, peso × (1 + repetições / 30), em toda a app. Nas decisões só conta com séries até 10 repetições; acima disso a previsão perde exatidão.' },

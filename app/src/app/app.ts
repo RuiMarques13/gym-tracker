@@ -45,12 +45,14 @@ import { EXERCISE_REPOSITORY, SESSION_REPOSITORY, WORKOUT_REPOSITORY } from './s
 import { SettingsService } from './services/settings/settings.service';
 import { EffortReminder } from './services/timer/effort-reminder';
 import { TimerBubbleComponent } from './shared/timer-bubble.component';
+import { CelebrationComponent } from './shared/celebration.component';
+import { CelebrationService } from './services/ui/celebration.service';
 
 @Component({
   selector: 'app-root',
   imports: [
     RouterLink, RouterLinkActive, IonApp, IonSplitPane, IonMenu, IonContent, IonList,
-    IonMenuToggle, IonItem, IonIcon, IonLabel, IonNote, IonRouterOutlet, IonFooter, TimerBubbleComponent,
+    IonMenuToggle, IonItem, IonIcon, IonLabel, IonNote, IonRouterOutlet, IonFooter, TimerBubbleComponent, CelebrationComponent,
   ],
   template: `
     <ion-app>
@@ -102,6 +104,7 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
         </div>
       </ion-split-pane>
       <app-timer-bubble />
+      <app-celebration [title]="party.current()?.title ?? null" [detail]="party.current()?.detail ?? null" />
     </ion-app>
   `,
   styles: `
@@ -128,6 +131,7 @@ import { TimerBubbleComponent } from './shared/timer-bubble.component';
   `,
 })
 export class App {
+  readonly party = inject(CelebrationService);
   protected readonly auth = inject(AuthService);
   private readonly sync = inject(SyncService);
   private readonly router = inject(Router);

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { INDIRECT_OVERRIDES } from '../metrics/indirect';
+import { E1RM_MAX_REPS } from '../metrics/one-rm';
 import { SORENESS_ADJUST } from '../metrics/recovery';
 import { VOLUME_RULES } from '../metrics/volume-rules';
 import { SETTINGS } from '../settings/setting-registry';
@@ -83,6 +84,14 @@ describe('texto das regras = valores do código', () => {
   it('recuperação: ajuste pela dor', () => {
     const fmt = (h: number) => (h > 0 ? `+${h} h` : h < 0 ? `−${-h} h` : '0');
     says('recovery.soreness', ...Object.values(SORENESS_ADJUST).map(fmt));
+  });
+
+  it('sequência semanal', () => {
+    says('streak.week', `pelo menos ${SETTINGS.streakSessionsPerWeek.defaultValue} dias`);
+  });
+
+  it('recordes: mesma janela do 1RM estimado', () => {
+    says('records.what', `até ${E1RM_MAX_REPS} repetições`);
   });
 
   it('janelas das sugestões', () => {

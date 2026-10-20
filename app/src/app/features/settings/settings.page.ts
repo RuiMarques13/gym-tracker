@@ -99,6 +99,15 @@ import { ToastService } from '../../services/ui/toast.service';
             <ion-label>Peso das séries em músculos secundários</ion-label>
             <ion-note slot="end">{{ secondary() }}</ion-note>
           </ion-item>
+          <ion-item>
+            <ion-input label="Treinos por semana para a sequência" labelPlacement="start" type="number" inputmode="numeric" min="1" max="7"
+              [value]="streakGoal()" (ionChange)="setStreakGoal($any($event).detail.value)" />
+          </ion-item>
+          <ion-item>
+            <ion-toggle [checked]="haptics()" (ionChange)="setHaptics($any($event).detail.checked)">
+              <ion-label class="ion-text-wrap">Vibração<p>Ao registar uma série, num recorde e no fim do treino</p></ion-label>
+            </ion-toggle>
+          </ion-item>
 
           <ion-list-header><ion-label>Progressão de carga</ion-label></ion-list-header>
           <ion-item>
@@ -237,6 +246,15 @@ export class SettingsPage {
   readonly restByMechanic = this.settings.get('restByMechanic');
   readonly deloadSuggest = this.settings.get('deloadSuggestions');
   readonly stagnation = this.settings.get('stagnationSessions');
+  readonly streakGoal = this.settings.get('streakSessionsPerWeek');
+  readonly haptics = this.settings.get('haptics');
+  setStreakGoal(raw: string | null | undefined): void {
+    const n = Math.round(Number(raw));
+    if (Number.isFinite(n) && n >= 1 && n <= 7) void this.settings.set('streakSessionsPerWeek', n);
+  }
+  setHaptics(on: boolean): void {
+    void this.settings.set('haptics', on);
+  }
   private readonly progression = inject(ProgressionService);
   readonly deloadLabel = computed(() => {
     this.settings.get('deloadUntil')();
