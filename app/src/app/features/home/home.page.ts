@@ -20,6 +20,7 @@ import { SettingsService } from '../../services/settings/settings.service';
 import { CLOCK } from '../../services/clock';
 import { formatDay, formatTime } from '../history/history-format';
 import { HomeWidgetsComponent } from './home-widgets.component';
+import { WeekPathComponent } from './week-path.component';
 import { HomeLayoutEditorComponent } from './home-layout-editor.component';
 import { SessionLauncher } from '../session/session-launcher';
 import { NoticeCardsComponent, SuggestionCardsComponent } from '../../shared/suggestion-cards.component';
@@ -31,7 +32,7 @@ import { WEEK_LABEL, type NextBlockProposal } from '../../core/progression/cycle
   selector: 'app-home',
   imports: [NavButtonComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonContent,
-    IonButton, HomeWidgetsComponent, HomeLayoutEditorComponent, IonButtons, IonIcon, SuggestionCardsComponent, NoticeCardsComponent,
+    IonButton, HomeWidgetsComponent, WeekPathComponent, HomeLayoutEditorComponent, IonButtons, IonIcon, SuggestionCardsComponent, NoticeCardsComponent,
   ],
   template: `
     <ion-header>
@@ -75,12 +76,8 @@ import { WEEK_LABEL, type NextBlockProposal } from '../../core/progression/cycle
             </div>
             <ion-button routerLink="/sessao">Continuar</ion-button>
           </div>
-        } @else {
-          <div class="start">
-            <ion-button (click)="launcher.start(null)">Sessão livre</ion-button>
-            <ion-button fill="outline" routerLink="/treinos">Escolher um treino</ion-button>
-          </div>
         }
+        <app-week-path [refresh]="tick()" [active]="!!active.value()" />
 
         @if (deload(); as d) {
           <div class="active deload">
@@ -134,16 +131,15 @@ import { WEEK_LABEL, type NextBlockProposal } from '../../core/progression/cycle
   styles: `
     .page { max-width: 760px; margin: 0 auto; }
     .home-icon { font-size: 1.45rem; vertical-align: middle; }
-    .start { display: flex; justify-content: center; gap: 10px; margin: 12px 0 22px; flex-wrap: wrap; }
-    .active { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; margin: 8px 0 22px;
-      border-radius: 14px; background: rgba(var(--ion-color-primary-rgb), 0.12); }
+    .active { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; margin: 8px 0 16px;
+      border-radius: 18px; border: 2px solid rgba(var(--ion-color-primary-rgb), 0.35); background: rgba(var(--ion-color-primary-rgb), 0.10); }
     .active strong { display: block; }
     .stale { flex-direction: column; align-items: stretch; background: rgba(var(--ion-color-warning-rgb), 0.18); }
     .stale-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .active span { color: var(--ion-color-medium); font-size: 0.9rem; }
     .deload { background: rgba(var(--ion-color-tertiary-rgb, 128,128,128), 0.14); }
     .sugg { margin: 0 0 18px; }
-    .cycle { display: block; text-decoration: none; color: inherit; padding: 12px 16px; margin: 0 0 14px; border-radius: 14px; background: rgba(128,128,128,.1); }
+    .cycle { display: block; text-decoration: none; color: inherit; padding: 12px 16px; margin: 0 0 14px; border-radius: 18px; border: 2px solid var(--gt-line); }
     .cycle strong { display: block; }
     .cycle span { display: block; font-size: 0.85rem; color: var(--ion-color-medium); }
     .block-end { padding: 12px 16px; margin: 0 0 14px; border-radius: 14px; background: rgba(var(--ion-color-primary-rgb), .1); }

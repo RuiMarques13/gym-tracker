@@ -129,8 +129,8 @@ import { normalizeWidgets } from './widget-list';
     }
   `,
   styles: `
-    .widget { margin: 0 0 16px; padding: 14px 16px; border-radius: 14px; background: var(--ion-background-color-step-50, rgba(127,127,127,0.08)); }
-    h3 { margin: 0 0 10px; font-size: 0.8rem; font-weight: 700; color: var(--ion-color-medium); }
+    .widget { margin: 0 0 16px; padding: 14px 16px; border-radius: 18px; border: 2px solid var(--gt-line); }
+    h3 { margin: 0 0 10px; font-size: 1rem; font-weight: 900; color: var(--ion-text-color); }
     .muted { color: var(--ion-color-medium); margin: 0; }
     .small { font-size: 0.78rem; margin-top: 10px; }
     .next { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
