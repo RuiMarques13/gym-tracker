@@ -5,6 +5,7 @@ import { add, checkmark, checkmarkCircle, chevronDown, close, createOutline, ell
 import type { SessionExercise, SetGroup } from '../../data/models/session';
 import { groupSets } from '../../data/models/session';
 import type { LoadSuggestion } from '../../core/progression/load';
+import type { DotState } from '../../core/session/progress';
 import { RuleWhyComponent } from '../../shared/rule-why.component';
 import { formatSetGroup, kgLabel } from './session-format';
 
@@ -48,6 +49,18 @@ export interface CycleWeekInfo {
           <ion-icon name="trash-outline" />
         </button>
       </header>
+
+      @if (dots().length) {
+        <div class="dots" role="img" [attr.aria-label]="dotsLabel()">
+          @for (d of dots(); track $index) {
+            <span class="dot" [class.done]="d === 'done'" [class.next]="d === 'next'">
+              @if (d === 'done') {
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+              } @else { {{ $index + 1 }} }
+            </span>
+          }
+        </div>
+      }
 
       @if (suggestion(); as sg) {
         <div class="today" [class.up]="sg.action === 'increase'" [class.down]="sg.action === 'decrease'">
@@ -139,22 +152,31 @@ export interface CycleWeekInfo {
   styles: `
     :host { display: block; scroll-margin-top: 8px; }
     .row { width: 100%; min-height: 60px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding: 8px 14px;
-      border: 0; border-radius: 14px; background: var(--ion-card-background, var(--ion-item-background, #fff)); color: inherit;
-      font: inherit; text-align: left; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10); }
+      border: 2px solid var(--gt-line); border-radius: 16px; background: var(--ion-card-background, var(--ion-item-background, #fff)); color: inherit;
+      font: inherit; text-align: left; box-shadow: 0 3px 0 var(--gt-line); transition: transform 80ms ease, box-shadow 80ms ease; }
+    .row:active { transform: translateY(3px); box-shadow: none; }
     .row.done { opacity: .75; }
     .row.done .status { color: var(--ion-color-success); }
     .row-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
-    .row-text strong { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row-text strong { font-size: 1.02rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .row-text small { font-size: 0.9rem; color: var(--ion-color-medium); font-variant-numeric: tabular-nums;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .chev { color: var(--ion-color-medium); font-size: 20px; flex: 0 0 auto; }
-    .card { background: var(--ion-card-background, var(--ion-item-background, #fff)); border-radius: 14px; margin-bottom: 12px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); overflow: hidden; }
+    .card { background: var(--ion-card-background, var(--ion-item-background, #fff)); border-radius: 18px; margin-bottom: 12px;
+      border: 3px solid var(--ion-color-primary); overflow: hidden; }
+    .card.done { border-color: var(--gt-line); }
+    .dots { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px 14px 8px; }
+    .dot { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; box-sizing: border-box;
+      font-size: 0.85rem; font-weight: 900; background: var(--gt-line); color: var(--ion-color-medium); }
+    .dot.next { background: transparent; border: 3px solid var(--ion-color-primary); color: var(--ion-color-primary); }
+    .dot.done { background: var(--ion-color-success, #2dd36f); color: #fff; box-shadow: 0 3px 0 color-mix(in srgb, var(--ion-color-success, #2dd36f) 60%, #000);
+      animation: dot-pop 320ms cubic-bezier(.2, .9, .3, 1.4) both; }
+    @keyframes dot-pop { 0% { transform: scale(.5); } 100% { transform: scale(1); } }
     .card header { display: flex; align-items: center; gap: 10px; padding: 12px 4px 6px 14px; }
     .status { font-size: 24px; color: var(--ion-color-medium); flex: 0 0 auto; }
     .card.done .status { color: var(--ion-color-success); }
     .title { flex: 1; min-width: 0; }
-    .title h2 { margin: 0; font-size: 1.1rem; font-weight: 700; }
+    .title h2 { margin: 0; font-size: 1.2rem; font-weight: 900; }
     .title p { margin: 2px 0 0; font-size: 0.9rem; color: var(--ion-color-medium); }
     .ss { color: var(--ion-color-primary); font-weight: 600; }
     .icon-btn { width: 48px; height: 48px; flex: 0 0 auto; display: grid; place-items: center; border: 0; border-radius: 12px;
@@ -186,22 +208,30 @@ export interface CycleWeekInfo {
       color: var(--ion-color-medium); font-size: 22px; display: grid; place-items: center; }
     .ask p span { color: var(--ion-color-medium); font-size: 0.85rem; }
     .ask-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .chip { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--ion-color-primary); background: transparent;
-      color: inherit; font: inherit; font-size: 1rem; font-weight: 700; display: grid; place-items: center; }
-    .chip:active { background: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
-    .actions { padding: 10px 12px 12px; }
+    .chip { width: 52px; height: 48px; border-radius: 14px; border: 2px solid var(--gt-line); background: var(--ion-background-color, #fff);
+      color: inherit; font: inherit; font-size: 1.05rem; font-weight: 900; display: grid; place-items: center;
+      box-shadow: 0 4px 0 var(--gt-line); transition: transform 80ms ease, box-shadow 80ms ease; }
+    .chip:active { transform: translateY(4px); box-shadow: none; background: var(--ion-color-primary); color: var(--ion-color-primary-contrast); border-color: var(--ion-color-primary); }
+    .actions { padding: 10px 12px 16px; }
     .big { --padding-top: 14px; --padding-bottom: 14px; min-height: 52px; }
     /* Editar à esquerda: a bolha do temporizador fica, por defeito, no canto inferior direito. */
     .quick { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 8px; }
-    .quick-main { min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 12px;
-      border: 0; border-radius: 14px; background: var(--ion-color-primary); color: var(--ion-color-primary-contrast);
-      font: inherit; font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .quick-main { min-height: 60px; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 12px;
+      border: 0; border-radius: 16px; background: var(--ion-color-primary); color: var(--ion-color-primary-contrast);
+      font: inherit; font-size: 1.3rem; font-weight: 900; font-variant-numeric: tabular-nums;
+      box-shadow: 0 5px 0 color-mix(in srgb, var(--ion-color-primary) 62%, #000); transition: transform 80ms ease, box-shadow 80ms ease; }
     .quick-main ion-icon { font-size: 24px; flex: 0 0 auto; }
     .quick-main span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .quick-main:active { filter: brightness(.9); }
+    .quick-main:active:not([disabled]) { transform: translateY(5px); box-shadow: none; }
     .quick-main[disabled] { opacity: .7; }
-    .quick-edit { min-height: 56px; border-radius: 14px; border: 1px solid var(--ion-color-primary); background: transparent;
-      color: var(--ion-color-primary); font-size: 22px; display: grid; place-items: center; }
+    .quick-edit { min-height: 60px; border-radius: 16px; border: 2px solid var(--gt-line); background: transparent;
+      color: var(--ion-color-primary); font-size: 22px; display: grid; place-items: center;
+      box-shadow: 0 5px 0 var(--gt-line); transition: transform 80ms ease, box-shadow 80ms ease; }
+    .quick-edit:active { transform: translateY(5px); box-shadow: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .row, .chip, .quick-main, .quick-edit { transition: none; }
+      .dot.done { animation: none; }
+    }
   `,
 })
 export class ExerciseCardComponent {
@@ -219,6 +249,12 @@ export class ExerciseCardComponent {
   readonly setsToday = input(0);
   /** Texto do botão de um toque («60 kg × 10»); null = sem registo de um toque. */
   readonly quick = input<string | null>(null);
+  /** Bolinhas das séries de hoje (core/session/progress.ts); vazio = sem alvo. */
+  readonly dots = input<DotState[]>([]);
+  readonly dotsLabel = computed(() => {
+    const d = this.dots();
+    return `${d.filter((x) => x === 'done').length} de ${d.length} séries feitas`;
+  });
   readonly busy = input(false);
   /** Posição da série a que falta a reserva (depois do registo de um toque). */
   readonly rirAsk = input<number | null>(null);

@@ -82,6 +82,16 @@ export const SETTINGS = {
     key: 'timer.webHintShown', scope: 'DEVICE', schemaVersion: 1, defaultValue: false,
     validate: isBool, label: 'Aviso do temporizador no browser mostrado',
   }),
+  /** Escolha da app (rules.ts `streak.week`): dias de treino por semana para a sequência semanal. */
+  streakSessionsPerWeek: def<number>({
+    key: 'progress.streakSessionsPerWeek', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 2,
+    validate: isIntInRange(1, 7), label: 'Treinos por semana para a sequência',
+  }),
+  /** Vibrar ao registar uma série, num recorde e no fim do treino (só onde o aparelho vibra). */
+  haptics: def<boolean>({
+    key: 'ui.haptics', scope: 'DEVICE', schemaVersion: 1, defaultValue: true,
+    validate: isBool, label: 'Vibração',
+  }),
   secondaryMuscleWeight: def<number>({
     key: 'metrics.secondaryMuscleWeight', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: 0.5,
     validate: isNumberInRange(0, 1), label: 'Peso das séries em músculos secundários',

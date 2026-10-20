@@ -9,7 +9,7 @@ import { firstExercise } from './session-launcher';
 import { BodyProfileService } from '../../services/health/body-profile.service';
 import { HealthService } from '../../services/health/health.service';
 import { paceOf, sessionStats } from '../../core/metrics/session-stats';
-import { Component, computed, effect, inject, input, OnDestroy, resource, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, input, OnDestroy, resource, signal, untracked, viewChild } from '@angular/core';
 import {
   AlertController,
   IonButton,
@@ -70,6 +70,11 @@ import { canQuickLog, nextSetValues, weightStep, type NextSet } from '../../core
 
 /** Sessão em curso: registar séries, descanso e duração com o temporizador, terminar. */
 import { ToastService } from '../../services/ui/toast.service';
+import { HapticsService } from '../../services/ui/haptics.service';
+import { CelebrationService } from '../../services/ui/celebration.service';
+import { setDots, workoutProgress, type DotState } from '../../core/session/progress';
+import { bestOf, recordOf, type Best, type RecordSet } from '../../core/progression/records';
+import { METRICS_REPOSITORY } from '../../services/repositories';
 
 /** Porções do boneco de um exercício guardado. */
 const figOf = (ex: Exercise | null | undefined) => {
@@ -110,6 +115,12 @@ const figOf = (ex: Exercise | null | undefined) => {
             @if ((stats()?.volumeKg ?? 0) > 0) { <span class="bar-item">{{ stats()!.volumeKg.toLocaleString('pt-PT') }} kg</span> }
             <ion-icon name="chevron-down" class="bar-chev" />
           </button>
+          @if (progress().total; as total) {
+            <div class="wbar" role="progressbar" aria-label="Séries do treino" [attr.aria-valuenow]="progress().done" aria-valuemin="0" [attr.aria-valuemax]="total">
+              <div class="wfill" [style.width.%]="progressPct()"></div>
+              <span class="wcount">{{ progress().done }}/{{ total }}</span>
+            </div>
+          }
         </ion-toolbar>
       }
     </ion-header>
@@ -153,7 +164,7 @@ const figOf = (ex: Exercise | null | undefined) => {
                 [compactToday]="hasWorking(ex)" (expand)="openExercise(ex)"
                 [exercise]="ex" [historical]="historical()" [targetsLabel]="targets(ex)" [supersetLabel]="ssLabel(ex)" [done]="isDone(ex)"
                 [suggestion]="suggestionOf(ex)" [todayKg]="todayKg(ex)" [goalLabel]="goalLabel()" [cycleWeek]="cycleWeek()"
-                [deload]="!!deload()" [setsToday]="setsFor(ex)" [quick]="quickLabelOf(ex)" [busy]="logging().has(ex.id)"
+                [deload]="!!deload()" [setsToday]="setsFor(ex)" [dots]="dotsOf(ex)" [quick]="quickLabelOf(ex)" [busy]="logging().has(ex.id)"
                 [rirAsk]="rirAsk()?.exerciseId === ex.id ? rirAsk()!.position : null" [liveHere]="liveRun()?.exerciseId === ex.id"
                 (openSet)="openSheet(ex, $event)" (removeExercise)="removeExercise(ex)" (choose)="choose(ex, $event)"
                 (quickLog)="quickLog(ex)" (startCardio)="startCardio(ex)" (setRir)="setRir(ex, $event.position, $event.rir)"
@@ -217,7 +228,7 @@ const figOf = (ex: Exercise | null | undefined) => {
     </ion-modal>
 
     <!-- Terminar -->
-    <ion-modal [isOpen]="finishOpen()" (didDismiss)="finishOpen.set(false)" [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7, 1]">
+    <ion-modal #finishModal [isOpen]="finishOpen()" (didDismiss)="finishOpen.set(false)" [initialBreakpoint]="1" [breakpoints]="[0, 1]">
       <ng-template>
         <ion-header>
           <ion-toolbar>
@@ -249,14 +260,22 @@ const figOf = (ex: Exercise | null | undefined) => {
               <app-suggestion-cards [cards]="stagCards()" (changed)="loadStagCards()" />
             }
             @if (historical()) {
-              <ion-button expand="block" (click)="saveDetails()">Guardar</ion-button>
               <ion-button expand="block" fill="clear" color="danger" (click)="discard()">Apagar sessão</ion-button>
             } @else {
-              <ion-button expand="block" (click)="finish()">Terminar e guardar</ion-button>
               <ion-button expand="block" fill="clear" color="danger" (click)="discard()">Descartar sessão</ion-button>
             }
           </div>
         </ion-content>
+        <!-- Sempre à vista, mesmo com o painel a meio: não é preciso arrastar para terminar. -->
+        <ion-footer>
+          <div class="finish-foot">
+            @if (historical()) {
+              <ion-button expand="block" (click)="saveDetails()">Guardar</ion-button>
+            } @else {
+              <ion-button expand="block" class="finish-save" (click)="finish()">Terminar e guardar</ion-button>
+            }
+          </div>
+        </ion-footer>
       </ng-template>
     </ion-modal>
   `,
@@ -267,6 +286,11 @@ const figOf = (ex: Exercise | null | undefined) => {
     .bar-item { white-space: nowrap; }
     .bar-item + .bar-item::before { content: '·'; margin-right: 14px; color: var(--ion-color-medium); }
     .bar-chev { margin-left: auto; color: var(--ion-color-medium); font-size: 20px; }
+    .wbar { position: relative; height: 16px; margin: 0 16px 10px; border-radius: 999px; background: var(--gt-line); overflow: hidden; }
+    .wfill { height: 100%; border-radius: 999px; background: var(--ion-color-success, #2dd36f);
+      box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .14); transition: width 300ms cubic-bezier(.3, 1.4, .6, 1); min-width: 16px; }
+    .wcount { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 900; line-height: 1; }
+    @media (prefers-reduced-motion: reduce) { .wfill { transition: none; } }
     .deload { display: flex; align-items: center; gap: 8px; margin: 8px 12px; padding: 10px 12px; border-radius: 12px; font-size: 14px; background: rgba(var(--ion-color-tertiary-rgb, 128,128,128), .14); }
     .deload > div { flex: 1; }
     .stag-h { font-size: 15px; margin: 14px 0 6px; }
@@ -292,6 +316,8 @@ const figOf = (ex: Exercise | null | undefined) => {
     .sheet { padding: 12px 16px 24px; display: grid; gap: 14px; max-width: 520px; margin: 0 auto; }
     .hint { text-align: center; color: var(--ion-color-medium); margin: 24px 0; }
     .footer { max-width: 760px; margin: 0 auto; padding: 4px 12px; }
+    .finish-foot { max-width: 520px; margin: 0 auto; padding: 8px 16px 10px; }
+    .finish-save { min-height: 56px; font-size: 1.1rem; }
     .start-pill { margin: 0 auto 8px; width: fit-content; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem;
       background: rgba(var(--ion-color-primary-rgb), 0.12); color: var(--ion-color-primary); }
     .muscles { margin-top: 12px; padding: 10px 12px 6px; border-radius: 14px; background: var(--ion-card-background, var(--ion-item-background)); }
@@ -323,6 +349,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   readonly sheet = signal<SheetState | null>(null);
   readonly sheetError = signal<string | null>(null);
   readonly finishOpen = signal(false);
+  private readonly finishModal = viewChild<IonModal>('finishModal');
   /** Painel «Resumo» (números e músculos) do treino em curso. */
   readonly summaryOpen = signal(false);
   readonly finishRpe = signal('');
@@ -457,6 +484,13 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   /** O exercício aberto: o da pergunta da reserva (para não fugir antes de responderes), o escolhido ou o atual. */
   readonly openId = computed(() => this.rirAsk()?.exerciseId ?? openExerciseId(this.focusList(), this.chosenOpen()));
   hasWorking = (ex: SessionExercise) => workingSetCount(ex) > 0;
+  /** Barra do topo: séries feitas e previstas (core/session/progress.ts). */
+  readonly progress = computed(() => workoutProgress(this.focusList()));
+  readonly progressPct = computed(() => {
+    const p = this.progress();
+    return p.total ? Math.min(100, (p.done / p.total) * 100) : 0;
+  });
+  dotsOf = (ex: SessionExercise): DotState[] => (this.historical() ? [] : setDots(workingSetCount(ex), ex.targetSets ? this.setsFor(ex) : null));
   summaryOf = (ex: SessionExercise) => collapsedSummary(ex, ex.targetSets ? this.setsFor(ex) : 0, this.targets(ex));
   barDuration = computed(() => this.mainTiles()[0]?.value ?? '0:00');
 
@@ -806,6 +840,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       this.rirAsk.set(ex.kind === 'STRENGTH' && ex.metricType !== 'DURATION' ? { exerciseId: ex.id, position } : null);
       this.releaseIfFinished(updated);
       this.startRest(updated);
+      void this.afterLog(updated, position);
     } catch (err) {
       await this.toasts.show(err instanceof SessionError ? err.message : 'Não foi possível guardar a série.', 'error', 2500);
     } finally {
@@ -854,6 +889,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       if (save.position === null && !this.historical()) {
         this.startRest(updated);
         this.releaseIfFinished(updated);
+        void this.afterLog(updated, Math.max(...updated.sets.map((x) => x.position)));
       }
     } catch (err) {
       this.sheetError.set(err instanceof SessionError ? err.message : 'Não foi possível guardar a série.');
@@ -866,6 +902,42 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     const updated = await this.repo.deleteSet(ex.id, position);
     this.patchSession((x) => ({ ...x, exercises: x.exercises.map((e) => (e.id === updated.id ? updated : e)) }));
     this.closeSheet();
+  }
+
+  // --- reação a cada série: vibração e recordes ---------------------------------------------------
+  private readonly haptics = inject(HapticsService);
+  private readonly metricsRepo = inject(METRICS_REPOSITORY);
+  /** Melhor carga e 1RM estimado de cada exercício antes desta sessão (lido na primeira série). */
+  private bests: Map<string, Best> | null = null;
+  private readonly party = inject(CelebrationService);
+
+  /** Depois de registar uma série nova: vibra e, se bater o melhor de sempre, festeja (core/progression/records.ts). */
+  private async afterLog(ex: SessionExercise, position: number): Promise<void> {
+    const s = this.session();
+    if (!s || ex.kind !== 'STRENGTH' || ex.metricType !== 'WEIGHT_REPS') { this.haptics.tap(); return; }
+    const rows = ex.sets.filter((x) => x.position === position);
+    const top = rows.sort((a, b) => (b.reps ?? 0) - (a.reps ?? 0))[0];
+    if (!top) { this.haptics.tap(); return; }
+    if (!this.bests) {
+      try {
+        const md = await this.metricsRepo.metricData(new Date(0), new Date(s.startedAt));
+        this.bests = bestOf(md.sets.map<RecordSet>((x) => ({ exerciseId: x.exerciseId, weightKg: x.weightKg, reps: x.reps, rir: x.rir, type: x.type })));
+      } catch {
+        this.bests = new Map();
+      }
+    }
+    const set: RecordSet = { exerciseId: ex.exerciseId, weightKg: top.weightKg, reps: top.reps, rir: top.rir, type: top.type === 'WARMUP' ? 'warmup' : 'working' };
+    const prev = this.bests.get(ex.exerciseId);
+    const rec = recordOf(set, prev);
+    if (prev && set.type === 'working' && set.weightKg && set.reps) {
+      const mine = bestOf([set]).get(ex.exerciseId);
+      if (mine) this.bests.set(ex.exerciseId, { weightKg: Math.max(prev.weightKg, mine.weightKg), e1rm: Math.max(prev.e1rm, mine.e1rm) });
+    }
+    if (!rec) { this.haptics.tap(); return; }
+    this.haptics.success();
+    const what = rec.kind === 'weight' ? `carga mais alta de sempre (antes ${this.num(rec.previous)} kg)`
+      : `1RM estimado ${this.num(rec.value)} kg (antes ${this.num(rec.previous)} kg)`;
+    this.party.show('Novo recorde!', `${ex.exerciseName} · ${this.num(rec.weightKg)} kg × ${rec.reps} · ${what}`);
   }
 
   /** Descanso: do treino, do exercício ou o global (só força; mobilidade e cardio não têm por defeito). */
@@ -937,9 +1009,10 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
     await this.repo.finish(s.id, { rpe, notes: this.finishNotes() });
     if (rpe === null && this.totalSets() > 0) void this.effort.schedule(s.id); // sRPE: pergunta ~30 min depois
     this.timer.stop();
+    // Fecha o painel antes de mudar de ecrã (senão fica por cima do fim do treino).
+    await this.finishModal()?.dismiss();
     this.finishOpen.set(false);
-    await this.toast('Sessão guardada.');
-    this.nav.navigateRoot('/home');
+    this.nav.navigateRoot(['/sessao/fim', s.id]);
   }
 
   async discard(): Promise<void> {
