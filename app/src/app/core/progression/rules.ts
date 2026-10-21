@@ -6,7 +6,7 @@
  */
 
 export type RuleMark = 'source' | 'app';
-export type RuleArea = 'carga' | 'estagnacao' | 'descarga' | 'volume' | 'descanso' | 'recuperacao' | '1rm' | 'objetivo' | 'corpo' | 'nivel' | 'ciclos' | 'sugestoes' | 'progresso';
+export type RuleArea = 'carga' | 'estagnacao' | 'descarga' | 'volume' | 'descanso' | 'recuperacao' | '1rm' | 'objetivo' | 'corpo' | 'nivel' | 'ciclos' | 'sugestoes' | 'progresso' | 'grupos';
 
 export interface RuleRef {
   label: string;
@@ -42,6 +42,7 @@ export const AREA_LABEL: Record<RuleArea, string> = {
   ciclos: 'Ciclos',
   sugestoes: 'Como a app escolhe as sugestões',
   progresso: 'Sequência e recordes',
+  grupos: 'Superset, circuito e treinos por tempo',
 };
 
 export const REF = {
@@ -56,6 +57,7 @@ export const REF = {
   kassiano2022: { label: 'Kassiano et al. 2022, variação de exercícios', url: 'https://lida.sport-iat.de/ta/Record/4077216?lng=en', note: 'só o resumo' },
   kassiano2024: { label: 'Kassiano et al. 2024, exercícios fixos ou variados', url: 'https://ro.ecu.edu.au/ecuworks2022-2026/4912', note: 'resumo' },
   singer2024: { label: 'Singer et al. 2024, descanso e hipertrofia', url: 'https://www.frontiersin.org/articles/10.3389/fspor.2024.1429789/full' },
+  tabata1996: { label: 'Tabata et al. 1996, treino intervalado de alta intensidade e VO2max', url: 'https://www.bisp-surf.de/Record/PU199612201631' },
   reynolds2006: { label: 'Reynolds, Gordon e Robergs 2006, previsão do 1RM', url: 'https://www.unm.edu/~rrobergs/478RMStrengthPrediction.pdf' },
   lacio2010: { label: 'Lacio et al. 2010, equações de 1RM no supino', url: 'https://www.redalyc.org/pdf/2730/273019708005.pdf' },
   acsm2026: { label: 'ACSM 2026, posição sobre treino de força', url: 'https://acsm.org/science-spotlight-acsm-releases-new-position-stand-on-resistance-training/', note: 'só o comunicado; o artigo não abriu' },
@@ -99,6 +101,15 @@ export const RULES: Rule[] = [
     title: 'Primeira vez num exercício',
     value: 'Escolher uma carga que dê o número de repetições da faixa a 1–3 da falha.' },
   // ---- 1RM ----
+  { key: 'groups.tabata', area: 'grupos', mark: 'source', refs: [REF.tabata1996],
+    title: 'Tabata',
+    value: '20 s de trabalho e 10 s de descanso, 8 rondas. No estudo foram 7–8 séries em bicicleta a cerca de 170% do VO2max, 5 dias por semana durante 6 semanas. A app usa só os tempos: o efeito noutros exercícios e a intensidades mais baixas não foi medido.' },
+  { key: 'groups.defaults', area: 'grupos', mark: 'app', refs: [],
+    title: 'Valores de partida dos outros formatos',
+    value: 'EMOM 10 min, AMRAP 12 min, intervalos 40 s / 20 s × 8, circuito 3 voltas com 90 s entre voltas. São pontos de partida, editáveis em cada treino; nenhum estudo os fixa.' },
+  { key: 'groups.volume', area: 'grupos', mark: 'app', refs: [],
+    title: 'Como contam para o volume',
+    value: 'Superset e circuito contam como séries normais: registas carga, repetições e reserva. Os formatos por tempo (Tabata, EMOM, AMRAP, intervalos) ficam à parte, com as voltas ou rondas feitas: sem carga nem reserva, a app não sabe se cada ronda foi uma série efetiva, por isso não entram nas séries por músculo nem na recuperação. Progridem por fazeres mais voltas no mesmo tempo.' },
   { key: 'streak.week', area: 'progresso', mark: 'app', refs: [],
     title: 'Sequência semanal',
     value: 'Uma semana (segunda a domingo) conta para a sequência com pelo menos 2 dias de treino terminado. É por semana, e não por dia, para não empurrar a treinar sem recuperar: os dias de descanso nunca a quebram. Uma semana abaixo disso recomeça a contagem. O número serve para manter a sequência ao alcance; não é uma recomendação de frequência. Editável.',

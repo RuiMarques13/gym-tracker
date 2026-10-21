@@ -148,6 +148,18 @@ export class SqliteSessionRepository implements SessionRepository {
             ],
           );
         }
+        // Formatos dos grupos (circuito, por tempo): copiados do treino, para a sessão guardar o seu e o resultado.
+        const groups = await tx.query<{ group_key: string; kind: string; rounds: number | null; round_rest_seconds: number | null;
+          work_seconds: number | null; rest_seconds: number | null; duration_seconds: number | null }>(
+          `SELECT group_key, kind, rounds, round_rest_seconds, work_seconds, rest_seconds, duration_seconds
+             FROM exercise_group WHERE template_id = ? AND deleted_at IS NULL`, [templateId]);
+        for (const g of groups) {
+          await tx.run(
+            `INSERT INTO exercise_group (id, template_id, session_id, group_key, kind, rounds, round_rest_seconds, work_seconds, rest_seconds,
+               duration_seconds, result_rounds, result_reps, result_seconds, updated_at, deleted_at, device_id)
+             VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, ?, NULL, ?)`,
+            [newId(), id, g.group_key, g.kind, g.rounds, g.round_rest_seconds, g.work_seconds, g.rest_seconds, g.duration_seconds, now, this.deviceId]);
+        }
       }
     });
     return (await this.get(id))!;

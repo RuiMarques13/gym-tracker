@@ -28,6 +28,7 @@ export const MERGE_TABLES = [
   'muscle_recovery',
   'suggestion',
   'training_cycle',
+  'exercise_group',
 ] as const;
 export type MergeTable = (typeof MERGE_TABLES)[number];
 

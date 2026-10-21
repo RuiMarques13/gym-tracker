@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { SqlitePhotoRepository } from '../repositories/photo.repository';
 import { SqliteSessionRepository } from '../repositories/sqlite/sqlite-session.repository';
 import { SqliteWorkoutRepository } from '../repositories/sqlite/sqlite-workout.repository';
+import { SqliteGroupRepository } from '../repositories/sqlite/sqlite-group.repository';
+import { GROUP_DEFAULTS } from '../../core/session/group-format';
 import { getMeta } from '../db/local-meta';
 import { MIGRATIONS } from '../db/migrations';
 import { loadSeed } from '../seed/seed-loader';
@@ -279,5 +281,21 @@ describe('motor de sync contra Postgres real', () => {
     expect(await hasDirty(a.db)).toBe(false);
     const r = await a.sync(server);
     expect(r.pushed).toBe(0);
+  });
+
+  it('tabela que o servidor ainda não conhece fica por enviar e segue quando ele a conhecer', async () => {
+    const a = await device();
+    const { w } = await train(a);
+    await new SqliteGroupRepository(a.db, a.clock, a.deviceId).saveForTemplate(w.id, [{ groupKey: 'A', config: GROUP_DEFAULTS.TABATA }]);
+    // Servidor antigo: ignora exercise_group (como antes de correr o SQL no Supabase).
+    const old: SyncTransport = {
+      push: (req) => server.push({ ...req, tables: Object.fromEntries(Object.entries(req.tables).filter(([t]) => t !== 'exercise_group')) }),
+      pull: (since, limit) => server.pull(since, limit),
+    };
+    await a.sync(old);
+    expect(await hasDirty(a.db)).toBe(true);
+    await a.sync(server);
+    expect(await hasDirty(a.db)).toBe(false);
+    expect((await pg.query(`SELECT count(*)::int AS n FROM exercise_group`)).rows).toEqual([{ n: 1 }]);
   });
 });

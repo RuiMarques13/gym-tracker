@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { INDIRECT_OVERRIDES } from '../metrics/indirect';
 import { E1RM_MAX_REPS } from '../metrics/one-rm';
+import { GROUP_DEFAULTS } from '../session/group-format';
 import { SORENESS_ADJUST } from '../metrics/recovery';
 import { VOLUME_RULES } from '../metrics/volume-rules';
 import { SETTINGS } from '../settings/setting-registry';
@@ -84,6 +85,14 @@ describe('texto das regras = valores do código', () => {
   it('recuperação: ajuste pela dor', () => {
     const fmt = (h: number) => (h > 0 ? `+${h} h` : h < 0 ? `−${-h} h` : '0');
     says('recovery.soreness', ...Object.values(SORENESS_ADJUST).map(fmt));
+  });
+
+  it('formatos de grupo: valores por defeito', () => {
+    const d = GROUP_DEFAULTS;
+    says('groups.tabata', `${d.TABATA.workSeconds} s de trabalho`, `${d.TABATA.restSeconds} s de descanso`, `${d.TABATA.rounds} rondas`);
+    says('groups.defaults', `EMOM ${d.EMOM.rounds} min`, `AMRAP ${d.AMRAP.durationSeconds! / 60} min`,
+      `intervalos ${d.INTERVALS.workSeconds} s / ${d.INTERVALS.restSeconds} s × ${d.INTERVALS.rounds}`,
+      `circuito ${d.CIRCUIT.rounds} voltas com ${d.CIRCUIT.roundRestSeconds} s`);
   });
 
   it('sequência semanal', () => {

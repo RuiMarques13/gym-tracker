@@ -20,6 +20,8 @@ import { WorkoutRepository } from '../data/repositories/workout.repository';
  * Os ecrãs injetam interfaces, nunca a implementação SQLite.
  * Trocar a fonte de dados é mudar só esta fábrica.
  */
+import type { GroupRepository } from '../data/repositories/group.repository';
+import { SqliteGroupRepository } from '../data/repositories/sqlite/sqlite-group.repository';
 export const EXERCISE_REPOSITORY = new InjectionToken<ExerciseRepository>('ExerciseRepository', {
   providedIn: 'root',
   factory: () => {
@@ -49,6 +51,14 @@ export const SESSION_REPOSITORY = new InjectionToken<SessionRepository>('Session
   factory: () => {
     const database = inject(DatabaseService);
     return new SqliteSessionRepository(database.db, inject(CLOCK), database.deviceId);
+  },
+});
+
+export const GROUP_REPOSITORY = new InjectionToken<GroupRepository>('GroupRepository', {
+  providedIn: 'root',
+  factory: () => {
+    const database = inject(DatabaseService);
+    return new SqliteGroupRepository(database.db, inject(CLOCK), database.deviceId);
   },
 });
 
