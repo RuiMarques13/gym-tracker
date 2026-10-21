@@ -20,25 +20,25 @@ import { SettingsService } from '../../services/settings/settings.service';
 import { CLOCK } from '../../services/clock';
 import { formatDay, formatTime } from '../history/history-format';
 import { HomeWidgetsComponent } from './home-widgets.component';
-import { WeekPathComponent } from './week-path.component';
+import { HomeTodayComponent } from './home-today.component';
 import { HomeLayoutEditorComponent } from './home-layout-editor.component';
 import { SessionLauncher } from '../session/session-launcher';
 import { NoticeCardsComponent, SuggestionCardsComponent } from '../../shared/suggestion-cards.component';
 import { ProgressionService } from '../../services/progression/progression.service';
 import { CycleService, type BlockEndSummary } from '../../services/progression/cycle.service';
-import { WEEK_LABEL, type NextBlockProposal } from '../../core/progression/cycles';
+import { type NextBlockProposal } from '../../core/progression/cycles';
 
 @Component({
   selector: 'app-home',
   imports: [NavButtonComponent, 
     RouterLink, IonHeader, IonToolbar, IonTitle, IonContent,
-    IonButton, HomeWidgetsComponent, WeekPathComponent, HomeLayoutEditorComponent, IonButtons, IonIcon, SuggestionCardsComponent, NoticeCardsComponent,
+    IonButton, HomeWidgetsComponent, HomeTodayComponent, HomeLayoutEditorComponent, IonButtons, IonIcon, SuggestionCardsComponent, NoticeCardsComponent,
   ],
   template: `
     <ion-header>
       <ion-toolbar>
         <app-nav-button slot="start" />
-        <ion-title aria-label="Home"><ion-icon name="home" class="home-icon" /></ion-title>
+        <ion-title>{{ dateTitle() }}</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="editing.set(!editing())" [attr.aria-label]="editing() ? 'Concluir' : 'Editar a Home'">
             <ion-icon slot="icon-only" [name]="editing() ? 'checkmark' : 'pencil'" class="home-icon" />
@@ -77,7 +77,7 @@ import { WEEK_LABEL, type NextBlockProposal } from '../../core/progression/cycle
             <ion-button routerLink="/sessao">Continuar</ion-button>
           </div>
         }
-        <app-week-path [refresh]="tick()" [active]="!!active.value()" />
+        <app-home-today [refresh]="tick()" [active]="!!active.value()" />
 
         @if (deload(); as d) {
           <div class="active deload">
@@ -87,18 +87,6 @@ import { WEEK_LABEL, type NextBlockProposal } from '../../core/progression/cycle
             </div>
             <ion-button size="small" fill="outline" (click)="endDeload()">Terminar</ion-button>
           </div>
-        }
-        @if (cycleNow.value(); as cn) {
-          <a class="cycle" [routerLink]="['/ciclos', cn.cycle.id]">
-            <div>
-              <strong>{{ cn.cycle.name }} · {{ cn.pos.block.name }}</strong>
-              <span>Semana {{ cn.pos.weekIndex + 1 }} de {{ cn.pos.block.weeks.length }} · {{ weekLabel[cn.pos.week.type].toLowerCase() }}
-                @if (cn.pos.week.reps) { · {{ cn.pos.week.reps[0] }}–{{ cn.pos.week.reps[1] }} reps }
-                @if (cn.pos.week.sets !== 1) { · séries ×{{ cn.pos.week.sets.toLocaleString('pt-PT') }} }
-                @if (cn.pos.week.rir !== null) { · RIR {{ cn.pos.week.rir }} }</span>
-              <span>{{ cn.pos.nextDeload ? 'Próxima descarga: semana de ' + day(cn.pos.nextDeload) : 'Sem descarga marcada' }}</span>
-            </div>
-          </a>
         }
         @if (blockEnd.value(); as be) {
           <div class="block-end">
@@ -157,8 +145,6 @@ export class HomePage implements ViewWillEnter {
     loader: () => this.progression.cards(),
   });
   private readonly cycles = inject(CycleService);
-  readonly weekLabel = WEEK_LABEL;
-  readonly cycleNow = resource({ params: () => ({ t: this.tick() }), loader: () => this.cycles.active() });
   readonly blockEnd = resource({ params: () => ({ t: this.tick() }), loader: () => this.cycles.blockEnd() });
   day = (d: string) => new Date(d + 'T12:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' }).replace('.', '');
   async applyBlockEnd(be: BlockEndSummary, p: NextBlockProposal): Promise<void> {
@@ -219,6 +205,13 @@ export class HomePage implements ViewWillEnter {
   }
 
   readonly tick = signal(0);
+  /** Título: o dia de hoje («Quarta, 21 out»). */
+  readonly dateTitle = computed(() => {
+    this.tick();
+    const d = this.clock.now();
+    const wd = d.toLocaleDateString('pt-PT', { weekday: 'long' }).split('-')[0];
+    return `${wd.charAt(0).toUpperCase()}${wd.slice(1)}, ${d.getDate()} ${d.toLocaleDateString('pt-PT', { month: 'short' }).replace('.', '')}`;
+  });
   readonly editing = signal(false);
   private readonly sync = inject(SyncService);
   /** O sync trouxe dados de outro dispositivo: recarrega o que está no ecrã. */

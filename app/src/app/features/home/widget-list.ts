@@ -1,14 +1,13 @@
 export const WIDGETS = [
-  { id: 'next-workout', label: 'Próximo treino' },
   { id: 'week-progress', label: 'Alvo da semana vs progresso (gráfico)' },
-  { id: 'week-summary', label: 'Resumo da semana (tempo, exercícios, séries)' },
   { id: 'volume-week', label: 'Volume semanal por músculo' },
   { id: 'recovery', label: 'Descanso recomendado por músculo' },
   { id: 'category-week', label: 'Semana por categoria (séries, carga, tempo, distância)' },
   { id: 'mobility-minutes', label: 'Mobilidade da semana' },
 ] as const;
 
-export const DEFAULT_WIDGETS = ['next-workout', 'week-progress', 'week-summary', 'volume-week', 'recovery', 'category-week', 'mobility-minutes'];
+/** A Home já mostra hoje, a semana, o volume e a recuperação: os widgets são extras, desligados por defeito. */
+export const DEFAULT_WIDGETS: string[] = [];
 
 /**
  * Definições antigas: «weekly-sets» passou a «volume-week»; «exercise-counts» (os teus exercícios) saiu e dá o lugar
