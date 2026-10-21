@@ -188,9 +188,10 @@ export const SETTINGS = {
     validate: isStringArray, label: 'Ecrãs escondidos do menu',
   }),
   homeWidgets: def<string[]>({
-    key: 'home.widgets', scope: 'LAYOUT', schemaVersion: 1,
-    defaultValue: ['next-workout', 'week-progress', 'week-summary', 'volume-week', 'recovery', 'category-week', 'mobility-minutes'],
-    validate: isStringArray, label: 'Widgets da Home',
+    // Chave nova com a Home v2: os widgets passaram a extras (desligados); a lista antiga já não se aplica.
+    key: 'home.widgets.v2', scope: 'LAYOUT', schemaVersion: 1,
+    defaultValue: [],
+    validate: isStringArray, label: 'Cartões extra da Home',
   }),
 } as const;
 

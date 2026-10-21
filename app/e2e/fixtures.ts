@@ -59,7 +59,7 @@ export class App {
   /** Sessão livre com os exercícios da tua lista (todos os que houver). */
   async startFreeSession(): Promise<void> {
     await this.page.goto('/home');
-    await this.page.locator('app-week-path button', { hasText: 'SESSÃO LIVRE' }).click();
+    await this.page.locator('app-home-today button', { hasText: 'Sessão livre' }).first().click();
     const picker = this.page.locator('app-exercise-picker');
     await expect(picker.locator('ion-checkbox').first()).toBeVisible();
     for (const box of await picker.locator('ion-checkbox').all()) await box.click();
