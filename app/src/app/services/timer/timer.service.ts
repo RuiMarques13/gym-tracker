@@ -147,7 +147,8 @@ export class TimerService {
     this.alerted = false;
   }
 
-  private unlockAudio(): void {
+  /** Prepara o som (tem de ser chamado a partir de um toque). */
+  unlockAudio(): void {
     try {
       const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!Ctor) return;
@@ -156,7 +157,8 @@ export class TimerService {
     } catch { /* sem áudio: só vibra */ }
   }
 
-  private beep(): void {
+  /** Três bips curtos (no browser e com a app aberta). */
+  beep(): void {
     try {
       const ctx = this.audio;
       if (!ctx) return;

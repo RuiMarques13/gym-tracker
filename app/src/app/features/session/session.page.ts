@@ -74,7 +74,9 @@ import { HapticsService } from '../../services/ui/haptics.service';
 import { CelebrationService } from '../../services/ui/celebration.service';
 import { setDots, workoutProgress, type DotState } from '../../core/session/progress';
 import { bestOf, recordOf, type Best, type RecordSet } from '../../core/progression/records';
-import { METRICS_REPOSITORY } from '../../services/repositories';
+import { GROUP_REPOSITORY, METRICS_REPOSITORY } from '../../services/repositories';
+import { GROUP_DEFAULTS, GROUP_LABEL, groupLabel, isTimed, type GroupConfig } from '../../core/session/group-format';
+import type { ExerciseGroup } from '../../data/models/group';
 
 /** Porções do boneco de um exercício guardado. */
 const figOf = (ex: Exercise | null | undefined) => {
@@ -159,6 +161,21 @@ const figOf = (ex: Exercise | null | undefined) => {
           @for (b of blocks(); track b.block) {
             <h3 class="block-title">{{ blockLabel[b.block] }}</h3>
             @for (ex of b.items; track ex.id) {
+              @if (timedFirst(ex); as tg) {
+                <section class="timed" [attr.aria-label]="tg.label">
+                  <div class="timed-head">
+                    <span class="timed-badge">{{ tg.kindLabel }}</span>
+                    <strong>{{ tg.label }}</strong>
+                  </div>
+                  <ul class="timed-list">
+                    @for (m of tg.members; track m.id) { <li>{{ m.exerciseName }}@if (m.targetReps) { · {{ m.targetReps }} reps }</li> }
+                  </ul>
+                  @if (tg.result) { <p class="timed-result">Feito: {{ tg.result }}</p> }
+                  @if (!historical()) {
+                    <button type="button" class="timed-go" (click)="openTimed(tg.key)">{{ tg.result ? 'REPETIR' : 'COMEÇAR' }}</button>
+                  }
+                </section>
+              } @else if (!inTimedGroup(ex)) {
               <app-exercise-card
                 [id]="'ex-' + ex.id" [collapsed]="!historical() && openId() !== ex.id" [summary]="summaryOf(ex)"
                 [compactToday]="hasWorking(ex)" (expand)="openExercise(ex)"
@@ -169,6 +186,7 @@ const figOf = (ex: Exercise | null | undefined) => {
                 (openSet)="openSheet(ex, $event)" (removeExercise)="removeExercise(ex)" (choose)="choose(ex, $event)"
                 (quickLog)="quickLog(ex)" (startCardio)="startCardio(ex)" (setRir)="setRir(ex, $event.position, $event.rir)"
                 (dismissRir)="rirAsk.set(null)" />
+              }
             }
           }
           @if (!session()!.exercises.length) {
@@ -303,6 +321,16 @@ const figOf = (ex: Exercise | null | undefined) => {
     .next-row strong { font-size: 14px; }
     .next-row p { margin: 2px 0 0; font-size: 13px; color: var(--ion-color-medium); }
     .page { max-width: 760px; margin: 0 auto; padding: 8px 12px 24px; }
+    .timed { margin-bottom: 12px; padding: 14px; border-radius: 18px; border: 3px solid var(--gt-flame); background: var(--gt-flame-tint); }
+    .timed-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .timed-head strong { font-size: 1.1rem; font-weight: 900; }
+    .timed-badge { padding: 2px 10px; border-radius: 999px; background: var(--gt-flame); color: #17201c; font-weight: 900; font-size: .8rem; }
+    .timed-list { margin: 8px 0 0; padding-left: 20px; font-weight: 700; }
+    .timed-result { margin: 8px 0 0; font-weight: 900; }
+    .timed-go { width: 100%; min-height: 56px; margin-top: 12px; border: 0; border-radius: 16px; background: var(--gt-flame); color: #17201c;
+      font: inherit; font-size: 1.1rem; font-weight: 900; letter-spacing: .03em; box-shadow: 0 5px 0 var(--gt-flame-press);
+      transition: transform 80ms ease, box-shadow 80ms ease; }
+    .timed-go:active { transform: translateY(5px); box-shadow: none; }
     .center { display: grid; place-items: center; height: 60vh; }
     .day { margin: 2px 4px 8px; color: var(--ion-color-medium); font-size: 0.9rem; }
     .gap { margin-top: 8px; }
@@ -479,7 +507,8 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   private readonly chosenOpen = signal<string | null>(null);
   /** Exercícios pela ordem do treino, com as séries feitas e as de hoje. */
   private readonly focusList = computed<FocusExercise[]>(() =>
-    this.blocks().flatMap((b) => b.items).map((e) => ({ id: e.id, workingSets: workingSetCount(e), targetSets: e.targetSets ? this.setsFor(e) : null })),
+    this.blocks().flatMap((b) => b.items).filter((e) => !this.inTimedGroup(e))
+      .map((e) => ({ id: e.id, workingSets: workingSetCount(e), targetSets: e.targetSets ? this.setsFor(e) : null })),
   );
   /** O exercício aberto: o da pergunta da reserva (para não fugir antes de responderes), o escolhido ou o atual. */
   readonly openId = computed(() => this.rirAsk()?.exerciseId ?? openExerciseId(this.focusList(), this.chosenOpen()));
@@ -577,6 +606,7 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
       return;
     }
     this.session.set(found);
+    void this.loadGroups(found.id);
     if (this.fim() === '1' && !found.endedAt) this.openDetails();
     else if (this.add() === '1' && !found.endedAt) void this.addExercises();
     else if (!id && !found.templateId && !found.exercises.length && !this.autoPicked) {
@@ -943,12 +973,23 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   /** Descanso: do treino, do exercício ou o global (só força; mobilidade e cardio não têm por defeito). */
   private startRest(ex: SessionExercise): void {
     const next = this.supersetNext(ex);
+    const fmt = this.formatOf(ex);
     if (next) {
-      // Superset: sem descanso entre os exercícios do grupo; descansa-se depois do último.
-      void this.toast(`Superset: segue para ${next.exerciseName}.`);
+      // Superset e circuito: sem descanso entre os exercícios do grupo; abre logo o seguinte (sem esperar pela
+      // pergunta da reserva, que se corrige tocando na série).
+      this.rirAsk.set(null);
+      this.chosenOpen.set(next.id);
+      void this.toast(`${GROUP_LABEL[fmt?.kind ?? 'SUPERSET']}: segue para ${next.exerciseName}.`);
       return;
     }
-    const seconds = ex.restSeconds
+    // Último do grupo: volta ao primeiro se ainda faltam voltas.
+    const members = this.supersetMembers(ex);
+    if (members.length > 1) {
+      const first = members[0];
+      if (!first.targetSets || workingSetCount(first) < this.setsFor(first)) this.chosenOpen.set(first.id);
+    }
+    const roundRest = fmt?.kind === 'CIRCUIT' ? fmt.roundRestSeconds : null;
+    const seconds = roundRest ?? ex.restSeconds
       ?? (ex.kind === 'STRENGTH' ? defaultRest(ex.mechanic, this.settings.get('restByMechanic')(), this.settings.get('defaultRestSeconds')(), this.settings.get('profileGoal')()) : 0);
     if (seconds > 0) {
       this.timer.start('REST', ex.exerciseName, seconds);
@@ -978,7 +1019,46 @@ export class SessionPage implements ViewWillEnter, OnDestroy {
   }
   ssLabel(ex: SessionExercise): string | null {
     const m = this.supersetMembers(ex);
-    return m.length > 1 ? `Superset ${ex.supersetGroup} · ${m.findIndex((e) => e.id === ex.id) + 1}/${m.length}` : null;
+    if (m.length < 2) return null;
+    const fmt = this.formatOf(ex) ?? GROUP_DEFAULTS.SUPERSET;
+    const pos = `${GROUP_LABEL[fmt.kind]} ${ex.supersetGroup} · ${m.findIndex((e) => e.id === ex.id) + 1}/${m.length}`;
+    if (fmt.kind !== 'CIRCUIT') return pos;
+    const rounds = Math.max(fmt.rounds ?? 0, ...m.map((e) => (e.targetSets ? this.setsFor(e) : 0)));
+    const done = Math.min(...m.map((e) => workingSetCount(e)));
+    return rounds ? `${pos} · volta ${Math.min(rounds, done + 1)} de ${rounds}` : pos;
+  }
+
+  // --- formatos dos grupos (circuito, por tempo) ------------------------------------------------------
+  private readonly groupRepo = inject(GROUP_REPOSITORY);
+  readonly groupFormats = signal<ReadonlyMap<string, ExerciseGroup>>(new Map());
+  private async loadGroups(sessionId: string): Promise<void> {
+    try {
+      this.groupFormats.set(new Map((await this.groupRepo.forSession(sessionId)).map((g) => [g.groupKey, g])));
+    } catch {
+      this.groupFormats.set(new Map());
+    }
+  }
+  /** Formato do grupo do exercício; null fora de um grupo (sem linha, o grupo é um superset). */
+  formatOf(ex: SessionExercise): GroupConfig | null {
+    if (!ex.supersetGroup || this.supersetMembers(ex).length < 2) return null;
+    return this.groupFormats().get(ex.supersetGroup) ?? GROUP_DEFAULTS.SUPERSET;
+  }
+  inTimedGroup = (ex: SessionExercise): boolean => isTimed(this.formatOf(ex)?.kind);
+  /** Cartão do grupo por tempo, só no primeiro exercício do grupo. */
+  timedFirst(ex: SessionExercise) {
+    const fmt = this.formatOf(ex);
+    if (!fmt || !isTimed(fmt.kind)) return null;
+    const members = this.supersetMembers(ex);
+    if (members[0]?.id !== ex.id) return null;
+    const g = this.groupFormats().get(ex.supersetGroup!);
+    const result = g?.resultRounds !== null && g?.resultRounds !== undefined
+      ? `${g.resultRounds} ${fmt.kind === 'AMRAP' ? (g.resultRounds === 1 ? 'volta' : 'voltas') : (g.resultRounds === 1 ? 'ronda' : 'rondas')}`
+        + (g.resultReps ? ` + ${g.resultReps} reps` : '')
+      : null;
+    return { key: ex.supersetGroup!, kindLabel: GROUP_LABEL[fmt.kind], label: groupLabel(fmt), members, result };
+  }
+  openTimed(key: string): void {
+    void this.nav.navigateForward(['/sessao/tempo', key]);
   }
 
   // --- terminar -----------------------------------------------------------------------------------

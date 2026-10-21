@@ -112,8 +112,12 @@ async function pushDirty(db: DbAdapter, transport: SyncTransport, opts: SyncOpti
     if (res.protocol_version !== SYNC_PROTOCOL_VERSION) throw new SyncError('Versão do servidor incompatível.', 'protocol');
     // O servidor aceitou o pedido: o que enviámos passa a ser «conhecido» (mesmo se ele guardou outra versão por ser mais recente;
     // essa chega no pull e o merge decide).
+    // Só as tabelas que o servidor processou: uma tabela que ele ainda não conhece (SQL por correr no Supabase) fica por
+    // enviar e segue no próximo sync, em vez de ser dada como guardada.
+    const known = new Set(Object.keys(res.applied ?? {}));
     await db.transaction(async (tx) => {
       for (const r of sent) {
+        if (!known.has(r.table)) continue;
         await tx.run(
           `INSERT INTO sync_row (table_name, row_id, updated_at, device_id) VALUES (?, ?, ?, ?)
            ON CONFLICT(table_name, row_id) DO UPDATE SET updated_at = excluded.updated_at, device_id = excluded.device_id`,

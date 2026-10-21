@@ -206,7 +206,7 @@ export class SqliteWorkoutRepository implements WorkoutRepository {
     const taken = new Set(active.map((r) => fold(r.name.trim())));
     let name = `${source.name} (cópia)`;
     for (let n = 2; taken.has(fold(name)); n++) name = `${source.name} (cópia ${n})`;
-    return this.save({
+    const saved = await this.save({
       name,
       notes: source.notes,
       items: source.items.map((i) => ({
@@ -222,6 +222,19 @@ export class SqliteWorkoutRepository implements WorkoutRepository {
         restSeconds: i.restSeconds,
       })),
     });
+    // Os formatos dos grupos vão com a cópia.
+    const now = this.clock.nowIso();
+    const groups = await this.db.query<Record<string, SqlValue>>(
+      `SELECT group_key, kind, rounds, round_rest_seconds, work_seconds, rest_seconds, duration_seconds
+         FROM exercise_group WHERE template_id = ? AND deleted_at IS NULL`, [id]);
+    for (const g of groups) {
+      await this.db.run(
+        `INSERT INTO exercise_group (id, template_id, session_id, group_key, kind, rounds, round_rest_seconds, work_seconds, rest_seconds,
+           duration_seconds, result_rounds, result_reps, result_seconds, updated_at, deleted_at, device_id)
+         VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, ?, NULL, ?)`,
+        [newId(), saved.id, g['group_key'], g['kind'], g['rounds'], g['round_rest_seconds'], g['work_seconds'], g['rest_seconds'], g['duration_seconds'], now, this.deviceId]);
+    }
+    return saved;
   }
 
   async archive(id: string): Promise<void> {

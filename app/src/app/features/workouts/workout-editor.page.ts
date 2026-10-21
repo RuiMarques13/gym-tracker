@@ -42,11 +42,28 @@ import {
   PlannedExerciseInput,
   WorkoutValidationError,
 } from '../../data/models/workout';
-import { WORKOUT_REPOSITORY } from '../../services/repositories';
+import { GROUP_REPOSITORY, WORKOUT_REPOSITORY } from '../../services/repositories';
+import { GROUP_DEFAULTS, GROUP_LABEL, groupLabel, type GroupConfig } from '../../core/session/group-format';
+import { GroupFormatSheetComponent } from './group-format-sheet.component';
 import { ExercisePickerComponent } from './exercise-picker.component';
 import { formatTargets } from './workout-format';
 
 /** Item em edição: o que vai para o repositório mais o que é preciso para mostrar. */
+/** Grupos (exercícios seguidos com a mesma letra), pela ordem dos blocos. */
+function groupsOf(items: readonly { id: string; exerciseId: string; block: Block; supersetGroup?: string | null }[]) {
+  const out: { key: string; firstId: string; exerciseIds: string[] }[] = [];
+  for (const block of BLOCK_ORDER) {
+    let cur: (typeof out)[number] | null = null;
+    for (const it of items.filter((i) => i.block === block)) {
+      const g = it.supersetGroup ?? null;
+      if (g && cur && cur.key === g) cur.exerciseIds.push(it.exerciseId);
+      else if (g) out.push((cur = { key: g, firstId: it.id, exerciseIds: [it.exerciseId] }));
+      else cur = null;
+    }
+  }
+  return out;
+}
+
 interface EditItem extends PlannedExerciseInput {
   id: string;
   exerciseName: string;
@@ -129,7 +146,16 @@ import { toastHtml } from '../../services/ui/toast-text';
                             @if (item.archived) { <ion-badge color="medium">Arquivado</ion-badge> }
                           </h2>
                           <p>{{ targetsLabel(item) }}</p>
-                          @if (item.supersetGroup) { <p class="ss">Superset {{ item.supersetGroup }}</p> }
+                          @if (item.supersetGroup) {
+                            @if (isGroupStart(block, $index)) {
+                              <button type="button" class="fmt" (click)="$event.stopPropagation(); editFormat(item)"
+                                [attr.aria-label]="'Formato do grupo ' + item.supersetGroup + ': ' + formatOf(item.id) + '. Mudar'">
+                                {{ item.supersetGroup }} · {{ formatOf(item.id) }} <span aria-hidden="true">✎</span>
+                              </button>
+                            } @else {
+                              <p class="ss">{{ groupNameOf(block, $index) }} {{ item.supersetGroup }}</p>
+                            }
+                          }
                         </ion-label>
                         @if ($index > 0) {
                           <ion-button slot="end" fill="clear" size="small" [color]="linked(block, $index) ? 'primary' : 'medium'"
@@ -260,7 +286,9 @@ import { toastHtml } from '../../services/ui/toast-text';
     .center { display: flex; justify-content: center; padding: 48px; }
     .banner { margin: 12px 16px 0; padding: 10px 14px; border-radius: 10px; background: rgba(var(--ion-color-medium-rgb), 0.15); font-size: 0.9rem; }
     .banner a { color: var(--ion-color-primary); cursor: pointer; font-weight: 600; }
-    .ss { color: var(--ion-color-primary); font-weight: 600; }
+    .ss { color: var(--ion-color-primary); font-weight: 700; }
+    .fmt { margin-top: 4px; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 2px solid var(--ion-color-primary);
+      background: rgba(var(--ion-color-primary-rgb), .1); color: var(--ion-color-primary); font: inherit; font-size: .85rem; font-weight: 800; }
     .summary { margin: 14px 16px 0; font-size: 0.85rem; color: var(--ion-color-medium); }
     .block { margin-top: 18px; }
     .block-head { display: flex; justify-content: space-between; align-items: center; padding: 0 8px 0 16px; }
@@ -299,6 +327,9 @@ export class WorkoutEditorPage {
   readonly notes = signal('');
   readonly items = signal<EditItem[]>([]);
   readonly editing = signal<string | null>(null);
+  /** Formato de cada grupo, pelo id do primeiro exercício do grupo (estável quando juntas ou tiras exercícios). */
+  readonly formats = signal<ReadonlyMap<string, GroupConfig>>(new Map());
+  private readonly groupRepo = inject(GROUP_REPOSITORY);
 
   readonly isNew = computed(() => !this.id());
   readonly byBlock = computed(() => {
@@ -344,6 +375,9 @@ export class WorkoutEditorPage {
           mechanic: i.exerciseMechanic ?? null, exerciseRest: i.exerciseRestSeconds ?? null,
         })),
       );
+      const saved = await this.groupRepo.forTemplate(id);
+      const firstOf = new Map(groupsOf(this.items()).map((g) => [g.key, g.firstId]));
+      this.formats.set(new Map(saved.flatMap((g) => (firstOf.has(g.groupKey) ? [[firstOf.get(g.groupKey)!, g] as const] : []))));
       this.used.set(await this.repo.isUsed(id));
     }
     this.loading.set(false);
@@ -413,6 +447,36 @@ export class WorkoutEditorPage {
     );
   }
 
+  /** O exercício na posição `index` começa um grupo? */
+  isGroupStart(block: Block, index: number): boolean {
+    const list = this.byBlock()[block];
+    return !!list[index]?.supersetGroup && list[index - 1]?.supersetGroup !== list[index].supersetGroup;
+  }
+
+  /** Formato do grupo que começa neste exercício (superset por defeito). */
+  formatOf(firstId: string): string {
+    return groupLabel(this.formats().get(firstId) ?? GROUP_DEFAULTS.SUPERSET);
+  }
+
+  /** Nome do formato do grupo a que pertence o exercício na posição `index`. */
+  groupNameOf(block: Block, index: number): string {
+    const list = this.byBlock()[block];
+    let i = index;
+    while (i > 0 && list[i - 1]?.supersetGroup === list[index].supersetGroup) i--;
+    return GROUP_LABEL[(this.formats().get(list[i].id) ?? GROUP_DEFAULTS.SUPERSET).kind];
+  }
+
+  async editFormat(first: EditItem): Promise<void> {
+    const modal = await this.modals.create({
+      component: GroupFormatSheetComponent,
+      componentProps: { groupKey: first.supersetGroup ?? '', initial: this.formats().get(first.id) ?? null },
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss<GroupConfig>();
+    if (role !== 'confirm' || !data) return;
+    this.formats.update((m) => new Map(m).set(first.id, data));
+  }
+
   patch(id: string, changes: Partial<EditItem>): void {
     this.items.update((list) => list.map((i) => (i.id === id ? { ...i, ...changes } : i)));
   }
@@ -454,6 +518,14 @@ export class WorkoutEditorPage {
         notes: this.notes(),
         items: this.items().map(({ exerciseName, kind, metricType, isUnilateral, archived, ...input }) => input),
       });
+      // Formatos dos grupos: pela sequência de exercícios de cada grupo, para acertar com as letras guardadas.
+      const sig = (ids: string[]) => ids.join('|');
+      const savedKey = new Map(groupsOf(w.items).map((g) => [sig(g.exerciseIds), g.key]));
+      const groups = groupsOf(this.items()).flatMap((g) => {
+        const key = savedKey.get(sig(g.exerciseIds));
+        return key ? [{ groupKey: key, config: this.formats().get(g.firstId) ?? GROUP_DEFAULTS.SUPERSET }] : [];
+      });
+      await this.groupRepo.saveForTemplate(w.id, groups);
       await this.toast(this.isNew() ? `«${w.name}» criado.` : 'Treino guardado.', 'success');
       this.nav.navigateBack('/treinos');
     } catch (err) {
