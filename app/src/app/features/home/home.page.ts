@@ -1,4 +1,4 @@
-import { NavButtonComponent } from '../../shared/nav-button.component';
+import { AvatarButtonComponent } from '../../shared/avatar-button.component';
 import { Component, computed, effect, inject, resource, signal, untracked } from '@angular/core';
 import { SyncService } from '../../services/sync/sync.service';
 import { RouterLink } from '@angular/router';
@@ -30,20 +30,19 @@ import { type NextBlockProposal } from '../../core/progression/cycles';
 
 @Component({
   selector: 'app-home',
-  imports: [NavButtonComponent, 
-    RouterLink, IonHeader, IonToolbar, IonTitle, IonContent,
+  imports: [AvatarButtonComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent,
     IonButton, HomeWidgetsComponent, HomeTodayComponent, HomeLayoutEditorComponent, IonButtons, IonIcon, SuggestionCardsComponent, NoticeCardsComponent,
   ],
   template: `
     <ion-header>
       <ion-toolbar>
-        <app-nav-button slot="start" />
         <ion-title>{{ dateTitle() }}</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="editing.set(!editing())" [attr.aria-label]="editing() ? 'Concluir' : 'Editar a Home'">
             <ion-icon slot="icon-only" [name]="editing() ? 'checkmark' : 'pencil'" class="home-icon" />
           </ion-button>
         </ion-buttons>
+        <app-avatar-button slot="end" />
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">

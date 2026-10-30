@@ -3,10 +3,10 @@ import { defaultRepRange } from '../../core/progression/goals';
 import { formatPace, paceBand, weeklyPace } from '../../core/progression/body';
 import { RuleWhyComponent } from '../../shared/rule-why.component';
 import { NoticeCardsComponent } from '../../shared/suggestion-cards.component';
-import { NavButtonComponent } from '../../shared/nav-button.component';
+import { RouterLink } from '@angular/router';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import {
-  IonButton, IonContent, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonListHeader, IonNote, IonSegment, IonSegmentButton,
+  IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonListHeader, IonNote, IonSegment, IonSegmentButton,
   IonSelect, IonSelectOption, IonTitle, IonToolbar,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -23,14 +23,28 @@ import { ToastService } from '../../services/ui/toast.service';
 
 @Component({
   selector: 'app-profile',
-  imports: [NavButtonComponent, 
-    IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonInput, IonNote, IonSelect,
+  imports: [RouterLink, IonButtons, IonBackButton, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonInput, IonNote, IonSelect,
     IonSelectOption, IonSegment, IonSegmentButton, IonButton, IonIcon, RuleWhyComponent, NoticeCardsComponent,
   ],
   template: `
-    <ion-header><ion-toolbar><app-nav-button slot="start" /><ion-title>Perfil</ion-title></ion-toolbar></ion-header>
+    <ion-header><ion-toolbar><ion-buttons slot="start"><ion-back-button defaultHref="/home" text="" /></ion-buttons><ion-title>Perfil</ion-title></ion-toolbar></ion-header>
     <ion-content>
       <div class="page">
+        <ion-list lines="full">
+          <ion-item button detail routerLink="/conta">
+            <ion-icon slot="start" name="cloud-done-outline" aria-hidden="true" />
+            <ion-label>Conta e sincronização</ion-label>
+          </ion-item>
+          <ion-item button detail routerLink="/definicoes">
+            <ion-icon slot="start" name="settings-outline" aria-hidden="true" />
+            <ion-label>Definições</ion-label>
+          </ion-item>
+          <ion-item button detail routerLink="/definicoes/regras">
+            <ion-icon slot="start" name="book-outline" aria-hidden="true" />
+            <ion-label>Regras e fontes</ion-label>
+          </ion-item>
+        </ion-list>
+
         <ion-list lines="full">
           <ion-list-header><ion-label>Sobre ti</ion-label></ion-list-header>
           <ion-item>

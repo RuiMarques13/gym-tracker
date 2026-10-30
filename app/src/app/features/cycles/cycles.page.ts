@@ -15,7 +15,8 @@ import { askConflicts } from './conflicts';
 import { CycleError } from '../../data/repositories/cycle.repository';
 import { endDate, planFrom, positionOn, TEMPLATES, totalWeeks, type Cycle, type TemplateId } from '../../core/progression/cycles';
 import { GOAL_LABEL } from '../../core/progression/goals';
-import { NavButtonComponent } from '../../shared/nav-button.component';
+import { AvatarButtonComponent } from '../../shared/avatar-button.component';
+import { SectionTabsComponent } from '../../shared/section-tabs.component';
 import { RuleWhyComponent } from '../../shared/rule-why.component';
 import { ToastService } from '../../services/ui/toast.service';
 
@@ -24,17 +25,18 @@ const fmtDay = (d: string) => new Date(d + 'T12:00').toLocaleDateString('pt-PT',
 /** Ciclos: a lista de macrociclos e criar um a partir de um template. Os ciclos são opcionais. */
 @Component({
   selector: 'app-cycles',
-  imports: [NavButtonComponent, RouterLink, RuleWhyComponent, WeekPatternComponent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent,
+  imports: [AvatarButtonComponent, SectionTabsComponent, RouterLink, RuleWhyComponent, WeekPatternComponent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent,
     IonList, IonListHeader, IonItem, IonLabel, IonNote, IonModal, IonInput],
   template: `
     <ion-header>
       <ion-toolbar>
-        <app-nav-button slot="start" />
         <ion-title>Ciclos</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="openNew()" aria-label="Novo ciclo"><ion-icon slot="icon-only" name="add" /></ion-button>
         </ion-buttons>
+        <app-avatar-button slot="end" />
       </ion-toolbar>
+      <app-section-tabs />
     </ion-header>
     <ion-content>
       <div class="page">

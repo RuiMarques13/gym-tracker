@@ -5,17 +5,18 @@ import { VolumeService } from '../../services/metrics/volume.service';
 import { MuscleBarsComponent } from '../../shared/muscle-bars.component';
 import { RecoveryCardComponent } from '../../shared/recovery-card.component';
 import { SettingsService } from '../../services/settings/settings.service';
-import { NavButtonComponent } from '../../shared/nav-button.component';
+import { AvatarButtonComponent } from '../../shared/avatar-button.component';
+import { SectionTabsComponent } from '../../shared/section-tabs.component';
 
 const GOAL_LABEL = { hypertrophy: 'Ganhar massa', strength: 'Força', power: 'Potência', endurance: 'Resistência muscular', maintenance: 'Manutenção', cut: 'Definição' } as const;
 const LEVEL_LABEL = { beginner: 'Iniciante', intermediate: 'Intermédio', advanced: 'Avançado' } as const;
 /** Volume semanal por músculo (últimos 7 dias): séries efetivas fracionais vs faixa recomendada. */
 @Component({
   selector: 'app-volume',
-  imports: [RouterLink, NavButtonComponent, MuscleBarsComponent, RecoveryCardComponent, IonHeader, IonToolbar, IonTitle, IonContent],
+  imports: [RouterLink, AvatarButtonComponent, SectionTabsComponent, MuscleBarsComponent, RecoveryCardComponent, IonHeader, IonToolbar, IonTitle, IonContent],
   template: `
     <ion-header>
-      <ion-toolbar><app-nav-button slot="start" /><ion-title>Volume semanal</ion-title></ion-toolbar>
+      <ion-toolbar><ion-title>Volume semanal</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs />
     </ion-header>
     <ion-content class="ion-padding">
       <div class="page">

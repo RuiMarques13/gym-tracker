@@ -36,7 +36,8 @@ export const routes: Routes = [
   { path: 'bem-vindo', loadComponent: () => import('./features/onboarding/onboarding.page').then((m) => m.OnboardingPage) },
   { path: 'mais', redirectTo: 'home' },
   { path: 'definicoes/regras', loadComponent: () => import('./features/settings/rules.page').then((m) => m.RulesPage) },
-  { path: 'definicoes/menu', loadComponent: () => import('./features/settings/menu-settings.page').then((m) => m.MenuSettingsPage) },
+  // O menu lateral deu lugar aos separadores: o ecrã «Personalizar menu» já não existe.
+  { path: 'definicoes/menu', redirectTo: 'definicoes' },
   { path: 'treinos', loadComponent: () => import('./features/workouts/workouts.page').then((m) => m.WorkoutsPage) },
   {
     path: 'treinos/novo',

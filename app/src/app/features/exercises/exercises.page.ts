@@ -1,4 +1,5 @@
-import { NavButtonComponent } from '../../shared/nav-button.component';
+import { AvatarButtonComponent } from '../../shared/avatar-button.component';
+import { SectionTabsComponent } from '../../shared/section-tabs.component';
 import { Component, computed, inject, input, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
@@ -54,25 +55,22 @@ const KIND_COLOR: Record<Kind, string> = { STRENGTH: 'primary', MOBILITY: 'succe
 /** Os teus exercícios: pesquisa, filtros, ordenação; tocar abre o formulário. */
 @Component({
   selector: 'app-exercises',
-  imports: [NavButtonComponent, 
-    RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonSearchbar,
+  imports: [AvatarButtonComponent, SectionTabsComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonSearchbar,
     IonSegment, IonSegmentButton, IonChip, IonList, IonListHeader, IonItem, IonLabel, IonNote, IonBadge, IonModal,
     IonSelect, IonSelectOption, IonToggle,
   ],
   template: `
     <ion-header>
       <ion-toolbar>
-        <app-nav-button slot="start" />
         <ion-title>Exercícios</ion-title>
         <ion-buttons slot="end">
-          <ion-button routerLink="/exercicios/biblioteca">
-            <ion-icon slot="start" name="library-outline" /> Biblioteca
-          </ion-button>
           <ion-button routerLink="/exercicios/novo" aria-label="Novo exercício">
             <ion-icon slot="icon-only" name="add" />
           </ion-button>
         </ion-buttons>
+        <app-avatar-button slot="end" />
       </ion-toolbar>
+      <app-section-tabs />
       <ion-toolbar>
         <ion-searchbar placeholder="Pesquisar por nome" [debounce]="150"
           (ionInput)="query.set($any($event).detail.value ?? '')" />
