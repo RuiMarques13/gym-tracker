@@ -7,15 +7,16 @@ import { addIcons } from 'ionicons';
 import { heartOutline } from 'ionicons/icons';
 import { HealthService } from '../../services/health/health.service';
 import { SESSION_REPOSITORY } from '../../services/repositories';
-import { NavButtonComponent } from '../../shared/nav-button.component';
+import { AvatarButtonComponent } from '../../shared/avatar-button.component';
+import { SectionTabsComponent } from '../../shared/section-tabs.component';
 import { formatDay, formatSpan } from '../history/history-format';
 
 /** Os dados do relógio (frequência cardíaca e calorias) de cada treino, à parte do registo de séries. */
 @Component({
   selector: 'app-health',
-  imports: [NavButtonComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonButton, IonIcon, IonSpinner],
+  imports: [AvatarButtonComponent, SectionTabsComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonButton, IonIcon, IonSpinner],
   template: `
-    <ion-header><ion-toolbar><app-nav-button slot="start" /><ion-title>Saúde</ion-title></ion-toolbar></ion-header>
+    <ion-header><ion-toolbar><ion-title>Saúde</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs /></ion-header>
     <ion-content>
       <div class="page">
         @if (!available()) {

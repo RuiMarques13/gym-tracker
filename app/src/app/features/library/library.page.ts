@@ -1,9 +1,9 @@
+import { AvatarButtonComponent } from '../../shared/avatar-button.component';
+import { SectionTabsComponent } from '../../shared/section-tabs.component';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import {
-  IonBackButton,
   IonBadge,
   IonButton,
-  IonButtons,
   IonChip,
   IonContent,
   IonHeader,
@@ -48,16 +48,17 @@ import { ToastService } from '../../services/ui/toast.service';
 
 @Component({
   selector: 'app-library',
-  imports: [MuscleMapComponent, MuscleCardComponent, ExerciseMotionComponent, 
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent, IonSearchbar, IonChip, IonLabel,
+  imports: [AvatarButtonComponent, SectionTabsComponent, MuscleMapComponent, MuscleCardComponent, ExerciseMotionComponent, 
+    IonHeader, IonToolbar, IonTitle, IonContent, IonSearchbar, IonChip, IonLabel,
     IonList, IonItem, IonNote, IonBadge, IonButton, IonIcon, IonSpinner,
   ],
   template: `
     <ion-header>
       <ion-toolbar>
-        <ion-buttons slot="start"><ion-back-button defaultHref="/exercicios" text="" /></ion-buttons>
         <ion-title>Biblioteca</ion-title>
+        <app-avatar-button slot="end" />
       </ion-toolbar>
+      <app-section-tabs />
       <ion-toolbar>
         <ion-searchbar placeholder="Pesquisar na biblioteca" [debounce]="150"
           (ionInput)="query.set($any($event).detail.value ?? ''); limit.set(PAGE)" />

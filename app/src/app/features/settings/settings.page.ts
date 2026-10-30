@@ -1,9 +1,10 @@
 import { Capacitor } from '@capacitor/core';
 import { FEATURES } from '../../core/features';
-import { NavButtonComponent } from '../../shared/nav-button.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
+  IonBackButton,
+  IonButtons,
   AlertController,
   IonButton,
   IonContent,
@@ -36,13 +37,12 @@ import { ToastService } from '../../services/ui/toast.service';
 
 @Component({
   selector: 'app-settings',
-  imports: [NavButtonComponent, 
-    IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonNote,
+  imports: [IonButtons, IonBackButton, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonLabel, IonNote,
     IonSegment, IonSegmentButton, IonButton, RouterLink, IonIcon, IonToggle, IonInput,
   ],
   template: `
     <ion-header>
-      <ion-toolbar><app-nav-button slot="start" /><ion-title>Definições</ion-title></ion-toolbar>
+      <ion-toolbar><ion-buttons slot="start"><ion-back-button defaultHref="/perfil" text="" /></ion-buttons><ion-title>Definições</ion-title></ion-toolbar>
     </ion-header>
     <ion-content>
       <div class="page">
@@ -83,12 +83,6 @@ import { ToastService } from '../../services/ui/toast.service';
             }
           </div>
 
-          <ion-item button detail routerLink="/definicoes/menu">
-            <ion-label class="ion-text-wrap">
-              <h3>Personalizar menu</h3>
-              <p>Ordem e ecrãs visíveis no menu lateral</p>
-            </ion-label>
-          </ion-item>
 
           <ion-list-header><ion-label>Treino</ion-label></ion-list-header>
           <ion-item>

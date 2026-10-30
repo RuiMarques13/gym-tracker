@@ -1,38 +1,28 @@
 import { Component, computed, effect, inject, untracked } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import {
-  IonApp,
-  IonContent,
-  IonFooter,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonListHeader,
-  IonMenu,
-  IonMenuToggle,
-  IonNote,
-  IonRouterOutlet,
-  IonSplitPane,
-  MenuController,
-} from '@ionic/angular';
+import { NavigationEnd, Router } from '@angular/router';
+import { IonApp, IonRouterOutlet } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   alertCircleOutline,
+  barbell,
   barbellOutline,
   calendarOutline,
   repeatOutline,
   checkmarkCircleOutline,
+  clipboard,
   clipboardOutline,
   bodyOutline,
+  bookOutline,
   cameraOutline,
   cloudDoneOutline,
   heartOutline,
+  home,
   homeOutline,
   logOutOutline,
   optionsOutline,
   personOutline,
   settingsOutline,
+  statsChart,
   statsChartOutline,
   timeOutline,
 } from 'ionicons/icons';
@@ -40,99 +30,47 @@ import { filter } from 'rxjs';
 import { AuthService } from './services/cloud/auth.service';
 import { SyncService } from './services/sync/sync.service';
 import { DatabaseService } from './services/db/database.service';
-import { resolveNav } from './core/navigation/nav-items';
+import { tabBarVisible } from './core/navigation/tabs';
 import { EXERCISE_REPOSITORY, SESSION_REPOSITORY, WORKOUT_REPOSITORY } from './services/repositories';
 import { SettingsService } from './services/settings/settings.service';
 import { EffortReminder } from './services/timer/effort-reminder';
+import { NavStateService } from './services/ui/nav-state.service';
+import { TabBarComponent } from './shared/tab-bar.component';
 import { TimerBubbleComponent } from './shared/timer-bubble.component';
 import { CelebrationComponent } from './shared/celebration.component';
 import { CelebrationService } from './services/ui/celebration.service';
 
 @Component({
   selector: 'app-root',
-  imports: [
-    RouterLink, RouterLinkActive, IonApp, IonSplitPane, IonMenu, IonContent, IonList,
-    IonMenuToggle, IonItem, IonIcon, IonLabel, IonNote, IonRouterOutlet, IonFooter, TimerBubbleComponent, CelebrationComponent,
-  ],
+  imports: [IonApp, IonRouterOutlet, TabBarComponent, TimerBubbleComponent, CelebrationComponent],
   template: `
     <ion-app>
-      <ion-split-pane contentId="main" [when]="auth.state() === 'signedIn' ? 'lg' : false">
-        <ion-menu menuId="main-menu" contentId="main" type="overlay" [swipeGesture]="auth.state() === 'signedIn'">
-          <ion-content>
-            <a class="user" routerLink="/perfil" (click)="closeMenu()">
-              <span class="avatar">{{ initials() }}</span>
-              <span class="who">
-                <strong>{{ displayName() }}</strong>
-                <ion-note>{{ auth.email() ?? '' }}</ion-note>
-              </span>
-            </a>
-            <ion-list lines="none" class="nav">
-              @for (item of items(); track item.path) {
-                <ion-menu-toggle [autoHide]="false">
-                  <ion-item [routerLink]="item.path" routerLinkActive="active" [detail]="false" button>
-                    <ion-icon slot="start" [name]="item.icon" aria-hidden="true" />
-                    <ion-label>{{ item.label }}</ion-label>
-                  </ion-item>
-                </ion-menu-toggle>
-              }
-              <ion-menu-toggle [autoHide]="false">
-                <ion-item routerLink="/definicoes/menu" routerLinkActive="active" [detail]="false" button class="subtle">
-                  <ion-icon slot="start" name="options-outline" aria-hidden="true" />
-                  <ion-label>Personalizar menu</ion-label>
-                </ion-item>
-              </ion-menu-toggle>
-            </ion-list>
-          </ion-content>
-          <ion-footer>
-            <ion-list lines="none" class="nav foot">
-              <ion-menu-toggle [autoHide]="false">
-                <ion-item routerLink="/conta" routerLinkActive="active" [detail]="false" button>
-                  <ion-icon slot="start" name="cloud-done-outline" aria-hidden="true" />
-                  <ion-label>Conta e sincronização</ion-label>
-                </ion-item>
-              </ion-menu-toggle>
-              <ion-item button [detail]="false" (click)="signOut()">
-                <ion-icon slot="start" name="log-out-outline" aria-hidden="true" />
-                <ion-label>Terminar sessão</ion-label>
-              </ion-item>
-            </ion-list>
-          </ion-footer>
-        </ion-menu>
-
-        <div class="ion-page shell" id="main">
+      <div class="shell" [class.with-tabs]="showTabs()">
+        <div class="main" id="main">
           <ion-router-outlet />
         </div>
-      </ion-split-pane>
+        @if (showTabs()) { <app-tab-bar [url]="navState.url()" /> }
+      </div>
       <app-timer-bubble />
       <app-celebration [title]="party.current()?.title ?? null" [detail]="party.current()?.detail ?? null" />
     </ion-app>
   `,
   styles: `
-    .shell { display: flex; flex-direction: column; }
-    .shell ion-router-outlet { position: relative; flex: 1; }
-    .user {
-      display: flex; gap: 12px; align-items: center; padding: 20px 16px 12px; text-decoration: none; color: inherit;
-      padding-top: calc(20px + var(--ion-safe-area-top, 0px));
+    .shell { position: absolute; inset: 0; display: flex; flex-direction: column; }
+    .main { position: relative; flex: 1; min-height: 0; contain: layout size style; }
+    .main ion-router-outlet { position: absolute; inset: 0; }
+    /* Com a barra em baixo, a margem de segurança do fundo fica na barra e não nos rodapés dos ecrãs. */
+    .with-tabs .main { --ion-safe-area-bottom: 0px; }
+    @media (min-width: 992px) {
+      .shell { flex-direction: row-reverse; }
+      .with-tabs .main { --ion-safe-area-bottom: initial; }
     }
-    .avatar {
-      display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%;
-      background: var(--ion-color-primary); color: var(--ion-color-primary-contrast);
-      font-weight: 700; font-size: 1rem; letter-spacing: 0.02em;
-    }
-    .who { display: flex; flex-direction: column; min-width: 0; }
-    .who strong { font-size: 1.02rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .who ion-note { font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .nav { background: transparent; }
-    .nav ion-item { --background: transparent; --border-radius: 10px; margin: 2px 8px; }
-    .nav ion-item.active { --background: rgba(var(--ion-color-primary-rgb), 0.12); color: var(--ion-color-primary); }
-    .nav ion-item.active ion-icon { color: var(--ion-color-primary); }
-    .subtle { opacity: 0.75; font-size: 0.92rem; }
-    .foot { border-top: 1px solid var(--ion-border-color, rgba(128, 128, 128, 0.25)); padding: 6px 0; }
   `,
 })
 export class App {
   readonly party = inject(CelebrationService);
   protected readonly auth = inject(AuthService);
+  protected readonly navState = inject(NavStateService);
   private readonly sync = inject(SyncService);
   private readonly router = inject(Router);
   private readonly settings = inject(SettingsService);
@@ -141,23 +79,10 @@ export class App {
   private readonly workouts = inject(WORKOUT_REPOSITORY);
   private readonly sessions = inject(SESSION_REPOSITORY);
 
-  private readonly menu = inject(MenuController);
-  readonly items = computed(() => resolveNav(this.settings.get('navOrder')(), this.settings.get('navHidden')()));
-  readonly displayName = computed(() => this.settings.get('profileName')().trim() || this.auth.email() || 'Gym Tracker');
-  readonly initials = computed(() => {
-    const src = this.settings.get('profileName')().trim() || this.auth.email() || 'GT';
-    const parts = src.split(/[\s@._-]+/).filter(Boolean);
-    return ((parts[0]?.[0] ?? 'G') + (parts.length > 1 ? parts[1][0] : '')).toUpperCase();
-  });
-
-  closeMenu(): void {
-    void this.menu.close('main-menu');
-  }
-
-  async signOut(): Promise<void> {
-    await this.menu.close('main-menu');
-    await this.auth.signOut();
-  }
+  /** Barra de separadores: só com sessão iniciada, fora do treino em curso e com o teclado fechado. */
+  readonly showTabs = computed(
+    () => this.auth.state() === 'signedIn' && tabBarVisible(this.navState.url()) && !this.navState.keyboardOpen(),
+  );
 
   private onboardChecked = false;
 
@@ -174,8 +99,9 @@ export class App {
     // Sem sessão não se mexe na app: qualquer navegação volta ao login.
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => void this.requireLogin());
     addIcons({
-      homeOutline, calendarOutline, repeatOutline, clipboardOutline, barbellOutline, timeOutline, statsChartOutline,
-      personOutline, settingsOutline, bodyOutline, cameraOutline, cloudDoneOutline, heartOutline, logOutOutline, optionsOutline, checkmarkCircleOutline, alertCircleOutline,
+      home, homeOutline, clipboard, clipboardOutline, barbell, barbellOutline, statsChart, statsChartOutline,
+      calendarOutline, repeatOutline, timeOutline,
+      personOutline, settingsOutline, bodyOutline, bookOutline, cameraOutline, cloudDoneOutline, heartOutline, logOutOutline, optionsOutline, checkmarkCircleOutline, alertCircleOutline,
     });
   }
 

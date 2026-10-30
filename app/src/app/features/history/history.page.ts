@@ -1,4 +1,5 @@
-import { NavButtonComponent } from '../../shared/nav-button.component';
+import { AvatarButtonComponent } from '../../shared/avatar-button.component';
+import { SectionTabsComponent } from '../../shared/section-tabs.component';
 import { Component, computed, inject, resource } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
@@ -16,9 +17,9 @@ import { toastHtml } from '../../services/ui/toast-text';
 /** Sessões terminadas, da mais recente para a mais antiga, agrupadas por mês. */
 @Component({
   selector: 'app-history',
-  imports: [NavButtonComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonItemSliding, IonItemOptions, IonItemOption, IonLabel, IonBadge, IonIcon],
+  imports: [AvatarButtonComponent, SectionTabsComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonItemSliding, IonItemOptions, IonItemOption, IonLabel, IonBadge, IonIcon],
   template: `
-    <ion-header><ion-toolbar><app-nav-button slot="start" /><ion-title>Histórico</ion-title></ion-toolbar></ion-header>
+    <ion-header><ion-toolbar><ion-title>Histórico</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs /></ion-header>
     <ion-content>
       <div class="page">
         @if (!sessions.isLoading() && !sessions.value()?.length) {

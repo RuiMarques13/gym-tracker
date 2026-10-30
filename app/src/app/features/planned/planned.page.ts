@@ -1,4 +1,5 @@
-import { NavButtonComponent } from '../../shared/nav-button.component';
+import { AvatarButtonComponent } from '../../shared/avatar-button.component';
+import { SectionTabsComponent } from '../../shared/section-tabs.component';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import {
   AlertController, IonBadge, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonTitle, IonToolbar, ViewWillEnter,
@@ -16,16 +17,17 @@ import { ToastService } from '../../services/ui/toast.service';
 
 @Component({
   selector: 'app-planned',
-  imports: [NavButtonComponent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonBadge],
+  imports: [AvatarButtonComponent, SectionTabsComponent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonBadge],
   template: `
     <ion-header>
       <ion-toolbar>
-        <app-nav-button slot="start" />
         <ion-title>Planeados</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="goToday()" [disabled]="isThisWeek()">Hoje</ion-button>
         </ion-buttons>
+        <app-avatar-button slot="end" />
       </ion-toolbar>
+      <app-section-tabs />
     </ion-header>
     <ion-content>
       <div class="page">

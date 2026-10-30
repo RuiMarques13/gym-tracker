@@ -1,4 +1,5 @@
-import { NavButtonComponent } from '../../shared/nav-button.component';
+import { AvatarButtonComponent } from '../../shared/avatar-button.component';
+import { SectionTabsComponent } from '../../shared/section-tabs.component';
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import { IonContent, IonHeader, IonSelect, IonSelectOption, IonTitle, IonToolbar, ViewWillEnter } from '@ionic/angular';
 import { CLOCK } from '../../services/clock';
@@ -27,9 +28,9 @@ const METRIC_OPTIONS: Array<{ id: CategoryMetric; label: string; unit: string }>
 /** Gráficos: atividade por categoria (séries, reps, carga, tempo, distância), peso corporal e progressão por exercício. */
 @Component({
   selector: 'app-charts',
-  imports: [NavButtonComponent, IonHeader, IonToolbar, IonTitle, IonContent, IonSelect, IonSelectOption, ChartComponent],
+  imports: [AvatarButtonComponent, SectionTabsComponent, IonHeader, IonToolbar, IonTitle, IonContent, IonSelect, IonSelectOption, ChartComponent],
   template: `
-    <ion-header><ion-toolbar><app-nav-button slot="start" /><ion-title>Gráficos</ion-title></ion-toolbar></ion-header>
+    <ion-header><ion-toolbar><ion-title>Gráficos</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs /></ion-header>
     <ion-content>
       <div class="page">
         <section class="card">
