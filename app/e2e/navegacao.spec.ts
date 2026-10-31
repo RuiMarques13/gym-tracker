@@ -57,3 +57,29 @@ test('a barra esconde-se durante o treino', async ({ page, app }) => {
   await expect(page).toHaveURL(/\/sessao/);
   await expect(page.locator('app-tab-bar')).toHaveCount(0);
 });
+
+test('Progresso → Corpo: peso e acesso às fotos', async ({ page, app }) => {
+  await app.open();
+  await page.locator('app-tab-bar').getByRole('button', { name: 'Progresso' }).click();
+  const current = page.locator('.ion-page:not(.ion-page-hidden)');
+  await current.locator('app-section-tabs ion-segment-button', { hasText: 'Corpo' }).click();
+  await expect(page).toHaveURL(/\/corpo$/);
+
+  const body = page.locator('app-body-measurements');
+  await body.locator('ion-input input[type="number"]').fill('80.5');
+  await body.locator('ion-button', { hasText: 'Registar' }).click();
+  await expect(body.locator('h2.big')).toContainText('80,5');
+
+  await page.locator('a.photos').click();
+  await expect(page).toHaveURL(/\/corpo\/fotos$/);
+  await expect(page.locator('app-tab-bar [aria-current="page"]')).toHaveText(/Progresso/);
+
+  // O caminho antigo das fotos continua a funcionar.
+  await page.goto('/fotos');
+  await expect(page).toHaveURL(/\/corpo\/fotos$/);
+
+  // As medições já não estão no Perfil.
+  await page.goto('/perfil');
+  await expect(page.locator('app-body-measurements')).toHaveCount(0);
+  await expect(page.locator('ion-item', { hasText: 'Peso, medidas e fotos' })).toBeVisible();
+});

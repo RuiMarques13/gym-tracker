@@ -60,7 +60,7 @@ const ALL_TABS: Tab[] = [
       { path: '/volume', label: 'Semana' },
       { path: '/historico', label: 'Histórico' },
       { path: '/graficos', label: 'Gráficos' },
-      { path: '/fotos', label: 'Corpo' },
+      { path: '/corpo', label: 'Corpo' },
       { path: '/saude', label: 'Saúde', feature: 'watch' },
     ],
   },

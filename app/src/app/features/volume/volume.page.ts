@@ -16,7 +16,7 @@ const LEVEL_LABEL = { beginner: 'Iniciante', intermediate: 'Intermédio', advanc
   imports: [RouterLink, AvatarButtonComponent, SectionTabsComponent, MuscleBarsComponent, RecoveryCardComponent, IonHeader, IonToolbar, IonTitle, IonContent],
   template: `
     <ion-header>
-      <ion-toolbar><ion-title>Volume semanal</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs />
+      <ion-toolbar><ion-title>Progresso</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs />
     </ion-header>
     <ion-content class="ion-padding">
       <div class="page">

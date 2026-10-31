@@ -16,7 +16,7 @@ import { formatDay, formatSpan } from '../history/history-format';
   selector: 'app-health',
   imports: [AvatarButtonComponent, SectionTabsComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonLabel, IonButton, IonIcon, IonSpinner],
   template: `
-    <ion-header><ion-toolbar><ion-title>Saúde</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs /></ion-header>
+    <ion-header><ion-toolbar><ion-title>Progresso</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs /></ion-header>
     <ion-content>
       <div class="page">
         @if (!available()) {

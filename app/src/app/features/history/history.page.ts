@@ -19,7 +19,7 @@ import { toastHtml } from '../../services/ui/toast-text';
   selector: 'app-history',
   imports: [AvatarButtonComponent, SectionTabsComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonListHeader, IonItem, IonItemSliding, IonItemOptions, IonItemOption, IonLabel, IonBadge, IonIcon],
   template: `
-    <ion-header><ion-toolbar><ion-title>Histórico</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs /></ion-header>
+    <ion-header><ion-toolbar><ion-title>Progresso</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs /></ion-header>
     <ion-content>
       <div class="page">
         @if (!sessions.isLoading() && !sessions.value()?.length) {

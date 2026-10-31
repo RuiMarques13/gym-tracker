@@ -64,7 +64,9 @@ export const routes: Routes = [
         { path: 'saude/:id', loadComponent: () => import('./features/health/health-detail.page').then((m) => m.HealthDetailPage) },
       ]
     : []),
-  { path: 'fotos', loadComponent: () => import('./features/photos/photos.page').then((m) => m.PhotosPage) },
+  { path: 'corpo', loadComponent: () => import('./features/body/body.page').then((m) => m.BodyPage) },
+  { path: 'corpo/fotos', loadComponent: () => import('./features/photos/photos.page').then((m) => m.PhotosPage) },
+  { path: 'fotos', redirectTo: 'corpo/fotos' },
   { path: 'volume', loadComponent: () => import('./features/volume/volume.page').then((m) => m.VolumePage) },
   { path: 'graficos', loadComponent: () => import('./features/charts/charts.page').then((m) => m.ChartsPage) },
   { path: 'conta', loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage) },
