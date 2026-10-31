@@ -21,7 +21,7 @@ import { ToastService } from '../../services/ui/toast.service';
   template: `
     <ion-header>
       <ion-toolbar>
-        <ion-title>Planeados</ion-title>
+        <ion-title>Treinos</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="goToday()" [disabled]="isThisWeek()">Hoje</ion-button>
         </ion-buttons>

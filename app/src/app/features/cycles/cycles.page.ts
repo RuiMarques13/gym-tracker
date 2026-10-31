@@ -30,7 +30,7 @@ const fmtDay = (d: string) => new Date(d + 'T12:00').toLocaleDateString('pt-PT',
   template: `
     <ion-header>
       <ion-toolbar>
-        <ion-title>Ciclos</ion-title>
+        <ion-title>Treinos</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="openNew()" aria-label="Novo ciclo"><ion-icon slot="icon-only" name="add" /></ion-button>
         </ion-buttons>

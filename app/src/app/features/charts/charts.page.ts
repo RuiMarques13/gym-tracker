@@ -30,7 +30,7 @@ const METRIC_OPTIONS: Array<{ id: CategoryMetric; label: string; unit: string }>
   selector: 'app-charts',
   imports: [AvatarButtonComponent, SectionTabsComponent, IonHeader, IonToolbar, IonTitle, IonContent, IonSelect, IonSelectOption, ChartComponent],
   template: `
-    <ion-header><ion-toolbar><ion-title>Gráficos</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs /></ion-header>
+    <ion-header><ion-toolbar><ion-title>Progresso</ion-title><app-avatar-button slot="end" /></ion-toolbar><app-section-tabs /></ion-header>
     <ion-content>
       <div class="page">
         <section class="card">

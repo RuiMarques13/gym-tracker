@@ -55,7 +55,7 @@ import { ToastService } from '../../services/ui/toast.service';
   template: `
     <ion-header>
       <ion-toolbar>
-        <ion-title>Biblioteca</ion-title>
+        <ion-title>Exercícios</ion-title>
         <app-avatar-button slot="end" />
       </ion-toolbar>
       <app-section-tabs />

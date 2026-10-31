@@ -1,6 +1,6 @@
 import { Component, computed, inject, resource, signal } from '@angular/core';
 import {
-  AlertController, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonTitle,
+  AlertController, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonTitle,
   IonToolbar,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -12,8 +12,6 @@ import { PhotoError, PhotoPose, POSE_LABEL, ProgressPhoto } from '../../data/mod
 import { PHOTO_REPOSITORY } from '../../services/repositories';
 import { RouterLink } from '@angular/router';
 import { SettingsService } from '../../services/settings/settings.service';
-import { AvatarButtonComponent } from '../../shared/avatar-button.component';
-import { SectionTabsComponent } from '../../shared/section-tabs.component';
 
 const POSES: PhotoPose[] = ['FRONT', 'SIDE', 'BACK', 'OTHER'];
 
@@ -22,11 +20,12 @@ import { ToastService } from '../../services/ui/toast.service';
 
 @Component({
   selector: 'app-photos',
-  imports: [AvatarButtonComponent, SectionTabsComponent, RouterLink, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonSegment, IonSegmentButton, IonLabel],
+  imports: [RouterLink, IonBackButton, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonSegment, IonSegmentButton, IonLabel],
   template: `
     <ion-header>
       <ion-toolbar>
-        <ion-title>Fotos</ion-title>
+        <ion-buttons slot="start"><ion-back-button defaultHref="/corpo" text="" /></ion-buttons>
+        <ion-title>Fotos de progresso</ion-title>
         <ion-buttons slot="end">
           @if (photos.value()?.length! > 1) {
             <ion-button (click)="toggleCompare()" [color]="comparing() ? 'primary' : undefined" aria-label="Comparar">
@@ -34,9 +33,7 @@ import { ToastService } from '../../services/ui/toast.service';
             </ion-button>
           }
         </ion-buttons>
-        <app-avatar-button slot="end" />
       </ion-toolbar>
-      <app-section-tabs />
     </ion-header>
     <ion-content class="ion-padding">
       <div class="page">

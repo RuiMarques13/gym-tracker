@@ -37,7 +37,8 @@ describe('tabForUrl', () => {
     expect(tabForUrl('/volume')?.id).toBe('progresso');
     expect(tabForUrl('/historico')?.id).toBe('progresso');
     expect(tabForUrl('/graficos')?.id).toBe('progresso');
-    expect(tabForUrl('/fotos')?.id).toBe('progresso');
+    expect(tabForUrl('/corpo')?.id).toBe('progresso');
+    expect(tabForUrl('/corpo/fotos')?.id).toBe('progresso');
   });
   it('os ecrãs de detalhe ficam no separador da lista', () => {
     expect(tabForUrl('/treinos/novo')?.id).toBe('treinos');
