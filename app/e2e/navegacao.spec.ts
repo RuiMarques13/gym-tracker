@@ -83,3 +83,29 @@ test('Progresso → Corpo: peso e acesso às fotos', async ({ page, app }) => {
   await expect(page.locator('app-body-measurements')).toHaveCount(0);
   await expect(page.locator('ion-item', { hasText: 'Peso, medidas e fotos' })).toBeVisible();
 });
+
+test('barra «Treino em curso» fora da sessão', async ({ page, app }) => {
+  await app.open();
+  await app.addFromLibrary('Dumbbell Bench Press');
+  await app.startFreeSession();
+
+  await page.goto('/treinos');
+  const bar = page.locator('app-active-session-bar');
+  await expect(bar).toContainText('Treino em curso');
+  await expect(bar).toContainText('Sessão livre');
+  await expect(bar).toContainText('0 séries');
+  const [size] = await app.sizes('app-active-session-bar button');
+  expect(size.h).toBeGreaterThanOrEqual(48);
+
+  // Na Home não aparece: lá está o cartão «Sessão em curso».
+  await page.locator('app-tab-bar').getByRole('button', { name: 'Hoje' }).click();
+  await expect(page).toHaveURL(/\/home$/);
+  await expect(bar).toHaveCount(0);
+
+  // Tocar volta ao treino, e lá a barra (e os separadores) somem.
+  await page.locator('app-tab-bar').getByRole('button', { name: 'Progresso' }).click();
+  await bar.locator('button').click();
+  await expect(page).toHaveURL(/\/sessao$/);
+  await expect(bar).toHaveCount(0);
+  await expect(page.locator('app-tab-bar')).toHaveCount(0);
+});

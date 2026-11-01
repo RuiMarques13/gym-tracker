@@ -179,14 +179,8 @@ export const SETTINGS = {
     key: 'watch.checklist', scope: 'DEVICE', schemaVersion: 1, defaultValue: [],
     validate: isStringArray, label: 'Passos do relógio concluídos',
   }),
-  navOrder: def<string[]>({
-    key: 'nav.order', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: [],
-    validate: isStringArray, label: 'Ordem do menu',
-  }),
-  navHidden: def<string[]>({
-    key: 'nav.hidden', scope: 'ACCOUNT', schemaVersion: 1, defaultValue: [],
-    validate: isStringArray, label: 'Ecrãs escondidos do menu',
-  }),
+  // 'nav.order' e 'nav.hidden' (menu lateral personalizável) deixaram de existir com os separadores.
+  // As linhas antigas na base ficam sem uso: o registo só lê as chaves que conhece.
   homeWidgets: def<string[]>({
     // Chave nova com a Home v2: os widgets passaram a extras (desligados); a lista antiga já não se aplica.
     key: 'home.widgets.v2', scope: 'LAYOUT', schemaVersion: 1,
