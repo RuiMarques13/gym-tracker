@@ -36,18 +36,24 @@ import { SettingsService } from './services/settings/settings.service';
 import { EffortReminder } from './services/timer/effort-reminder';
 import { NavStateService } from './services/ui/nav-state.service';
 import { TabBarComponent } from './shared/tab-bar.component';
+import { ActiveSessionBarComponent } from './shared/active-session-bar.component';
+import { ActiveSessionService } from './services/ui/active-session.service';
+import { activeBarVisible } from './core/session/active-bar';
 import { TimerBubbleComponent } from './shared/timer-bubble.component';
 import { CelebrationComponent } from './shared/celebration.component';
 import { CelebrationService } from './services/ui/celebration.service';
 
 @Component({
   selector: 'app-root',
-  imports: [IonApp, IonRouterOutlet, TabBarComponent, TimerBubbleComponent, CelebrationComponent],
+  imports: [IonApp, IonRouterOutlet, TabBarComponent, ActiveSessionBarComponent, TimerBubbleComponent, CelebrationComponent],
   template: `
     <ion-app>
       <div class="shell" [class.with-tabs]="showTabs()">
-        <div class="main" id="main">
-          <ion-router-outlet />
+        <div class="column">
+          <div class="main" id="main">
+            <ion-router-outlet />
+          </div>
+          @if (showActiveBar() && activeSession.session(); as s) { <app-active-session-bar [session]="s" /> }
         </div>
         @if (showTabs()) { <app-tab-bar [url]="navState.url()" /> }
       </div>
@@ -57,6 +63,7 @@ import { CelebrationService } from './services/ui/celebration.service';
   `,
   styles: `
     .shell { position: absolute; inset: 0; display: flex; flex-direction: column; }
+    .column { position: relative; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
     .main { position: relative; flex: 1; min-height: 0; contain: layout size style; }
     .main ion-router-outlet { position: absolute; inset: 0; }
     /* Com a barra em baixo, a margem de segurança do fundo fica na barra e não nos rodapés dos ecrãs. */
@@ -71,6 +78,7 @@ export class App {
   readonly party = inject(CelebrationService);
   protected readonly auth = inject(AuthService);
   protected readonly navState = inject(NavStateService);
+  protected readonly activeSession = inject(ActiveSessionService);
   private readonly sync = inject(SyncService);
   private readonly router = inject(Router);
   private readonly settings = inject(SettingsService);
@@ -83,6 +91,8 @@ export class App {
   readonly showTabs = computed(
     () => this.auth.state() === 'signedIn' && tabBarVisible(this.navState.url()) && !this.navState.keyboardOpen(),
   );
+  /** Barra «Treino em curso»: com os separadores, menos na Home (que tem o cartão próprio). */
+  readonly showActiveBar = computed(() => this.showTabs() && activeBarVisible(this.navState.url()));
 
   private onboardChecked = false;
 
